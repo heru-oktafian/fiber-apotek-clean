@@ -1,0 +1,190 @@
+package postgres
+
+import "time"
+
+type UserModel struct {
+	ID         string `gorm:"column:id;primaryKey"`
+	Name       string `gorm:"column:name"`
+	Username   string `gorm:"column:username"`
+	Password   string `gorm:"column:password"`
+	UserRole   string `gorm:"column:user_role"`
+	UserStatus string `gorm:"column:user_status"`
+}
+
+func (UserModel) TableName() string { return "users" }
+
+type BranchModel struct {
+	ID               string `gorm:"column:id;primaryKey"`
+	BranchName       string `gorm:"column:branch_name"`
+	DefaultMember    string `gorm:"column:default_member"`
+	Quota            int    `gorm:"column:quota"`
+	SubscriptionType string `gorm:"column:subscription_type"`
+	RealAsset        string `gorm:"column:real_asset"`
+}
+
+func (BranchModel) TableName() string { return "branches" }
+
+type UserBranchModel struct {
+	UserID   string `gorm:"column:user_id"`
+	BranchID string `gorm:"column:branch_id"`
+}
+
+func (UserBranchModel) TableName() string { return "user_branches" }
+
+type ProductModel struct {
+	ID                string    `gorm:"column:id;primaryKey"`
+	SKU               string    `gorm:"column:sku"`
+	Name              string    `gorm:"column:name"`
+	Description       string    `gorm:"column:description"`
+	BranchID          string    `gorm:"column:branch_id"`
+	UnitID            string    `gorm:"column:unit_id"`
+	Stock             int       `gorm:"column:stock"`
+	PurchasePrice     int       `gorm:"column:purchase_price"`
+	SalesPrice        int       `gorm:"column:sales_price"`
+	AlternatePrice    int       `gorm:"column:alternate_price"`
+	ProductCategoryID string    `gorm:"column:product_category_id"`
+	ExpiredDate       time.Time `gorm:"column:expired_date"`
+}
+
+func (ProductModel) TableName() string { return "products" }
+
+type UnitModel struct {
+	ID   string `gorm:"column:id;primaryKey"`
+	Name string `gorm:"column:name"`
+}
+
+func (UnitModel) TableName() string { return "units" }
+
+type UnitConversionModel struct {
+	ProductID string `gorm:"column:product_id"`
+	InitID    string `gorm:"column:init_id"`
+	FinalID   string `gorm:"column:final_id"`
+	ValueConv int    `gorm:"column:value_conv"`
+	BranchID  string `gorm:"column:branch_id"`
+}
+
+func (UnitConversionModel) TableName() string { return "unit_conversions" }
+
+type PurchaseModel struct {
+	ID            string    `gorm:"column:id;primaryKey"`
+	SupplierID    string    `gorm:"column:supplier_id"`
+	PurchaseDate  time.Time `gorm:"column:purchase_date"`
+	BranchID      string    `gorm:"column:branch_id"`
+	UserID        string    `gorm:"column:user_id"`
+	Payment       string    `gorm:"column:payment"`
+	TotalPurchase int       `gorm:"column:total_purchase"`
+	CreatedAt     time.Time `gorm:"column:created_at"`
+	UpdatedAt     time.Time `gorm:"column:updated_at"`
+}
+
+func (PurchaseModel) TableName() string { return "purchases" }
+
+type PurchaseItemModel struct {
+	ID          string    `gorm:"column:id;primaryKey"`
+	PurchaseID  string    `gorm:"column:purchase_id"`
+	ProductID   string    `gorm:"column:product_id"`
+	UnitID      string    `gorm:"column:unit_id"`
+	Price       int       `gorm:"column:price"`
+	Qty         int       `gorm:"column:qty"`
+	SubTotal    int       `gorm:"column:sub_total"`
+	ExpiredDate time.Time `gorm:"column:expired_date"`
+}
+
+func (PurchaseItemModel) TableName() string { return "purchase_items" }
+
+type SaleModel struct {
+	ID             string    `gorm:"column:id;primaryKey"`
+	MemberID       string    `gorm:"column:member_id"`
+	UserID         string    `gorm:"column:user_id"`
+	BranchID       string    `gorm:"column:branch_id"`
+	Payment        string    `gorm:"column:payment"`
+	Discount       int       `gorm:"column:discount"`
+	TotalSale      int       `gorm:"column:total_sale"`
+	ProfitEstimate int       `gorm:"column:profit_estimate"`
+	SaleDate       time.Time `gorm:"column:sale_date"`
+	CreatedAt      time.Time `gorm:"column:created_at"`
+	UpdatedAt      time.Time `gorm:"column:updated_at"`
+}
+
+func (SaleModel) TableName() string { return "sales" }
+
+type SaleItemModel struct {
+	ID        string `gorm:"column:id;primaryKey"`
+	SaleID    string `gorm:"column:sale_id"`
+	ProductID string `gorm:"column:product_id"`
+	Price     int    `gorm:"column:price"`
+	Qty       int    `gorm:"column:qty"`
+	SubTotal  int    `gorm:"column:sub_total"`
+}
+
+func (SaleItemModel) TableName() string { return "sale_items" }
+
+type TransactionReportModel struct {
+	ID              string    `gorm:"column:id;primaryKey"`
+	TransactionType string    `gorm:"column:transaction_type"`
+	UserID          string    `gorm:"column:user_id"`
+	BranchID        string    `gorm:"column:branch_id"`
+	Total           int       `gorm:"column:total"`
+	Payment         string    `gorm:"column:payment"`
+	CreatedAt       time.Time `gorm:"column:created_at"`
+	UpdatedAt       time.Time `gorm:"column:updated_at"`
+}
+
+func (TransactionReportModel) TableName() string { return "transaction_reports" }
+
+type DailyProfitReportModel struct {
+	ID             string    `gorm:"column:id;primaryKey"`
+	ReportDate     time.Time `gorm:"column:report_date"`
+	UserID         string    `gorm:"column:user_id"`
+	BranchID       string    `gorm:"column:branch_id"`
+	TotalSales     int       `gorm:"column:total_sales"`
+	ProfitEstimate int       `gorm:"column:profit_estimate"`
+	CreatedAt      time.Time `gorm:"column:created_at"`
+	UpdatedAt      time.Time `gorm:"column:updated_at"`
+}
+
+func (DailyProfitReportModel) TableName() string { return "daily_profit_reports" }
+
+type OpnameModel struct {
+	ID          string    `gorm:"column:id;primaryKey"`
+	Description string    `gorm:"column:description"`
+	BranchID    string    `gorm:"column:branch_id"`
+	UserID      string    `gorm:"column:user_id"`
+	OpnameDate  time.Time `gorm:"column:opname_date"`
+	TotalOpname int       `gorm:"column:total_opname"`
+	CreatedAt   time.Time `gorm:"column:created_at"`
+	UpdatedAt   time.Time `gorm:"column:updated_at"`
+}
+
+func (OpnameModel) TableName() string { return "opnames" }
+
+type OpnameItemModel struct {
+	ID            string    `gorm:"column:id;primaryKey"`
+	OpnameID      string    `gorm:"column:opname_id"`
+	ProductID     string    `gorm:"column:product_id"`
+	Qty           int       `gorm:"column:qty"`
+	QtyExist      int       `gorm:"column:qty_exist"`
+	Price         int       `gorm:"column:price"`
+	SubTotal      int       `gorm:"column:sub_total"`
+	SubTotalExist int       `gorm:"column:sub_total_exist"`
+	ExpiredDate   time.Time `gorm:"column:expired_date"`
+	CreatedAt     time.Time `gorm:"column:created_at"`
+	UpdatedAt     time.Time `gorm:"column:updated_at"`
+}
+
+func (OpnameItemModel) TableName() string { return "opname_items" }
+
+type MemberModel struct {
+	ID               string `gorm:"column:id;primaryKey"`
+	MemberCategoryID string `gorm:"column:member_category_id"`
+	Points           int    `gorm:"column:points"`
+}
+
+func (MemberModel) TableName() string { return "members" }
+
+type MemberCategoryModel struct {
+	ID                   string `gorm:"column:id;primaryKey"`
+	PointsConversionRate int    `gorm:"column:points_conversion_rate"`
+}
+
+func (MemberCategoryModel) TableName() string { return "member_categories" }
