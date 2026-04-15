@@ -329,26 +329,56 @@ Kalau ingin tahu satu endpoint kerjanya lewat file mana, pakai pola ini:
 - duplicate_receipts
 - sale_returns
 - buy_returns / purchase_returns
+- another_incomes
+- expenses
 - master data lain di luar product baseline
 - dashboard/report/export
 
 ---
 
-## 6. Urutan implementasi yang direkomendasikan
+## 6. Catatan bisnis penting
+
+### First Stock
+- dipakai untuk memasukkan stok produk awal sebelum sistem digunakan
+- harus memengaruhi `products.stock`
+- tetapi secara perhitungan bisnis dianggap **nol**, bukan pembelian dan bukan pengeluaran
+- artinya domain ini tidak boleh disamakan mentah dengan purchase biasa
+
+### Another Incomes
+- dipakai untuk mencatat pendapatan tambahan di luar jual beli utama
+- termasuk domain pencatatan finansial operasional
+
+### Expenses
+- dipakai untuk mencatat pengeluaran apotek
+- bisa pengeluaran terencana maupun aksidental
+- termasuk domain pencatatan finansial operasional
+
+### Export Excel dan PDF
+- fitur export tidak boleh dilupakan
+- setiap domain/fungsi utama nantinya perlu dipikirkan export Excel dan PDF
+- implementasinya sebaiknya diposisikan sebagai adapter/layer luar, bukan dicampur ke inti usecase
+
+---
+
+## 7. Urutan implementasi yang direkomendasikan
 
 Urutan yang paling masuk akal untuk kelanjutan project:
 
 1. `suppliers`
-2. `buy_returns / purchase_returns`
-3. `sale_returns`
-4. `first_stocks`
-5. `duplicate_receipts`
-6. report/dashboard/export
+2. `first_stocks`
+3. `expenses`
+4. `another_incomes`
+5. `buy_returns / purchase_returns`
+6. `sale_returns`
+7. `duplicate_receipts`
+8. export excel/pdf per domain
+9. report/dashboard/export lanjutan
 
 Alasannya:
 - `suppliers` menopang purchase
+- `first_stocks` menyentuh stok inti dan punya aturan bisnis khusus
+- `expenses` dan `another_incomes` penting untuk pencatatan operasional finansial
 - `buy_returns` dan `sale_returns` dekat dengan domain transaksi inti
-- `first_stocks` penting untuk stok, tapi bisa setelah flow inti stabil
 - `duplicate_receipts` cenderung fitur turunan, bukan prioritas pertama
 
 ---
