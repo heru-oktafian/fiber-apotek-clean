@@ -66,7 +66,24 @@ Expected:
 
 ---
 
-## 3. Set branch
+## 3. List branches
+
+```bash
+BRANCH_LIST_JSON=$(curl -s "$BASE_URL/api/list_branches" \
+  -H "Authorization: Bearer $LOGIN_TOKEN")
+
+echo "$BRANCH_LIST_JSON" | jq
+```
+
+Expected:
+- HTTP 200
+- `.status = "success"`
+- `.message = "User Branch found"`
+- `.data` berisi array branch user
+
+---
+
+## 4. Set branch
 
 ```bash
 BRANCH_JSON=$(curl -s -X POST "$BASE_URL/api/set_branch" \
@@ -86,11 +103,30 @@ echo "$TOKEN"
 
 Expected:
 - HTTP 200
+- `.status = "success"`
 - `.data` berisi token branch baru
+- token hasil set branch mengandung `branch_id`
 
 ---
 
-## 4. Combo endpoints
+## 5. Profile
+
+```bash
+PROFILE_JSON=$(curl -s "$BASE_URL/api/profile" \
+  -H "Authorization: Bearer $TOKEN")
+
+echo "$PROFILE_JSON" | jq
+```
+
+Expected:
+- HTTP 200
+- `.status = "success"`
+- `.message` berbentuk `Otoritas : <role>`
+- `.data.branch_id` sesuai branch yang dipilih
+
+---
+
+## 6. Combo endpoints
 
 ### Sales combo
 ```bash
@@ -117,7 +153,7 @@ Expected:
 
 ---
 
-## 5. Purchase create
+## 7. Purchase create
 
 ```bash
 PURCHASE_JSON=$(curl -s -X POST "$BASE_URL/api/purchases" \
@@ -153,7 +189,7 @@ Catatan:
 
 ---
 
-## 6. Sale create
+## 8. Sale create
 
 ```bash
 SALE_JSON=$(curl -s -X POST "$BASE_URL/api/sales" \
@@ -185,7 +221,7 @@ Ini checkpoint penting karena rewrite baru harus lebih aman daripada legacy.
 
 ---
 
-## 7. Opname header
+## 9. Opname header
 
 ```bash
 OPNAME_JSON=$(curl -s -X POST "$BASE_URL/api/opnames" \
@@ -208,7 +244,7 @@ echo "$OPNAME_ID"
 
 ---
 
-## 8. Opname item
+## 10. Opname item
 
 ```bash
 OPNAME_ITEM_JSON=$(curl -s -X POST "$BASE_URL/api/opname-items" \
@@ -233,7 +269,7 @@ Expected:
 
 ---
 
-## 9. Opname items all
+## 11. Opname items all
 
 ```bash
 curl -s -X POST "$BASE_URL/api/opname-items-all" \
@@ -248,7 +284,7 @@ Expected:
 
 ---
 
-## 10. Opname detail
+## 12. Opname detail
 
 ```bash
 curl -s "$BASE_URL/api/opnames/$OPNAME_ID" \
@@ -262,7 +298,7 @@ Expected:
 
 ---
 
-## 11. Logout
+## 13. Logout
 
 ```bash
 curl -s -X POST "$BASE_URL/api/logout" \
@@ -286,10 +322,27 @@ Catat hasil berikut saat smoke test:
 - apakah response contract cukup dekat dengan legacy atau masih perlu adaptasi
 - apakah ada panic, 500, atau mismatch field penting
 
+## Verifikasi Auth fase 1 pada 2026-04-16
+
+Sudah tervalidasi manual via Postman terhadap app yang berjalan dari Terminal GUI:
+
+- `POST /api/login` ✅
+- `GET /api/list_branches` ✅
+- `POST /api/set_branch` ✅
+- `GET /api/profile` ✅
+- `POST /api/logout` ✅
+
+Catatan hasil verifikasi:
+- response contract sudah konsisten memiliki `status`, `message`, dan `data`
+- `set_branch` terbukti menghasilkan token kedua yang berisi konteks branch
+- mismatch awal pada `default_member` ternyata berasal dari data DB dev yang kosong, bukan bug endpoint
+- beberapa field seperti `branch_name`, `sipa_name`, dan `member_name` tetap bergantung pada isi data DB dev saat pengujian
+- runtime validation tetap mengandalkan Terminal GUI sebagai sumber kebenaran
+
 ## Known gaps saat ini
 
 - purchase masih menerima `price` dari request
-- response contract belum 1:1 legacy
+- beberapa nilai response masih bisa berbeda dari contoh legacy bila data DB dev berbeda
 - branch ownership guard belum lengkap di seluruh endpoint opname
 - belum ada delete/update item endpoint di rewrite
 - belum ada report sync seperti legacy
