@@ -2,7 +2,9 @@ package auth
 
 import (
 	"context"
+	"encoding/json"
 	"net/http"
+	"os"
 	"strings"
 	"time"
 
@@ -98,6 +100,34 @@ func (s Service) Profile(ctx context.Context, bearerToken string) (auth.Profile,
 		return auth.Profile{}, apperror.New(http.StatusInternalServerError, "Get userbranches failed", "Failed to fetch user branches with details")
 	}
 	return item, nil
+}
+
+func (s Service) Menus(ctx context.Context, bearerToken string) ([]auth.Menu, string, error) {
+	claims, _, err := s.parseBearerToken(bearerToken, "Insert valid token to access this endpoint!")
+	if err != nil {
+		return nil, "", err
+	}
+	data, err := os.ReadFile("menus.json")
+	if err != nil {
+		return nil, "", apperror.New(http.StatusInternalServerError, "Failed to read menu data", err.Error())
+	}
+	var menuFile auth.MenuFile
+	if err := json.Unmarshal(data, &menuFile); err != nil {
+		return nil, "", apperror.New(http.StatusInternalServerError, "Failed to parse menu data", err.Error())
+	}
+	if claims.UserRole == "" {
+		return menuFile.Data, "Get All Menus Success", nil
+	}
+	filtered := make([]auth.Menu, 0)
+	for _, menu := range menuFile.Data {
+		if strings.EqualFold(menu.UserRole, claims.UserRole) {
+			filtered = append(filtered, menu)
+		}
+	}
+	if len(filtered) == 0 {
+		return []auth.Menu{}, "", apperror.New(http.StatusNotFound, "No menu found for the specified user_role", []auth.Menu{})
+	}
+	return filtered, "Get Menus by User Role Success", nil
 }
 
 func (s Service) Logout(ctx context.Context, bearerToken string) error {

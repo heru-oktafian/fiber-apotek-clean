@@ -331,12 +331,15 @@ Sudah tervalidasi manual via Postman terhadap app yang berjalan dari Terminal GU
 - `POST /api/set_branch` ✅
 - `GET /api/profile` ✅
 - `POST /api/logout` ✅
+- `GET /api/menus` ✅
 
 Catatan hasil verifikasi:
 - response contract sudah konsisten memiliki `status`, `message`, dan `data`
 - `set_branch` terbukti menghasilkan token kedua yang berisi konteks branch
 - mismatch awal pada `default_member` ternyata berasal dari data DB dev yang kosong, bukan bug endpoint
 - beberapa field seperti `branch_name`, `sipa_name`, dan `member_name` tetap bergantung pada isi data DB dev saat pengujian
+- endpoint `menus` berhasil memfilter menu berdasarkan `user_role` dari token branch-context
+- response `menus` sangat panjang sehingga validasi lebih cocok dilakukan via Postman daripada dikirim penuh ke Telegram
 - runtime validation tetap mengandalkan Terminal GUI sebagai sumber kebenaran
 
 ## Known gaps saat ini

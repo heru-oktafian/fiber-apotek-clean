@@ -22,7 +22,7 @@ func Load() Config {
 	return Config{
 		AppName:      os.Getenv("APPNAME"),
 		ServerPort:   envOr("SERVER_PORT", "1112"),
-		JWTSecret:    os.Getenv("JWT_SECRET"),
+		JWTSecret:    firstNonEmpty(os.Getenv("JWT_SECRET"), os.Getenv("JWT_SECRET_KEY")),
 		DBHost:       os.Getenv("DB_HOST"),
 		DBPort:       os.Getenv("DB_PORT"),
 		DBUser:       os.Getenv("DB_USER"),
@@ -41,4 +41,13 @@ func envOr(key, fallback string) string {
 		return v
 	}
 	return fallback
+}
+
+func firstNonEmpty(values ...string) string {
+	for _, value := range values {
+		if value != "" {
+			return value
+		}
+	}
+	return ""
 }

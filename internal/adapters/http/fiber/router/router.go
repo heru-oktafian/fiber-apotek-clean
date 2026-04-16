@@ -6,6 +6,7 @@ type Dependencies struct {
 	Auth interface {
 		Login(*fiber.Ctx) error
 		ListBranches(*fiber.Ctx) error
+		Menus(*fiber.Ctx) error
 		Logout(*fiber.Ctx) error
 		SetBranch(*fiber.Ctx) error
 		Profile(*fiber.Ctx) error
@@ -35,6 +36,7 @@ func Register(app *fiber.App, deps Dependencies) {
 	app.Get("/health", func(c *fiber.Ctx) error { return c.JSON(fiber.Map{"message": "ok"}) })
 	app.Post("/api/login", deps.Auth.Login)
 	app.Get("/api/list_branches", deps.AuthMiddleware, deps.Auth.ListBranches)
+	app.Get("/api/menus", deps.AuthMiddleware, deps.Auth.Menus)
 	app.Post("/api/set_branch", deps.AuthMiddleware, deps.Auth.SetBranch)
 	app.Get("/api/profile", deps.AuthMiddleware, deps.Auth.Profile)
 	app.Post("/api/logout", deps.AuthMiddleware, deps.Auth.Logout)

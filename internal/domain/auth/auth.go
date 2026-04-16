@@ -60,3 +60,22 @@ type Profile struct {
 	DefaultMember string `json:"default_member"`
 	MemberName    string `json:"member_name"`
 }
+
+type MenuDetail struct {
+	GroupMenu string `json:"group_menu"`
+	Title     string `json:"title"`
+	URL       string `json:"url"`
+	Method    string `json:"method,omitempty"`
+	Access    any    `json:"access"`
+}
+
+type Menu struct {
+	UserRole string       `json:"user_role"`
+	Details  []MenuDetail `json:"details"`
+}
+
+type MenuFile struct {
+	Status  string `json:"status"`
+	Message string `json:"message"`
+	Data    []Menu `json:"data"`
+}

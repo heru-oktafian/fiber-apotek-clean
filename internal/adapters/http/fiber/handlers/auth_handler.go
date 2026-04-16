@@ -34,6 +34,14 @@ func (h AuthHandler) Login(c *fiber.Ctx) error {
 	return response.JSON(c, fiber.StatusOK, "Login successful", result.Token)
 }
 
+func (h AuthHandler) Menus(c *fiber.Ctx) error {
+	items, message, err := h.Service.Menus(c.Context(), c.Get("Authorization"))
+	if err != nil {
+		return presenter.Handle(c, err)
+	}
+	return response.JSON(c, fiber.StatusOK, message, items)
+}
+
 func (h AuthHandler) Logout(c *fiber.Ctx) error {
 	if err := h.Service.Logout(c.Context(), c.Get("Authorization")); err != nil {
 		return presenter.Handle(c, err)
