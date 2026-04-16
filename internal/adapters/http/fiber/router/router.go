@@ -5,8 +5,10 @@ import "github.com/gofiber/fiber/v2"
 type Dependencies struct {
 	Auth interface {
 		Login(*fiber.Ctx) error
+		ListBranches(*fiber.Ctx) error
 		Logout(*fiber.Ctx) error
 		SetBranch(*fiber.Ctx) error
+		Profile(*fiber.Ctx) error
 	}
 	Product interface {
 		Create(*fiber.Ctx) error
@@ -32,7 +34,9 @@ type Dependencies struct {
 func Register(app *fiber.App, deps Dependencies) {
 	app.Get("/health", func(c *fiber.Ctx) error { return c.JSON(fiber.Map{"message": "ok"}) })
 	app.Post("/api/login", deps.Auth.Login)
-	app.Post("/api/set_branch", deps.Auth.SetBranch)
+	app.Get("/api/list_branches", deps.AuthMiddleware, deps.Auth.ListBranches)
+	app.Post("/api/set_branch", deps.AuthMiddleware, deps.Auth.SetBranch)
+	app.Get("/api/profile", deps.AuthMiddleware, deps.Auth.Profile)
 	app.Post("/api/logout", deps.AuthMiddleware, deps.Auth.Logout)
 	app.Post("/api/products", deps.AuthMiddleware, deps.Product.Create)
 	app.Get("/api/sales-products-combo", deps.AuthMiddleware, deps.Product.SaleCombo)

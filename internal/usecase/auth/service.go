@@ -36,14 +36,23 @@ func (s Service) Login(ctx context.Context, req auth.LoginRequest) (auth.LoginRe
 	return auth.LoginResult{Token: token}, nil
 }
 
+func (s Service) ListBranches(ctx context.Context, bearerToken string) ([]auth.UserBranch, error) {
+	claims, _, err := s.parseBearerToken(bearerToken, "Insert valid token to access this endpoint!")
+	if err != nil {
+		return nil, err
+	}
+	items, err := s.Branches.ListUserBranches(ctx, claims.Subject)
+	if err != nil {
+		return nil, apperror.New(http.StatusInternalServerError, "Get userbranches failed", "Failed to fetch user branches with details")
+	}
+	return items, nil
+}
+
 func (s Service) SetBranch(ctx context.Context, bearerToken string, req auth.BranchSelectionRequest) (string, error) {
 	raw := strings.TrimSpace(strings.TrimPrefix(bearerToken, "Bearer "))
-	if raw == "" {
-		return "", apperror.New(http.StatusUnauthorized, "Missing token", "Insert valid token to access this endpoint!")
-	}
-	claims, exp, err := s.Tokens.Parse(raw)
+	claims, exp, err := s.parseBearerToken(bearerToken, "Insert valid token to access this endpoint!")
 	if err != nil {
-		return "", apperror.New(http.StatusUnauthorized, "Invalid token", "Try to login again!")
+		return "", err
 	}
 	hasBranch, err := s.Branches.UserHasBranch(ctx, claims.Subject, req.BranchID)
 	if err != nil || !hasBranch {
@@ -76,6 +85,21 @@ func (s Service) SetBranch(ctx context.Context, bearerToken string, req auth.Bra
 	return newToken, nil
 }
 
+func (s Service) Profile(ctx context.Context, bearerToken string) (auth.Profile, error) {
+	claims, _, err := s.parseBearerToken(bearerToken, "Insert valid token to access this endpoint!")
+	if err != nil {
+		return auth.Profile{}, err
+	}
+	item, err := s.Branches.FindProfile(ctx, claims.Subject, claims.BranchID)
+	if err != nil {
+		return auth.Profile{}, apperror.New(http.StatusInternalServerError, "Get userbranches failed", "Failed to fetch user branches with details")
+	}
+	if !itemHasProfile(item) {
+		return auth.Profile{}, apperror.New(http.StatusInternalServerError, "Get userbranches failed", "Failed to fetch user branches with details")
+	}
+	return item, nil
+}
+
 func (s Service) Logout(ctx context.Context, bearerToken string) error {
 	raw := strings.TrimSpace(strings.TrimPrefix(bearerToken, "Bearer "))
 	if raw == "" {
@@ -89,4 +113,20 @@ func (s Service) Logout(ctx context.Context, bearerToken string) error {
 		return apperror.New(http.StatusInternalServerError, "Logout failed", "Failed to blacklist token")
 	}
 	return nil
+}
+
+func (s Service) parseBearerToken(bearerToken string, missingMessage string) (auth.Claims, time.Time, error) {
+	raw := strings.TrimSpace(strings.TrimPrefix(bearerToken, "Bearer "))
+	if raw == "" {
+		return auth.Claims{}, time.Time{}, apperror.New(http.StatusUnauthorized, "Missing token", missingMessage)
+	}
+	claims, exp, err := s.Tokens.Parse(raw)
+	if err != nil {
+		return auth.Claims{}, time.Time{}, apperror.New(http.StatusUnauthorized, "Invalid token", "Try to login again!")
+	}
+	return claims, exp, nil
+}
+
+func itemHasProfile(item auth.Profile) bool {
+	return item.UserID != "" && item.BranchID != ""
 }

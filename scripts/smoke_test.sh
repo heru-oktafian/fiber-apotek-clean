@@ -38,6 +38,12 @@ step() {
   echo "==> $1"
 }
 
+debug_env() {
+  echo "BASE_URL=$BASE_URL"
+  echo "USERNAME=$USERNAME"
+  echo "BRANCH_ID=$BRANCH_ID"
+}
+
 api_json() {
   local method="$1"
   local url="$2"
@@ -86,6 +92,9 @@ print_body() {
   echo "$BODY" | jq . 2>/dev/null || echo "$BODY"
 }
 
+step "Debug context"
+debug_env
+
 step "Health"
 api_json GET "$BASE_URL/health"
 assert_http_200
@@ -93,6 +102,7 @@ print_body
 
 step "Login"
 LOGIN_PAYLOAD=$(jq -nc --arg username "$USERNAME" --arg password "$PASSWORD" '{username:$username,password:$password}')
+echo "LOGIN_USERNAME=$(echo "$LOGIN_PAYLOAD" | jq -r '.username')"
 api_json POST "$BASE_URL/api/login" "" "$LOGIN_PAYLOAD"
 assert_http_200
 print_body

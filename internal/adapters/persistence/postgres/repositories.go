@@ -7,6 +7,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/heru-oktafian/fiber-apotek-clean/internal/domain/auth"
 	"github.com/heru-oktafian/fiber-apotek-clean/internal/domain/branch"
 	"github.com/heru-oktafian/fiber-apotek-clean/internal/domain/common"
 	"github.com/heru-oktafian/fiber-apotek-clean/internal/domain/member"
@@ -54,6 +55,31 @@ func (r Repositories) UserHasBranch(ctx context.Context, userID, branchID string
 		return false, err
 	}
 	return count > 0, nil
+}
+
+func (r Repositories) ListUserBranches(ctx context.Context, userID string) ([]auth.UserBranch, error) {
+	var items []auth.UserBranch
+	err := r.DB.WithContext(ctx).
+		Table("user_branches").
+		Select("user_branches.user_id, users.name AS user_name, user_branches.branch_id, branches.branch_name, branches.sia_name, branches.sipa_name, branches.phone").
+		Joins("LEFT JOIN users ON users.id = user_branches.user_id").
+		Joins("LEFT JOIN branches ON branches.id = user_branches.branch_id").
+		Where("branches.branch_status = 'active' AND user_branches.user_id = ?", userID).
+		Scan(&items).Error
+	return items, err
+}
+
+func (r Repositories) FindProfile(ctx context.Context, userID, branchID string) (auth.Profile, error) {
+	var item auth.Profile
+	err := r.DB.WithContext(ctx).
+		Table("user_branches usrbrc").
+		Select("usrbrc.user_id AS user_id, usr.name AS profile_name, usrbrc.branch_id AS branch_id, brc.branch_name AS branch_name, brc.address, brc.phone, brc.email, brc.sia_id, brc.sia_name, brc.psa_id, brc.psa_name, brc.sipa, brc.sipa_name, brc.aping_id, brc.aping_name, brc.bank_name, brc.account_name, brc.account_number, brc.tax_percentage, brc.journal_method, brc.branch_status, brc.license_date, brc.default_member AS default_member, mbr.name AS member_name").
+		Joins("LEFT JOIN users usr ON usr.id = usrbrc.user_id").
+		Joins("LEFT JOIN branches brc ON brc.id = usrbrc.branch_id").
+		Joins("LEFT JOIN members mbr ON mbr.id = brc.default_member").
+		Where("usrbrc.branch_id = ? AND usrbrc.user_id = ?", branchID, userID).
+		Scan(&item).Error
+	return item, err
 }
 
 func (r Repositories) Create(ctx context.Context, item product.Product) error {

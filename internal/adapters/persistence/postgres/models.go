@@ -14,12 +14,30 @@ type UserModel struct {
 func (UserModel) TableName() string { return "users" }
 
 type BranchModel struct {
-	ID               string `gorm:"column:id;primaryKey"`
-	BranchName       string `gorm:"column:branch_name"`
-	DefaultMember    string `gorm:"column:default_member"`
-	Quota            int    `gorm:"column:quota"`
-	SubscriptionType string `gorm:"column:subscription_type"`
-	RealAsset        string `gorm:"column:real_asset"`
+	ID               string    `gorm:"column:id;primaryKey"`
+	BranchName       string    `gorm:"column:branch_name"`
+	Address          string    `gorm:"column:address"`
+	Phone            string    `gorm:"column:phone"`
+	Email            string    `gorm:"column:email"`
+	SIAID            string    `gorm:"column:sia_id"`
+	SIAName          string    `gorm:"column:sia_name"`
+	PSAID            string    `gorm:"column:psa_id"`
+	PSAName          string    `gorm:"column:psa_name"`
+	SIPA             string    `gorm:"column:sipa"`
+	SIPAName         string    `gorm:"column:sipa_name"`
+	APINGID          string    `gorm:"column:aping_id"`
+	APINGName        string    `gorm:"column:aping_name"`
+	BankName         string    `gorm:"column:bank_name"`
+	AccountName      string    `gorm:"column:account_name"`
+	AccountNumber    string    `gorm:"column:account_number"`
+	TaxPercentage    int       `gorm:"column:tax_percentage"`
+	JournalMethod    string    `gorm:"column:journal_method"`
+	BranchStatus     string    `gorm:"column:branch_status"`
+	LicenseDate      time.Time `gorm:"column:license_date"`
+	DefaultMember    string    `gorm:"column:default_member"`
+	Quota            int       `gorm:"column:quota"`
+	SubscriptionType string    `gorm:"column:subscription_type"`
+	RealAsset        string    `gorm:"column:real_asset"`
 }
 
 func (BranchModel) TableName() string { return "branches" }

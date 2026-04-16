@@ -1,6 +1,8 @@
 package handlers
 
 import (
+	"strings"
+
 	"github.com/gofiber/fiber/v2"
 	"github.com/heru-oktafian/fiber-apotek-clean/internal/adapters/http/fiber/presenter"
 	"github.com/heru-oktafian/fiber-apotek-clean/internal/domain/auth"
@@ -10,6 +12,14 @@ import (
 
 type AuthHandler struct {
 	Service authusecase.Service
+}
+
+func (h AuthHandler) ListBranches(c *fiber.Ctx) error {
+	items, err := h.Service.ListBranches(c.Context(), c.Get("Authorization"))
+	if err != nil {
+		return presenter.Handle(c, err)
+	}
+	return response.JSON(c, fiber.StatusOK, "User Branch found", items)
 }
 
 func (h AuthHandler) Login(c *fiber.Ctx) error {
@@ -41,4 +51,16 @@ func (h AuthHandler) SetBranch(c *fiber.Ctx) error {
 		return presenter.Handle(c, err)
 	}
 	return response.JSON(c, fiber.StatusOK, "Branch set successfully", token)
+}
+
+func (h AuthHandler) Profile(c *fiber.Ctx) error {
+	item, err := h.Service.Profile(c.Context(), c.Get("Authorization"))
+	if err != nil {
+		return presenter.Handle(c, err)
+	}
+	claims, _, err := h.Service.Tokens.Parse(strings.TrimSpace(strings.TrimPrefix(c.Get("Authorization"), "Bearer ")))
+	if err != nil {
+		return presenter.Handle(c, err)
+	}
+	return response.JSON(c, fiber.StatusOK, "Otoritas : "+claims.UserRole, item)
 }
