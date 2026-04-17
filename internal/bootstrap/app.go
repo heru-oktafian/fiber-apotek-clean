@@ -29,6 +29,7 @@ import (
 	productusecase "github.com/heru-oktafian/fiber-apotek-clean/internal/usecase/product"
 	purchaseusecase "github.com/heru-oktafian/fiber-apotek-clean/internal/usecase/purchase"
 	saleusecase "github.com/heru-oktafian/fiber-apotek-clean/internal/usecase/sale"
+	userbranchusecase "github.com/heru-oktafian/fiber-apotek-clean/internal/usecase/userbranch"
 )
 
 type App struct {
@@ -61,6 +62,7 @@ func New() (*App, error) {
 
 	authHandler := handlers.AuthHandler{Service: authusecase.Service{Users: repos, Branches: repos, Passwords: bcryptComparer{}, Tokens: jwtSvc, Blacklist: blacklist, Clock: clk}}
 	branchHandler := handlers.BranchHandler{Service: branchusecase.Service{Branches: repos}}
+	userBranchHandler := handlers.UserBranchHandler{Service: userbranchusecase.Service{Branches: repos}}
 	productHandler := handlers.ProductHandler{Service: productusecase.Service{Products: repos, IDs: ids}}
 	purchaseHandler := handlers.PurchaseHandler{Service: purchaseusecase.Service{Repo: repos, IDs: ids, Clock: clk}}
 	saleHandler := handlers.SaleHandler{Service: saleusecase.Service{Repo: repos, IDs: ids, Clock: clk}}
@@ -69,6 +71,6 @@ func New() (*App, error) {
 	app := fiber.New(fiber.Config{DisableStartupMessage: true, ReadTimeout: 30 * time.Second, WriteTimeout: 30 * time.Second})
 	app.Use(console.RequestLogger())
 	authMw := middleware.RequireAuth(jwtSvc, blacklist)
-	router.Register(app, router.Dependencies{Auth: authHandler, Branch: branchHandler, Product: productHandler, Purchase: purchaseHandler, Sale: saleHandler, Opname: opnameHandler, AuthMiddleware: authMw})
+	router.Register(app, router.Dependencies{Auth: authHandler, Branch: branchHandler, UserBranch: userBranchHandler, Product: productHandler, Purchase: purchaseHandler, Sale: saleHandler, Opname: opnameHandler, AuthMiddleware: authMw})
 	return &App{Fiber: app, Config: cfg}, nil
 }

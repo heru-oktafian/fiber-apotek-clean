@@ -17,6 +17,7 @@ import (
 	"github.com/heru-oktafian/fiber-apotek-clean/internal/domain/sale"
 	"github.com/heru-oktafian/fiber-apotek-clean/internal/domain/unit"
 	"github.com/heru-oktafian/fiber-apotek-clean/internal/domain/user"
+	"github.com/heru-oktafian/fiber-apotek-clean/internal/domain/userbranch"
 	"github.com/heru-oktafian/fiber-apotek-clean/internal/ports"
 	"gorm.io/gorm"
 )
@@ -122,6 +123,29 @@ func (r Repositories) FindProfile(ctx context.Context, userID, branchID string) 
 		Where("usrbrc.branch_id = ? AND usrbrc.user_id = ?", branchID, userID).
 		Scan(&item).Error
 	return item, err
+}
+
+func (r Repositories) ListAllUserBranches(ctx context.Context) ([]userbranch.Detail, error) {
+	var items []userbranch.Detail
+	err := r.DB.WithContext(ctx).
+		Table("user_branches usrb").
+		Select("usrb.user_id, usr.name AS user_name, usrb.branch_id, brc.branch_name AS branch_name, brc.sia_name, brc.sipa_name, brc.phone").
+		Joins("LEFT JOIN users usr ON usr.id = usrb.user_id").
+		Joins("LEFT JOIN branches brc ON brc.id = usrb.branch_id").
+		Scan(&items).Error
+	return items, err
+}
+
+func (r Repositories) FindUserBranchDetail(ctx context.Context, userID, branchID string) ([]userbranch.Detail, error) {
+	var items []userbranch.Detail
+	err := r.DB.WithContext(ctx).
+		Table("user_branches").
+		Select("user_branches.user_id, users.name AS user_name, user_branches.branch_id, branches.branch_name, branches.sia_name, branches.sipa_name, branches.phone").
+		Joins("LEFT JOIN users ON users.id = user_branches.user_id").
+		Joins("LEFT JOIN branches ON branches.id = user_branches.branch_id").
+		Where("branches.branch_status = 'active' AND user_branches.branch_id = ? AND user_branches.user_id = ?", branchID, userID).
+		Scan(&items).Error
+	return items, err
 }
 
 func (r Repositories) Create(ctx context.Context, item product.Product) error {

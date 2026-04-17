@@ -13,6 +13,7 @@ import (
 	"github.com/heru-oktafian/fiber-apotek-clean/internal/domain/sale"
 	"github.com/heru-oktafian/fiber-apotek-clean/internal/domain/unit"
 	"github.com/heru-oktafian/fiber-apotek-clean/internal/domain/user"
+	"github.com/heru-oktafian/fiber-apotek-clean/internal/domain/userbranch"
 )
 
 type Clock interface{ Now() time.Time }
@@ -45,6 +46,8 @@ type BranchRepository interface {
 	UserHasBranch(ctx context.Context, userID, branchID string) (bool, error)
 	ListUserBranches(ctx context.Context, userID string) ([]auth.UserBranch, error)
 	FindProfile(ctx context.Context, userID, branchID string) (auth.Profile, error)
+	ListAllUserBranches(ctx context.Context) ([]userbranch.Detail, error)
+	FindUserBranchDetail(ctx context.Context, userID, branchID string) ([]userbranch.Detail, error)
 }
 
 type ProductRepository interface {
