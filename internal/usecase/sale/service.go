@@ -87,10 +87,10 @@ func (s Service) CreateTransaction(ctx context.Context, branchID, userID, defaul
 				return apperror.New(http.StatusNotFound, fmt.Sprintf("Branch with ID %s not found", branchID), err)
 			}
 			if br.Quota <= 0 {
-				return apperror.New(http.StatusBadRequest, fmt.Sprintf("No quota available for branch %s", br.Name), nil)
+				return apperror.New(http.StatusBadRequest, fmt.Sprintf("No quota available for branch %s", br.BranchName), nil)
 			}
 			if err := repo.UpdateBranchQuota(ctx, branchID, br.Quota-1); err != nil {
-				return apperror.New(http.StatusInternalServerError, fmt.Sprintf("Failed to update quota for branch %s", br.Name), err)
+				return apperror.New(http.StatusInternalServerError, fmt.Sprintf("Failed to update quota for branch %s", br.BranchName), err)
 			}
 		}
 		if memberID != "" && memberID != defaultMember {

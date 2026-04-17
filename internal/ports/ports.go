@@ -41,6 +41,7 @@ type UserRepository interface {
 
 type BranchRepository interface {
 	FindBranchByID(ctx context.Context, id string) (branch.Branch, error)
+	ListBranches(ctx context.Context, req branch.ListRequest) (branch.ListResult, error)
 	UserHasBranch(ctx context.Context, userID, branchID string) (bool, error)
 	ListUserBranches(ctx context.Context, userID string) ([]auth.UserBranch, error)
 	FindProfile(ctx context.Context, userID, branchID string) (auth.Profile, error)

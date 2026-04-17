@@ -46,7 +46,49 @@ func (r Repositories) FindBranchByID(ctx context.Context, id string) (branch.Bra
 	if err := r.DB.WithContext(ctx).Where("id = ?", id).First(&m).Error; err != nil {
 		return branch.Branch{}, err
 	}
-	return branch.Branch{ID: m.ID, Name: m.BranchName, DefaultMemberID: m.DefaultMember, Quota: m.Quota, SubscriptionType: m.SubscriptionType, RealAsset: m.RealAsset}, nil
+	return toDomainBranch(m), nil
+}
+
+func (r Repositories) ListBranches(ctx context.Context, req branch.ListRequest) (branch.ListResult, error) {
+	query := r.DB.WithContext(ctx).Model(&BranchModel{})
+	if req.Search != "" {
+		like := "%" + strings.ToLower(strings.TrimSpace(req.Search)) + "%"
+		query = query.Where("LOWER(branch_name) LIKE ? OR LOWER(phone) LIKE ? OR LOWER(email) LIKE ? OR LOWER(sia_name) LIKE ?", like, like, like, like)
+	}
+
+	var total int64
+	if err := query.Count(&total).Error; err != nil {
+		return branch.ListResult{}, err
+	}
+
+	var models []BranchModel
+	offset := (req.Page - 1) * req.Limit
+	if err := query.Order("branch_name ASC").Offset(offset).Limit(req.Limit).Find(&models).Error; err != nil {
+		return branch.ListResult{}, err
+	}
+
+	items := make([]branch.Branch, 0, len(models))
+	for _, model := range models {
+		items = append(items, toDomainBranch(model))
+	}
+
+	lastPage := 0
+	if req.Limit > 0 {
+		lastPage = int((total + int64(req.Limit) - 1) / int64(req.Limit))
+	}
+	if lastPage == 0 {
+		lastPage = 1
+	}
+
+	return branch.ListResult{
+		Items: items,
+		Meta: branch.ListMeta{
+			Page:      req.Page,
+			Limit:     req.Limit,
+			TotalData: int(total),
+			LastPage:  lastPage,
+		},
+	}, nil
 }
 
 func (r Repositories) UserHasBranch(ctx context.Context, userID, branchID string) (bool, error) {
@@ -342,7 +384,7 @@ func (t txRepo) FindBranch(ctx context.Context, branchID string) (branch.Branch,
 	if err := t.tx.WithContext(ctx).Where("id = ?", branchID).First(&m).Error; err != nil {
 		return branch.Branch{}, err
 	}
-	return branch.Branch{ID: m.ID, Name: m.BranchName, DefaultMemberID: m.DefaultMember, Quota: m.Quota, SubscriptionType: m.SubscriptionType, RealAsset: m.RealAsset}, nil
+	return toDomainBranch(m), nil
 }
 func (t txRepo) UpdateBranchQuota(ctx context.Context, branchID string, quota int) error {
 	return t.tx.WithContext(ctx).Model(&BranchModel{}).Where("id = ?", branchID).Update("quota", quota).Error
@@ -363,6 +405,35 @@ func (t txRepo) FindMemberCategory(ctx context.Context, categoryID string) (memb
 }
 func (t txRepo) UpdateMemberPoints(ctx context.Context, memberID string, points int) error {
 	return t.tx.WithContext(ctx).Model(&MemberModel{}).Where("id = ?", memberID).Update("points", points).Error
+}
+
+func toDomainBranch(m BranchModel) branch.Branch {
+	return branch.Branch{
+		ID:               m.ID,
+		BranchName:       m.BranchName,
+		Address:          m.Address,
+		Phone:            m.Phone,
+		Email:            m.Email,
+		SIAID:            m.SIAID,
+		SIAName:          m.SIAName,
+		PSAID:            m.PSAID,
+		PSAName:          m.PSAName,
+		SIPA:             m.SIPA,
+		SIPAName:         m.SIPAName,
+		APINGID:          m.APINGID,
+		APINGName:        m.APINGName,
+		BankName:         m.BankName,
+		AccountName:      m.AccountName,
+		AccountNumber:    m.AccountNumber,
+		TaxPercentage:    m.TaxPercentage,
+		JournalMethod:    m.JournalMethod,
+		BranchStatus:     m.BranchStatus,
+		LicenseDate:      m.LicenseDate.Format(time.RFC3339),
+		DefaultMemberID:  m.DefaultMember,
+		SubscriptionType: m.SubscriptionType,
+		Quota:            m.Quota,
+		RealAsset:        m.RealAsset,
+	}
 }
 
 func toDomainProduct(m ProductModel) product.Product {

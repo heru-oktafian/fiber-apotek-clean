@@ -14,6 +14,15 @@ func JSON(c *fiber.Ctx, status int, message string, data any) error {
 	})
 }
 
+func JSONWithMeta(c *fiber.Ctx, status int, message string, data any, meta any) error {
+	return c.Status(status).JSON(fiber.Map{
+		"status":  statusText(status),
+		"message": message,
+		"data":    data,
+		"meta":    meta,
+	})
+}
+
 func Error(c *fiber.Ctx, status int, message string, detail any) error {
 	return c.Status(status).JSON(fiber.Map{
 		"status":  statusText(status),

@@ -21,8 +21,10 @@ import (
 	postgresadapter "github.com/heru-oktafian/fiber-apotek-clean/internal/adapters/persistence/postgres"
 	"github.com/heru-oktafian/fiber-apotek-clean/internal/shared/clock"
 	"github.com/heru-oktafian/fiber-apotek-clean/internal/shared/config"
+	"github.com/heru-oktafian/fiber-apotek-clean/internal/shared/console"
 	"github.com/heru-oktafian/fiber-apotek-clean/internal/shared/idgen"
 	authusecase "github.com/heru-oktafian/fiber-apotek-clean/internal/usecase/auth"
+	branchusecase "github.com/heru-oktafian/fiber-apotek-clean/internal/usecase/branch"
 	opnameusecase "github.com/heru-oktafian/fiber-apotek-clean/internal/usecase/opname"
 	productusecase "github.com/heru-oktafian/fiber-apotek-clean/internal/usecase/product"
 	purchaseusecase "github.com/heru-oktafian/fiber-apotek-clean/internal/usecase/purchase"
@@ -58,13 +60,15 @@ func New() (*App, error) {
 	ids := idgen.Generator{}
 
 	authHandler := handlers.AuthHandler{Service: authusecase.Service{Users: repos, Branches: repos, Passwords: bcryptComparer{}, Tokens: jwtSvc, Blacklist: blacklist, Clock: clk}}
+	branchHandler := handlers.BranchHandler{Service: branchusecase.Service{Branches: repos}}
 	productHandler := handlers.ProductHandler{Service: productusecase.Service{Products: repos, IDs: ids}}
 	purchaseHandler := handlers.PurchaseHandler{Service: purchaseusecase.Service{Repo: repos, IDs: ids, Clock: clk}}
 	saleHandler := handlers.SaleHandler{Service: saleusecase.Service{Repo: repos, IDs: ids, Clock: clk}}
 	opnameHandler := handlers.OpnameHandler{Service: opnameusecase.Service{Repo: repos, IDs: ids, Clock: clk}}
 
 	app := fiber.New(fiber.Config{DisableStartupMessage: true, ReadTimeout: 30 * time.Second, WriteTimeout: 30 * time.Second})
+	app.Use(console.RequestLogger())
 	authMw := middleware.RequireAuth(jwtSvc, blacklist)
-	router.Register(app, router.Dependencies{Auth: authHandler, Product: productHandler, Purchase: purchaseHandler, Sale: saleHandler, Opname: opnameHandler, AuthMiddleware: authMw})
+	router.Register(app, router.Dependencies{Auth: authHandler, Branch: branchHandler, Product: productHandler, Purchase: purchaseHandler, Sale: saleHandler, Opname: opnameHandler, AuthMiddleware: authMw})
 	return &App{Fiber: app, Config: cfg}, nil
 }

@@ -17,6 +17,10 @@ type Dependencies struct {
 		PurchaseCombo(*fiber.Ctx) error
 		OpnameCombo(*fiber.Ctx) error
 	}
+	Branch interface {
+		List(*fiber.Ctx) error
+		GetByID(*fiber.Ctx) error
+	}
 	Purchase interface {
 		Create(*fiber.Ctx) error
 	}
@@ -40,6 +44,8 @@ func Register(app *fiber.App, deps Dependencies) {
 	app.Post("/api/set_branch", deps.AuthMiddleware, deps.Auth.SetBranch)
 	app.Get("/api/profile", deps.AuthMiddleware, deps.Auth.Profile)
 	app.Post("/api/logout", deps.AuthMiddleware, deps.Auth.Logout)
+	app.Get("/api/branches", deps.AuthMiddleware, deps.Branch.List)
+	app.Get("/api/branches/:id", deps.AuthMiddleware, deps.Branch.GetByID)
 	app.Post("/api/products", deps.AuthMiddleware, deps.Product.Create)
 	app.Get("/api/sales-products-combo", deps.AuthMiddleware, deps.Product.SaleCombo)
 	app.Get("/api/purchase-products-combo", deps.AuthMiddleware, deps.Product.PurchaseCombo)
