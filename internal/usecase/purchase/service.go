@@ -18,6 +18,63 @@ type Service struct {
 	Clock ports.Clock
 }
 
+func (s Service) List(ctx context.Context, branchID string, req purchase.ListRequest) (purchase.ListResult, error) {
+	if req.Page <= 0 {
+		req.Page = 1
+	}
+	if req.Limit <= 0 {
+		req.Limit = 10
+	}
+	items, err := s.Repo.ListPurchases(ctx, branchID, req)
+	if err != nil {
+		return purchase.ListResult{}, apperror.New(http.StatusInternalServerError, "Get purchases failed", err.Error())
+	}
+	return items, nil
+}
+
+func (s Service) GetByID(ctx context.Context, branchID, id string) (purchase.Detail, error) {
+	item, err := s.Repo.FindPurchaseDetail(ctx, branchID, id)
+	if err != nil {
+		return purchase.Detail{}, apperror.New(http.StatusNotFound, "Get purchase failed", err.Error())
+	}
+	return item, nil
+}
+
+func (s Service) Update(ctx context.Context, branchID, id string, req purchase.UpdateRequest) (purchase.Purchase, error) {
+	item, err := s.Repo.FindPurchaseByID(ctx, branchID, id)
+	if err != nil {
+		return purchase.Purchase{}, apperror.New(http.StatusNotFound, "Update purchase failed", "purchase not found")
+	}
+	if req.SupplierID != "" {
+		item.SupplierID = req.SupplierID
+	}
+	if req.PurchaseDate != "" {
+		parsedDate, err := time.Parse("2006-01-02", req.PurchaseDate)
+		if err != nil {
+			return purchase.Purchase{}, apperror.New(http.StatusBadRequest, "Update purchase failed", "invalid purchase_date format. use YYYY-MM-DD")
+		}
+		item.PurchaseDate = parsedDate
+	}
+	if req.Payment != "" {
+		item.Payment = common.PaymentStatus(req.Payment)
+	}
+	item.UpdatedAt = s.Clock.Now()
+	if err := s.Repo.UpdatePurchaseHeader(ctx, item); err != nil {
+		return purchase.Purchase{}, apperror.New(http.StatusInternalServerError, "Update purchase failed", err.Error())
+	}
+	return s.Repo.FindPurchaseByID(ctx, branchID, id)
+}
+
+func (s Service) Delete(ctx context.Context, branchID, id string) error {
+	if _, err := s.Repo.FindPurchaseByID(ctx, branchID, id); err != nil {
+		return apperror.New(http.StatusNotFound, "Delete purchase failed", "purchase not found")
+	}
+	if err := s.Repo.DeletePurchaseHeader(ctx, branchID, id); err != nil {
+		return apperror.New(http.StatusInternalServerError, "Delete purchase failed", err.Error())
+	}
+	return nil
+}
+
 func (s Service) CreateTransaction(ctx context.Context, branchID, userID string, req purchase.CreatePurchaseRequest) (purchase.Purchase, []purchase.Item, error) {
 	now := s.Clock.Now()
 	purchaseDate := now

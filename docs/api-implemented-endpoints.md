@@ -1029,6 +1029,30 @@ Authorization: Bearer <TOKEN_2>
 
 ## 12. Purchases
 
+### GET `/api/purchases`
+**Header:**
+```http
+Authorization: Bearer <TOKEN_2>
+```
+
+**Query params opsional:**
+- `page`
+- `limit`
+- `search`
+
+---
+
+### GET `/api/purchases/:id`
+**Header:**
+```http
+Authorization: Bearer <TOKEN_2>
+```
+
+**Path param:**
+- `id` = ID purchase
+
+---
+
 ### POST `/api/purchases`
 **Header:**
 ```http
@@ -1058,7 +1082,36 @@ Authorization: Bearer <TOKEN_2>
 
 ---
 
-## 8. Sales
+### PUT `/api/purchases/:id`
+**Header:**
+```http
+Content-Type: application/json
+Authorization: Bearer <TOKEN_2>
+```
+
+**Body contoh:**
+```json
+{
+  "supplier_id": "SPL250207144606",
+  "purchase_date": "2026-04-20",
+  "payment": "cash"
+}
+```
+
+---
+
+### DELETE `/api/purchases/:id`
+**Header:**
+```http
+Authorization: Bearer <TOKEN_2>
+```
+
+**Path param:**
+- `id` = ID purchase
+
+---
+
+## 13. Sales
 
 ### POST `/api/sales`
 **Header:**
@@ -1218,7 +1271,11 @@ Authorization: Bearer <TOKEN_2>
 - `PUT /api/member-categories/:id`
 - `DELETE /api/member-categories/:id`
 - `GET /api/member-categories-combo`
+- `GET /api/purchases`
+- `GET /api/purchases/:id`
 - `POST /api/purchases`
+- `PUT /api/purchases/:id`
+- `DELETE /api/purchases/:id`
 - `POST /api/sales`
 - `POST /api/opnames`
 - `GET /api/opnames/:id`

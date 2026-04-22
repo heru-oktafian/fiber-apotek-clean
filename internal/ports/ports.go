@@ -133,6 +133,11 @@ type MemberRepository interface {
 
 type PurchaseRepository interface {
 	WithinTransaction(ctx context.Context, fn func(repo PurchaseTxRepository) error) error
+	ListPurchases(ctx context.Context, branchID string, req purchase.ListRequest) (purchase.ListResult, error)
+	FindPurchaseDetail(ctx context.Context, branchID, id string) (purchase.Detail, error)
+	FindPurchaseByID(ctx context.Context, branchID, id string) (purchase.Purchase, error)
+	UpdatePurchaseHeader(ctx context.Context, item purchase.Purchase) error
+	DeletePurchaseHeader(ctx context.Context, branchID, id string) error
 }
 
 type PurchaseTxRepository interface {

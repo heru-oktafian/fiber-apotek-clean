@@ -862,6 +862,99 @@ func (r Repositories) WithinOpnameTransaction(ctx context.Context, fn func(repo 
 	return r.DB.WithContext(ctx).Transaction(func(tx *gorm.DB) error { return fn(txRepo{tx: tx}) })
 }
 
+func (r Repositories) ListPurchases(ctx context.Context, branchID string, req purchase.ListRequest) (purchase.ListResult, error) {
+	query := r.DB.WithContext(ctx).
+		Table("purchases pur").
+		Select("pur.id, pur.supplier_id, sup.name AS supplier_name, pur.purchase_date, pur.total_purchase, pur.payment").
+		Joins("LEFT JOIN suppliers sup ON sup.id = pur.supplier_id").
+		Where("pur.branch_id = ? AND pur.total_purchase > 0", branchID)
+	if req.Search != "" {
+		like := "%" + strings.TrimSpace(strings.ToLower(req.Search)) + "%"
+		query = query.Where("LOWER(sup.name) LIKE ?", like)
+	}
+	var total int64
+	if err := query.Count(&total).Error; err != nil {
+		return purchase.ListResult{}, err
+	}
+	var items []purchase.Purchase
+	offset := (req.Page - 1) * req.Limit
+	if err := query.Order("pur.created_at DESC").Offset(offset).Limit(req.Limit).Scan(&items).Error; err != nil {
+		return purchase.ListResult{}, err
+	}
+	lastPage := 1
+	if req.Limit > 0 {
+		lastPage = int((total + int64(req.Limit) - 1) / int64(req.Limit))
+		if lastPage == 0 {
+			lastPage = 1
+		}
+	}
+	return purchase.ListResult{Items: items, Meta: purchase.ListMeta{Page: req.Page, Limit: req.Limit, Search: req.Search, TotalData: int(total), LastPage: lastPage}}, nil
+}
+
+func (r Repositories) FindPurchaseByID(ctx context.Context, branchID, id string) (purchase.Purchase, error) {
+	var m PurchaseModel
+	if err := r.DB.WithContext(ctx).Where("id = ? AND branch_id = ?", id, branchID).First(&m).Error; err != nil {
+		return purchase.Purchase{}, err
+	}
+	return purchase.Purchase{ID: m.ID, SupplierID: m.SupplierID, PurchaseDate: m.PurchaseDate, BranchID: m.BranchID, UserID: m.UserID, Payment: common.PaymentStatus(m.Payment), TotalPurchase: m.TotalPurchase, CreatedAt: m.CreatedAt, UpdatedAt: m.UpdatedAt}, nil
+}
+
+func (r Repositories) FindPurchaseDetail(ctx context.Context, branchID, id string) (purchase.Detail, error) {
+	var header struct {
+		ID            string
+		SupplierID    string
+		SupplierName  string
+		PurchaseDate  time.Time
+		TotalPurchase int
+		Payment       string
+	}
+	if err := r.DB.WithContext(ctx).
+		Table("purchases pur").
+		Select("pur.id, pur.supplier_id, sup.name AS supplier_name, pur.purchase_date, pur.total_purchase, pur.payment").
+		Joins("LEFT JOIN suppliers sup ON sup.id = pur.supplier_id").
+		Where("pur.id = ? AND pur.branch_id = ?", id, branchID).
+		Scan(&header).Error; err != nil {
+		return purchase.Detail{}, err
+	}
+	if header.ID == "" {
+		return purchase.Detail{}, gorm.ErrRecordNotFound
+	}
+	var items []struct {
+		ID          string
+		ProductID   string
+		ProductName string
+		UnitID      string
+		UnitName    string
+		Price       int
+		Qty         int
+		SubTotal    int
+		ExpiredDate time.Time
+	}
+	if err := r.DB.WithContext(ctx).
+		Table("purchase_items pit").
+		Select("pit.id, pit.product_id, pro.name AS product_name, pit.unit_id AS unit_id, un.name AS unit_name, pit.price, pit.qty, pit.sub_total, pit.expired_date").
+		Joins("LEFT JOIN products pro ON pro.id = pit.product_id").
+		Joins("LEFT JOIN units un ON un.id = pit.unit_id").
+		Where("pit.purchase_id = ?", id).
+		Order("pro.name ASC").
+		Scan(&items).Error; err != nil {
+		return purchase.Detail{}, err
+	}
+	formattedItems := make([]purchase.FormattedItem, 0, len(items))
+	for _, item := range items {
+		formattedItems = append(formattedItems, purchase.FormattedItem{ID: item.ID, ProductID: item.ProductID, ProductName: item.ProductName, UnitID: item.UnitID, UnitName: item.UnitName, Price: item.Price, Qty: item.Qty, SubTotal: item.SubTotal, ExpiredDate: item.ExpiredDate.Format("02 January 2006")})
+	}
+	return purchase.Detail{ID: header.ID, SupplierID: header.SupplierID, SupplierName: header.SupplierName, PurchaseDate: header.PurchaseDate.Format("02 January 2006"), TotalPurchase: header.TotalPurchase, Payment: header.Payment, Items: formattedItems}, nil
+}
+
+func (r Repositories) UpdatePurchaseHeader(ctx context.Context, item purchase.Purchase) error {
+	return r.DB.WithContext(ctx).Model(&PurchaseModel{}).Where("id = ? AND branch_id = ?", item.ID, item.BranchID).Updates(map[string]any{"supplier_id": item.SupplierID, "purchase_date": item.PurchaseDate, "payment": string(item.Payment), "updated_at": item.UpdatedAt}).Error
+}
+
+func (r Repositories) DeletePurchaseHeader(ctx context.Context, branchID, id string) error {
+	return r.DB.WithContext(ctx).Where("id = ? AND branch_id = ?", id, branchID).Delete(&PurchaseModel{}).Error
+}
+
 func (r Repositories) WithinTransaction(ctx context.Context, fn func(repo ports.PurchaseTxRepository) error) error {
 	return r.DB.WithContext(ctx).Transaction(func(tx *gorm.DB) error { return fn(txRepo{tx: tx}) })
 }
