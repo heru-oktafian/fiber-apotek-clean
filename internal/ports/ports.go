@@ -7,6 +7,7 @@ import (
 	"github.com/heru-oktafian/fiber-apotek-clean/internal/domain/auth"
 	"github.com/heru-oktafian/fiber-apotek-clean/internal/domain/branch"
 	"github.com/heru-oktafian/fiber-apotek-clean/internal/domain/member"
+	"github.com/heru-oktafian/fiber-apotek-clean/internal/domain/membercategory"
 	"github.com/heru-oktafian/fiber-apotek-clean/internal/domain/opname"
 	"github.com/heru-oktafian/fiber-apotek-clean/internal/domain/product"
 	"github.com/heru-oktafian/fiber-apotek-clean/internal/domain/productcategory"
@@ -99,6 +100,15 @@ type SupplierCategoryRepository interface {
 	UpdateSupplierCategory(ctx context.Context, item suppliercategory.SupplierCategory) error
 	DeleteSupplierCategory(ctx context.Context, id uint, branchID string) error
 	GetSupplierCategoryCombo(ctx context.Context, branchID string) ([]suppliercategory.ComboItem, error)
+}
+
+type MemberCategoryRepository interface {
+	ListMemberCategories(ctx context.Context, branchID string, req membercategory.ListRequest) (membercategory.ListResult, error)
+	FindMemberCategoryByID(ctx context.Context, id uint, branchID string) (membercategory.MemberCategory, error)
+	CreateMemberCategory(ctx context.Context, item membercategory.MemberCategory) (membercategory.MemberCategory, error)
+	UpdateMemberCategory(ctx context.Context, item membercategory.MemberCategory) error
+	DeleteMemberCategory(ctx context.Context, id uint, branchID string) error
+	GetMemberCategoryCombo(ctx context.Context, branchID, search string) ([]membercategory.ComboItem, error)
 }
 
 type UnitRepository interface {

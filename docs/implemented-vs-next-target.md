@@ -251,11 +251,33 @@ Tujuannya sederhana:
 
 Urutan yang paling sehat saat ini:
 
-1. **Member Categories**
-2. **Products full CRUD**
-3. **Purchases & Sales full CRUD**
-4. **Returns / Another Incomes / Expenses**
-5. **First Stocks / Reports / Export**
+### Member Categories
+**Implemented:**
+- `GET /api/member-categories`
+- `GET /api/member-categories/:id`
+- `POST /api/member-categories`
+- `PUT /api/member-categories/:id`
+- `DELETE /api/member-categories/:id`
+- `GET /api/member-categories-combo`
+
+**Catatan:**
+- field bisnis penting: `points_conversion_rate`
+- ID member category mengikuti schema legacy, yaitu numeric auto increment
+
+**Next target:**
+- validasi kebutuhan frontend terkait detail points conversion
+- export PDF/Excel jika nanti memang diperlukan
+
+---
+
+## Rekomendasi urutan kerja berikutnya
+
+Urutan yang paling sehat saat ini:
+
+1. **Products full CRUD**
+2. **Purchases & Sales full CRUD**
+3. **Returns / Another Incomes / Expenses**
+4. **First Stocks / Reports / Export**
 
 ---
 

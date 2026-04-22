@@ -68,13 +68,20 @@ Api Apotek (Implemented)
 │   │   ├── Put - /api/product-categories/:id
 │   │   ├── Delete - /api/product-categories/:id
 │   │   └── Get - /api/product-categories-combo
-│   └── Supplier Categories/
-│       ├── Get - /api/supplier-categories
-│       ├── Post - /api/supplier-categories
-│       ├── Get - /api/supplier-categories/:id
-│       ├── Put - /api/supplier-categories/:id
-│       ├── Delete - /api/supplier-categories/:id
-│       └── Get - /api/supplier-categories-combo
+│   ├── Supplier Categories/
+│   │   ├── Get - /api/supplier-categories
+│   │   ├── Post - /api/supplier-categories
+│   │   ├── Get - /api/supplier-categories/:id
+│   │   ├── Put - /api/supplier-categories/:id
+│   │   ├── Delete - /api/supplier-categories/:id
+│   │   └── Get - /api/supplier-categories-combo
+│   └── Member Categories/
+│       ├── Get - /api/member-categories
+│       ├── Get - /api/member-categories/:id
+│       ├── Post - /api/member-categories
+│       ├── Put - /api/member-categories/:id
+│       ├── Delete - /api/member-categories/:id
+│       └── Get - /api/member-categories-combo
 ├── Transactions/
 │   ├── Purchases/
 │   │   └── Post - /api/purchases
@@ -847,7 +854,95 @@ Authorization: Bearer <TOKEN_2>
 
 ---
 
-## 11. Purchases
+## 11. Member Categories
+
+### GET `/api/member-categories`
+**Header:**
+```http
+Authorization: Bearer <TOKEN_2>
+```
+
+**Query params opsional:**
+- `page`
+- `limit`
+- `search`
+
+---
+
+### GET `/api/member-categories/:id`
+**Header:**
+```http
+Authorization: Bearer <TOKEN_2>
+```
+
+**Path param:**
+- `id` = numeric ID member category
+
+---
+
+### POST `/api/member-categories`
+**Header:**
+```http
+Content-Type: application/json
+Authorization: Bearer <TOKEN_2>
+```
+
+**Body contoh:**
+```json
+{
+  "name": "Gold",
+  "points_conversion_rate": 500
+}
+```
+
+**Catatan:**
+- field wajib minimal: `name`
+- field bisnis penting: `points_conversion_rate`
+- ID member category mengikuti schema legacy, yaitu auto increment numeric (`uint`)
+- branch mengikuti branch context dari token
+
+---
+
+### PUT `/api/member-categories/:id`
+**Header:**
+```http
+Content-Type: application/json
+Authorization: Bearer <TOKEN_2>
+```
+
+**Body contoh:**
+```json
+{
+  "name": "Platinum",
+  "points_conversion_rate": 1000
+}
+```
+
+---
+
+### DELETE `/api/member-categories/:id`
+**Header:**
+```http
+Authorization: Bearer <TOKEN_2>
+```
+
+**Path param:**
+- `id` = numeric ID member category
+
+---
+
+### GET `/api/member-categories-combo`
+**Header:**
+```http
+Authorization: Bearer <TOKEN_2>
+```
+
+**Query params opsional:**
+- `search`
+
+---
+
+## 12. Purchases
 
 ### POST `/api/purchases`
 **Header:**
@@ -1028,6 +1123,12 @@ Authorization: Bearer <TOKEN_2>
 - `PUT /api/supplier-categories/:id`
 - `DELETE /api/supplier-categories/:id`
 - `GET /api/supplier-categories-combo`
+- `GET /api/member-categories`
+- `GET /api/member-categories/:id`
+- `POST /api/member-categories`
+- `PUT /api/member-categories/:id`
+- `DELETE /api/member-categories/:id`
+- `GET /api/member-categories-combo`
 - `POST /api/purchases`
 - `POST /api/sales`
 - `POST /api/opnames`

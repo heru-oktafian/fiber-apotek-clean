@@ -230,8 +230,10 @@ type MemberModel struct {
 func (MemberModel) TableName() string { return "members" }
 
 type MemberCategoryModel struct {
-	ID                   string `gorm:"column:id;primaryKey"`
+	ID                   uint   `gorm:"column:id;primaryKey"`
+	Name                 string `gorm:"column:name"`
 	PointsConversionRate int    `gorm:"column:points_conversion_rate"`
+	BranchID             string `gorm:"column:branch_id"`
 }
 
 func (MemberCategoryModel) TableName() string { return "member_categories" }

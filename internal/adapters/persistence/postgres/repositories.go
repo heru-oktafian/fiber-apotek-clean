@@ -11,6 +11,7 @@ import (
 	"github.com/heru-oktafian/fiber-apotek-clean/internal/domain/branch"
 	"github.com/heru-oktafian/fiber-apotek-clean/internal/domain/common"
 	"github.com/heru-oktafian/fiber-apotek-clean/internal/domain/member"
+	"github.com/heru-oktafian/fiber-apotek-clean/internal/domain/membercategory"
 	"github.com/heru-oktafian/fiber-apotek-clean/internal/domain/opname"
 	"github.com/heru-oktafian/fiber-apotek-clean/internal/domain/product"
 	"github.com/heru-oktafian/fiber-apotek-clean/internal/domain/productcategory"
@@ -645,6 +646,69 @@ func (r Repositories) GetSupplierCategoryCombo(ctx context.Context, branchID str
 	return items, query.Scan(&items).Error
 }
 
+func (r Repositories) ListMemberCategories(ctx context.Context, branchID string, req membercategory.ListRequest) (membercategory.ListResult, error) {
+	query := r.DB.WithContext(ctx).Table("member_categories mc").Select("mc.id, mc.name, mc.points_conversion_rate, mc.branch_id").Where("mc.branch_id = ?", branchID)
+	if req.Search != "" {
+		like := "%" + strings.TrimSpace(req.Search) + "%"
+		query = query.Where("mc.name ILIKE ?", like)
+	}
+	var total int64
+	if err := query.Count(&total).Error; err != nil {
+		return membercategory.ListResult{}, err
+	}
+	var rows []MemberCategoryModel
+	offset := (req.Page - 1) * req.Limit
+	if err := query.Order("mc.name ASC").Offset(offset).Limit(req.Limit).Scan(&rows).Error; err != nil {
+		return membercategory.ListResult{}, err
+	}
+	items := make([]membercategory.MemberCategory, 0, len(rows))
+	for _, row := range rows {
+		items = append(items, membercategory.MemberCategory{ID: row.ID, Name: row.Name, PointsConversionRate: row.PointsConversionRate, BranchID: row.BranchID})
+	}
+	lastPage := 1
+	if req.Limit > 0 {
+		lastPage = int((total + int64(req.Limit) - 1) / int64(req.Limit))
+		if lastPage == 0 {
+			lastPage = 1
+		}
+	}
+	return membercategory.ListResult{Items: items, Meta: membercategory.ListMeta{Page: req.Page, Limit: req.Limit, Search: req.Search, TotalData: int(total), LastPage: lastPage}}, nil
+}
+
+func (r Repositories) FindMemberCategoryByID(ctx context.Context, id uint, branchID string) (membercategory.MemberCategory, error) {
+	var m MemberCategoryModel
+	if err := r.DB.WithContext(ctx).Where("id = ? AND branch_id = ?", id, branchID).First(&m).Error; err != nil {
+		return membercategory.MemberCategory{}, err
+	}
+	return membercategory.MemberCategory{ID: m.ID, Name: m.Name, PointsConversionRate: m.PointsConversionRate, BranchID: m.BranchID}, nil
+}
+
+func (r Repositories) CreateMemberCategory(ctx context.Context, item membercategory.MemberCategory) (membercategory.MemberCategory, error) {
+	m := MemberCategoryModel{Name: item.Name, PointsConversionRate: item.PointsConversionRate, BranchID: item.BranchID}
+	if err := r.DB.WithContext(ctx).Create(&m).Error; err != nil {
+		return membercategory.MemberCategory{}, err
+	}
+	return membercategory.MemberCategory{ID: m.ID, Name: m.Name, PointsConversionRate: m.PointsConversionRate, BranchID: m.BranchID}, nil
+}
+
+func (r Repositories) UpdateMemberCategory(ctx context.Context, item membercategory.MemberCategory) error {
+	return r.DB.WithContext(ctx).Model(&MemberCategoryModel{}).Where("id = ? AND branch_id = ?", item.ID, item.BranchID).Updates(map[string]any{"name": item.Name, "points_conversion_rate": item.PointsConversionRate}).Error
+}
+
+func (r Repositories) DeleteMemberCategory(ctx context.Context, id uint, branchID string) error {
+	return r.DB.WithContext(ctx).Where("id = ? AND branch_id = ?", id, branchID).Delete(&MemberCategoryModel{}).Error
+}
+
+func (r Repositories) GetMemberCategoryCombo(ctx context.Context, branchID, search string) ([]membercategory.ComboItem, error) {
+	search = strings.TrimSpace(strings.ToLower(search))
+	var items []membercategory.ComboItem
+	query := r.DB.WithContext(ctx).Table("member_categories").Select("id AS member_category_id, name AS member_category_name").Where("branch_id = ?", branchID)
+	if search != "" {
+		query = query.Where("LOWER(member_categories.name) ILIKE ?", "%"+search+"%")
+	}
+	return items, query.Order("name ASC").Scan(&items).Error
+}
+
 func (r Repositories) FindUnitByID(ctx context.Context, id string) (unit.Unit, error) {
 	var m UnitModel
 	if err := r.DB.WithContext(ctx).Where("id = ?", id).First(&m).Error; err != nil {
@@ -674,7 +738,7 @@ func (r Repositories) FindCategoryByID(ctx context.Context, id string) (member.M
 	if err := r.DB.WithContext(ctx).Where("id = ?", id).First(&m).Error; err != nil {
 		return member.MemberCategory{}, err
 	}
-	return member.MemberCategory{ID: m.ID, PointsConversionRate: m.PointsConversionRate}, nil
+	return member.MemberCategory{ID: fmt.Sprintf("%d", m.ID), PointsConversionRate: m.PointsConversionRate}, nil
 }
 
 func (r Repositories) UpdatePoints(ctx context.Context, memberID string, points int) error {
@@ -865,7 +929,7 @@ func (t txRepo) FindMemberCategory(ctx context.Context, categoryID string) (memb
 	if err := t.tx.WithContext(ctx).Where("id = ?", categoryID).First(&m).Error; err != nil {
 		return member.MemberCategory{}, err
 	}
-	return member.MemberCategory{ID: m.ID, PointsConversionRate: m.PointsConversionRate}, nil
+	return member.MemberCategory{ID: fmt.Sprintf("%d", m.ID), PointsConversionRate: m.PointsConversionRate}, nil
 }
 func (t txRepo) UpdateMemberPoints(ctx context.Context, memberID string, points int) error {
 	return t.tx.WithContext(ctx).Model(&MemberModel{}).Where("id = ?", memberID).Update("points", points).Error
