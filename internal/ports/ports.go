@@ -9,6 +9,7 @@ import (
 	"github.com/heru-oktafian/fiber-apotek-clean/internal/domain/member"
 	"github.com/heru-oktafian/fiber-apotek-clean/internal/domain/opname"
 	"github.com/heru-oktafian/fiber-apotek-clean/internal/domain/product"
+	"github.com/heru-oktafian/fiber-apotek-clean/internal/domain/productcategory"
 	"github.com/heru-oktafian/fiber-apotek-clean/internal/domain/purchase"
 	"github.com/heru-oktafian/fiber-apotek-clean/internal/domain/sale"
 	"github.com/heru-oktafian/fiber-apotek-clean/internal/domain/supplier"
@@ -79,6 +80,15 @@ type SupplierRepository interface {
 	UpdateSupplier(ctx context.Context, item supplier.Supplier) error
 	DeleteSupplier(ctx context.Context, id, branchID string) error
 	GetSupplierCombo(ctx context.Context, branchID, search string) ([]supplier.ComboItem, error)
+}
+
+type ProductCategoryRepository interface {
+	ListProductCategories(ctx context.Context, branchID string, req productcategory.ListRequest) (productcategory.ListResult, error)
+	FindProductCategoryByID(ctx context.Context, id uint, branchID string) (productcategory.ProductCategory, error)
+	CreateProductCategory(ctx context.Context, item productcategory.ProductCategory) (productcategory.ProductCategory, error)
+	UpdateProductCategory(ctx context.Context, item productcategory.ProductCategory) error
+	DeleteProductCategory(ctx context.Context, id uint, branchID string) error
+	GetProductCategoryCombo(ctx context.Context, branchID, search string) ([]productcategory.ComboItem, error)
 }
 
 type UnitRepository interface {

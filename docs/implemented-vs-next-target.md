@@ -129,13 +129,29 @@ Tujuannya sederhana:
 - validasi kontrak frontend jika nanti ada kebutuhan khusus
 - export PDF/Excel bila domain ini butuh parity penuh
 
-### Product Categories / Supplier Categories / Unit Conversions
+### Product Categories
+**Implemented:**
+- `GET /api/product-categories`
+- `POST /api/product-categories`
+- `GET /api/product-categories/:id`
+- `PUT /api/product-categories/:id`
+- `DELETE /api/product-categories/:id`
+- `GET /api/product-categories-combo`
+
+**Catatan:**
+- ID product category mengikuti schema legacy, yaitu numeric auto increment
+
+**Next target:**
+- validasi kontrak frontend bila ada format khusus
+- export PDF/Excel kalau nanti dibutuhkan parity penuh
+
+### Supplier Categories / Unit Conversions
 **Implemented:**
 - belum ada
 
 **Next target:**
-- lanjut setelah units stabil
-- utamakan kategori dulu sebelum produk full CRUD
+- supplier categories jadi kandidat berikutnya
+- unit conversions bisa menyusul sebelum products full CRUD kalau frontend benar-benar butuh
 
 ---
 
@@ -220,11 +236,12 @@ Tujuannya sederhana:
 
 Urutan yang paling sehat saat ini:
 
-1. **Product Categories**
-2. **Products full CRUD**
-3. **Purchases & Sales full CRUD**
-4. **Returns / Another Incomes / Expenses**
-5. **First Stocks / Reports / Export**
+1. **Supplier Categories**
+2. **Member Categories**
+3. **Products full CRUD**
+4. **Purchases & Sales full CRUD**
+5. **Returns / Another Incomes / Expenses**
+6. **First Stocks / Reports / Export**
 
 ---
 

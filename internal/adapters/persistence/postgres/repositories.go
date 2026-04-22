@@ -13,6 +13,7 @@ import (
 	"github.com/heru-oktafian/fiber-apotek-clean/internal/domain/member"
 	"github.com/heru-oktafian/fiber-apotek-clean/internal/domain/opname"
 	"github.com/heru-oktafian/fiber-apotek-clean/internal/domain/product"
+	"github.com/heru-oktafian/fiber-apotek-clean/internal/domain/productcategory"
 	"github.com/heru-oktafian/fiber-apotek-clean/internal/domain/purchase"
 	"github.com/heru-oktafian/fiber-apotek-clean/internal/domain/sale"
 	"github.com/heru-oktafian/fiber-apotek-clean/internal/domain/supplier"
@@ -519,6 +520,65 @@ func (r Repositories) GetMasterUnitCombo(ctx context.Context, branchID, search s
 	search = strings.TrimSpace(strings.ToLower(search))
 	var items []unit.MasterUnitComboItem
 	query := r.DB.WithContext(ctx).Table("units").Select("id as unit_id, name as unit_name").Where("branch_id = ?", branchID)
+	if search != "" {
+		query = query.Where("LOWER(name) LIKE ?", "%"+search+"%")
+	}
+	return items, query.Order("name ASC").Scan(&items).Error
+}
+
+func (r Repositories) ListProductCategories(ctx context.Context, branchID string, req productcategory.ListRequest) (productcategory.ListResult, error) {
+	query := r.DB.WithContext(ctx).Table("product_categories pc").Select("pc.id AS product_category_id, pc.name AS product_category_name").Where("pc.branch_id = ?", branchID)
+	if req.Search != "" {
+		like := "%" + strings.TrimSpace(req.Search) + "%"
+		query = query.Where("pc.name ILIKE ?", like)
+	}
+	var total int64
+	if err := query.Count(&total).Error; err != nil {
+		return productcategory.ListResult{}, err
+	}
+	var items []productcategory.ComboItem
+	offset := (req.Page - 1) * req.Limit
+	if err := query.Order("pc.name ASC").Offset(offset).Limit(req.Limit).Scan(&items).Error; err != nil {
+		return productcategory.ListResult{}, err
+	}
+	lastPage := 1
+	if req.Limit > 0 {
+		lastPage = int((total + int64(req.Limit) - 1) / int64(req.Limit))
+		if lastPage == 0 {
+			lastPage = 1
+		}
+	}
+	return productcategory.ListResult{Items: items, Meta: productcategory.ListMeta{Page: req.Page, Limit: req.Limit, Search: req.Search, TotalData: int(total), LastPage: lastPage}}, nil
+}
+
+func (r Repositories) FindProductCategoryByID(ctx context.Context, id uint, branchID string) (productcategory.ProductCategory, error) {
+	var m ProductCategoryModel
+	if err := r.DB.WithContext(ctx).Where("id = ? AND branch_id = ?", id, branchID).First(&m).Error; err != nil {
+		return productcategory.ProductCategory{}, err
+	}
+	return productcategory.ProductCategory{ID: m.ID, Name: m.Name, BranchID: m.BranchID}, nil
+}
+
+func (r Repositories) CreateProductCategory(ctx context.Context, item productcategory.ProductCategory) (productcategory.ProductCategory, error) {
+	m := ProductCategoryModel{Name: item.Name, BranchID: item.BranchID}
+	if err := r.DB.WithContext(ctx).Create(&m).Error; err != nil {
+		return productcategory.ProductCategory{}, err
+	}
+	return productcategory.ProductCategory{ID: m.ID, Name: m.Name, BranchID: m.BranchID}, nil
+}
+
+func (r Repositories) UpdateProductCategory(ctx context.Context, item productcategory.ProductCategory) error {
+	return r.DB.WithContext(ctx).Model(&ProductCategoryModel{}).Where("id = ? AND branch_id = ?", item.ID, item.BranchID).Update("name", item.Name).Error
+}
+
+func (r Repositories) DeleteProductCategory(ctx context.Context, id uint, branchID string) error {
+	return r.DB.WithContext(ctx).Where("id = ? AND branch_id = ?", id, branchID).Delete(&ProductCategoryModel{}).Error
+}
+
+func (r Repositories) GetProductCategoryCombo(ctx context.Context, branchID, search string) ([]productcategory.ComboItem, error) {
+	search = strings.TrimSpace(strings.ToLower(search))
+	var items []productcategory.ComboItem
+	query := r.DB.WithContext(ctx).Table("product_categories").Select("id as product_category_id, name as product_category_name").Where("branch_id = ?", branchID)
 	if search != "" {
 		query = query.Where("LOWER(name) LIKE ?", "%"+search+"%")
 	}

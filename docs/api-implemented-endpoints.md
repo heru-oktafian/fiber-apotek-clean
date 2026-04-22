@@ -54,13 +54,20 @@ Api Apotek (Implemented)
 │   │   ├── Put - /api/suppliers/:id
 │   │   ├── Delete - /api/suppliers/:id
 │   │   └── Get - /api/suppliers-combo
-│   └── Units/
-│       ├── Get - /api/units
-│       ├── Get - /api/units/:id
-│       ├── Post - /api/units
-│       ├── Put - /api/units/:id
-│       ├── Delete - /api/units/:id
-│       └── Get - /api/cmb-units
+│   ├── Units/
+│   │   ├── Get - /api/units
+│   │   ├── Get - /api/units/:id
+│   │   ├── Post - /api/units
+│   │   ├── Put - /api/units/:id
+│   │   ├── Delete - /api/units/:id
+│   │   └── Get - /api/cmb-units
+│   └── Product Categories/
+│       ├── Get - /api/product-categories
+│       ├── Post - /api/product-categories
+│       ├── Get - /api/product-categories/:id
+│       ├── Put - /api/product-categories/:id
+│       ├── Delete - /api/product-categories/:id
+│       └── Get - /api/product-categories-combo
 ├── Transactions/
 │   ├── Purchases/
 │   │   └── Post - /api/purchases
@@ -666,7 +673,92 @@ Authorization: Bearer <TOKEN_2>
 
 ---
 
-## 9. Purchases
+## 9. Product Categories
+
+### GET `/api/product-categories`
+**Header:**
+```http
+Authorization: Bearer <TOKEN_2>
+```
+
+**Query params opsional:**
+- `page`
+- `limit`
+- `search`
+
+---
+
+### POST `/api/product-categories`
+**Header:**
+```http
+Content-Type: application/json
+Authorization: Bearer <TOKEN_2>
+```
+
+**Body contoh:**
+```json
+{
+  "name": "Tablet"
+}
+```
+
+**Catatan:**
+- field wajib: `name`
+- ID category mengikuti schema legacy, yaitu auto increment numeric (`uint`)
+- branch mengikuti branch context dari token
+
+---
+
+### GET `/api/product-categories/:id`
+**Header:**
+```http
+Authorization: Bearer <TOKEN_2>
+```
+
+**Path param:**
+- `id` = numeric ID product category
+
+---
+
+### PUT `/api/product-categories/:id`
+**Header:**
+```http
+Content-Type: application/json
+Authorization: Bearer <TOKEN_2>
+```
+
+**Body contoh:**
+```json
+{
+  "name": "Kaplet"
+}
+```
+
+---
+
+### DELETE `/api/product-categories/:id`
+**Header:**
+```http
+Authorization: Bearer <TOKEN_2>
+```
+
+**Path param:**
+- `id` = numeric ID product category
+
+---
+
+### GET `/api/product-categories-combo`
+**Header:**
+```http
+Authorization: Bearer <TOKEN_2>
+```
+
+**Query params opsional:**
+- `search`
+
+---
+
+## 10. Purchases
 
 ### POST `/api/purchases`
 **Header:**
@@ -835,6 +927,12 @@ Authorization: Bearer <TOKEN_2>
 - `PUT /api/units/:id`
 - `DELETE /api/units/:id`
 - `GET /api/cmb-units`
+- `GET /api/product-categories`
+- `POST /api/product-categories`
+- `GET /api/product-categories/:id`
+- `PUT /api/product-categories/:id`
+- `DELETE /api/product-categories/:id`
+- `GET /api/product-categories-combo`
 - `POST /api/purchases`
 - `POST /api/sales`
 - `POST /api/opnames`

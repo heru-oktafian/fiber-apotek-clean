@@ -27,6 +27,7 @@ import (
 	branchusecase "github.com/heru-oktafian/fiber-apotek-clean/internal/usecase/branch"
 	opnameusecase "github.com/heru-oktafian/fiber-apotek-clean/internal/usecase/opname"
 	productusecase "github.com/heru-oktafian/fiber-apotek-clean/internal/usecase/product"
+	productcategoryusecase "github.com/heru-oktafian/fiber-apotek-clean/internal/usecase/productcategory"
 	purchaseusecase "github.com/heru-oktafian/fiber-apotek-clean/internal/usecase/purchase"
 	saleusecase "github.com/heru-oktafian/fiber-apotek-clean/internal/usecase/sale"
 	supplierusecase "github.com/heru-oktafian/fiber-apotek-clean/internal/usecase/supplier"
@@ -80,6 +81,7 @@ func New() (*App, error) {
 	productHandler := handlers.ProductHandler{Service: productusecase.Service{Products: repos, IDs: ids}}
 	supplierHandler := handlers.SupplierHandler{Service: supplierusecase.Service{Suppliers: repos, IDs: ids}}
 	unitHandler := handlers.UnitHandler{Service: unitusecase.MasterService{Units: repos, IDs: ids}}
+	productCategoryHandler := handlers.ProductCategoryHandler{Service: productcategoryusecase.Service{Categories: repos}}
 	purchaseHandler := handlers.PurchaseHandler{Service: purchaseusecase.Service{Repo: repos, IDs: ids, Clock: clk}}
 	saleHandler := handlers.SaleHandler{Service: saleusecase.Service{Repo: repos, IDs: ids, Clock: clk}}
 	opnameHandler := handlers.OpnameHandler{Service: opnameusecase.Service{Repo: repos, IDs: ids, Clock: clk}}
@@ -87,6 +89,6 @@ func New() (*App, error) {
 	app := fiber.New(fiber.Config{DisableStartupMessage: true, ReadTimeout: 30 * time.Second, WriteTimeout: 30 * time.Second})
 	app.Use(console.RequestLogger())
 	authMw := middleware.RequireAuth(jwtSvc, blacklist)
-	router.Register(app, router.Dependencies{Auth: authHandler, Branch: branchHandler, UserBranch: userBranchHandler, User: userHandler, Product: productHandler, Supplier: supplierHandler, Unit: unitHandler, Purchase: purchaseHandler, Sale: saleHandler, Opname: opnameHandler, AuthMiddleware: authMw})
+	router.Register(app, router.Dependencies{Auth: authHandler, Branch: branchHandler, UserBranch: userBranchHandler, User: userHandler, Product: productHandler, Supplier: supplierHandler, Unit: unitHandler, ProductCategory: productCategoryHandler, Purchase: purchaseHandler, Sale: saleHandler, Opname: opnameHandler, AuthMiddleware: authMw})
 	return &App{Fiber: app, Config: cfg}, nil
 }
