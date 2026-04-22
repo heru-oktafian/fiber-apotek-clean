@@ -42,6 +42,85 @@ func (r Repositories) FindByID(ctx context.Context, id string) (user.User, error
 	return user.User{ID: m.ID, Name: m.Name, Username: m.Username, Password: m.Password, Role: common.UserRole(m.UserRole), Status: m.UserStatus}, nil
 }
 
+func (r Repositories) ListUsers(ctx context.Context, req user.ListRequest) (user.ListResult, error) {
+	query := r.DB.WithContext(ctx).Model(&UserModel{})
+	if req.Search != "" {
+		like := "%" + strings.TrimSpace(req.Search) + "%"
+		query = query.Where("username ILIKE ? OR name ILIKE ?", like, like)
+	}
+
+	var total int64
+	if err := query.Count(&total).Error; err != nil {
+		return user.ListResult{}, err
+	}
+
+	var models []UserModel
+	offset := (req.Page - 1) * req.Limit
+	if err := query.Offset(offset).Limit(req.Limit).Order("name ASC").Find(&models).Error; err != nil {
+		return user.ListResult{}, err
+	}
+
+	items := make([]user.User, 0, len(models))
+	for _, model := range models {
+		items = append(items, user.User{ID: model.ID, Name: model.Name, Username: model.Username, Role: common.UserRole(model.UserRole), Status: model.UserStatus})
+	}
+
+	lastPage := 1
+	if req.Limit > 0 {
+		lastPage = int((total + int64(req.Limit) - 1) / int64(req.Limit))
+		if lastPage == 0 {
+			lastPage = 1
+		}
+	}
+
+	return user.ListResult{
+		Items: items,
+		Meta: user.ListMeta{
+			Page:      req.Page,
+			Limit:     req.Limit,
+			Search:    req.Search,
+			TotalData: int(total),
+			LastPage:  lastPage,
+		},
+	}, nil
+}
+
+func (r Repositories) FindUserWithBranches(ctx context.Context, id string) (user.DetailWithBranches, error) {
+	usr, err := r.FindByID(ctx, id)
+	if err != nil {
+		return user.DetailWithBranches{}, err
+	}
+	usr.Password = ""
+
+	var userBranches []UserBranchModel
+	if err := r.DB.WithContext(ctx).Where("user_id = ?", id).Find(&userBranches).Error; err != nil {
+		return user.DetailWithBranches{}, err
+	}
+
+	branchIDs := make([]string, 0, len(userBranches))
+	for _, item := range userBranches {
+		branchIDs = append(branchIDs, item.BranchID)
+	}
+
+	branchDetails := make([]user.BranchDetail, 0)
+	if len(branchIDs) > 0 {
+		var branches []BranchModel
+		if err := r.DB.WithContext(ctx).Where("id IN ?", branchIDs).Find(&branches).Error; err != nil {
+			return user.DetailWithBranches{}, err
+		}
+		for _, item := range branches {
+			branchDetails = append(branchDetails, user.BranchDetail{
+				BranchID:   item.ID,
+				BranchName: item.BranchName,
+				Address:    item.Address,
+				Phone:      item.Phone,
+			})
+		}
+	}
+
+	return user.DetailWithBranches{User: usr, DetailBranches: branchDetails}, nil
+}
+
 func (r Repositories) FindBranchByID(ctx context.Context, id string) (branch.Branch, error) {
 	var m BranchModel
 	if err := r.DB.WithContext(ctx).Where("id = ?", id).First(&m).Error; err != nil {

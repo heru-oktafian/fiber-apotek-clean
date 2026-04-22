@@ -38,6 +38,8 @@ type TokenBlacklist interface {
 type UserRepository interface {
 	FindActiveByUsername(ctx context.Context, username string) (user.User, error)
 	FindByID(ctx context.Context, id string) (user.User, error)
+	ListUsers(ctx context.Context, req user.ListRequest) (user.ListResult, error)
+	FindUserWithBranches(ctx context.Context, id string) (user.DetailWithBranches, error)
 }
 
 type BranchRepository interface {
