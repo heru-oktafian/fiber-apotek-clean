@@ -89,18 +89,19 @@ Tujuannya sederhana:
 
 ### Products
 **Implemented:**
+- `GET /api/products`
 - `POST /api/products`
+- `GET /api/products/:id`
+- `PUT /api/products/:id`
+- `DELETE /api/products/:id`
 - `GET /api/sales-products-combo`
 - `GET /api/purchase-products-combo`
 - `GET /api/cmb-product-opname`
 
 **Next target:**
-- `GET /api/products`
-- `GET /api/products/:id`
-- `PUT /api/products/:id`
-- `DELETE /api/products/:id`
-- combobox category/unit
+- combobox category/unit jika frontend memang butuh endpoint terpisah
 - export label/pdf/excel
+- validasi runtime end-to-end untuk full CRUD product
 
 ### Suppliers
 **Implemented:**
@@ -274,10 +275,9 @@ Urutan yang paling sehat saat ini:
 
 Urutan yang paling sehat saat ini:
 
-1. **Products full CRUD**
-2. **Purchases & Sales full CRUD**
-3. **Returns / Another Incomes / Expenses**
-4. **First Stocks / Reports / Export**
+1. **Purchases & Sales full CRUD**
+2. **Returns / Another Incomes / Expenses**
+3. **First Stocks / Reports / Export**
 
 ---
 

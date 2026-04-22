@@ -69,7 +69,10 @@ type BranchRepository interface {
 type ProductRepository interface {
 	Create(ctx context.Context, item product.Product) error
 	FindProductByID(ctx context.Context, id string) (product.Product, error)
+	FindProductDetailByID(ctx context.Context, id, branchID string) (product.Product, error)
+	ListProducts(ctx context.Context, branchID string, req product.ListRequest) (product.ListResult, error)
 	Update(ctx context.Context, item product.Product) error
+	DeleteProduct(ctx context.Context, id, branchID string) error
 	GetSaleCombo(ctx context.Context, branchID, search string) ([]product.SaleComboItem, error)
 	GetPurchaseCombo(ctx context.Context, branchID, search string) ([]product.PurchaseComboItem, error)
 	GetOpnameCombo(ctx context.Context, branchID, search string) ([]product.OpnameComboItem, error)

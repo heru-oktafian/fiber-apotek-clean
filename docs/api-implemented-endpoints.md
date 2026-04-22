@@ -43,7 +43,11 @@ Api Apotek (Implemented)
 │       └── Put - /api/users/:id
 ├── Masters/
 │   ├── Products/
+│   │   ├── Get - /api/products
 │   │   ├── Post - /api/products
+│   │   ├── Get - /api/products/:id
+│   │   ├── Put - /api/products/:id
+│   │   ├── Delete - /api/products/:id
 │   │   ├── Get - /api/sales-products-combo
 │   │   ├── Get - /api/purchase-products-combo
 │   │   └── Get - /api/cmb-product-opname
@@ -448,6 +452,19 @@ Authorization: Bearer <TOKEN_2>
 
 ## 6. Products
 
+### GET `/api/products`
+**Header:**
+```http
+Authorization: Bearer <TOKEN_2>
+```
+
+**Query params opsional:**
+- `page`
+- `limit`
+- `search`
+
+---
+
 ### POST `/api/products`
 **Header:**
 ```http
@@ -455,11 +472,79 @@ Content-Type: application/json
 Authorization: Bearer <TOKEN_2>
 ```
 
-**Body:**
-- mengikuti struktur create product yang dipakai usecase saat ini
+**Body contoh:**
+```json
+{
+  "sku": "PRD-CUSTOM-001",
+  "name": "Paracetamol 500mg",
+  "alias": "Paracetamol",
+  "description": "Obat penurun panas",
+  "ingredient": "Paracetamol",
+  "dosage": "3x1 sehari",
+  "side_affection": "Mual ringan",
+  "unit_id": "UNT250118132755",
+  "purchase_price": 5000,
+  "sales_price": 7000,
+  "alternate_price": 6500,
+  "expired_date": "2027-12-31T00:00:00Z",
+  "product_category_id": 1
+}
+```
 
 **Catatan:**
-- untuk testing nyata, sesuaikan field dengan schema product di DB dev
+- jika `sku` kosong, server akan fallback ke ID product
+- `stock` default awal tetap `0`
+- branch mengikuti branch context dari token
+
+---
+
+### GET `/api/products/:id`
+**Header:**
+```http
+Authorization: Bearer <TOKEN_2>
+```
+
+**Path param:**
+- `id` = ID product
+
+---
+
+### PUT `/api/products/:id`
+**Header:**
+```http
+Content-Type: application/json
+Authorization: Bearer <TOKEN_2>
+```
+
+**Body contoh:**
+```json
+{
+  "sku": "PRD-CUSTOM-001",
+  "name": "Paracetamol 500mg Update",
+  "alias": "Paracetamol Update",
+  "description": "Obat penurun panas update",
+  "ingredient": "Paracetamol",
+  "dosage": "2x1 sehari",
+  "side_affection": "Mengantuk",
+  "unit_id": "UNT250118132755",
+  "purchase_price": 5500,
+  "sales_price": 7500,
+  "alternate_price": 7000,
+  "expired_date": "2028-12-31T00:00:00Z",
+  "product_category_id": 1
+}
+```
+
+---
+
+### DELETE `/api/products/:id`
+**Header:**
+```http
+Authorization: Bearer <TOKEN_2>
+```
+
+**Path param:**
+- `id` = ID product
 
 ---
 
@@ -1095,7 +1180,11 @@ Authorization: Bearer <TOKEN_2>
 - `GET /api/detail-users/:id`
 - `POST /api/users`
 - `PUT /api/users/:id`
+- `GET /api/products`
 - `POST /api/products`
+- `GET /api/products/:id`
+- `PUT /api/products/:id`
+- `DELETE /api/products/:id`
 - `GET /api/sales-products-combo`
 - `GET /api/purchase-products-combo`
 - `GET /api/cmb-product-opname`

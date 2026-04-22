@@ -313,7 +313,7 @@ func (r Repositories) FindUserBranchDetail(ctx context.Context, userID, branchID
 }
 
 func (r Repositories) Create(ctx context.Context, item product.Product) error {
-	return r.DB.WithContext(ctx).Create(&ProductModel{ID: item.ID, SKU: item.SKU, Name: item.Name, Description: item.Description, BranchID: item.BranchID, UnitID: item.UnitID, Stock: item.Stock, PurchasePrice: item.PurchasePrice, SalesPrice: item.SalesPrice, AlternatePrice: item.AlternatePrice, ProductCategoryID: item.ProductCategoryID, ExpiredDate: item.ExpiredDate}).Error
+	return r.DB.WithContext(ctx).Create(&ProductModel{ID: item.ID, SKU: item.SKU, Name: item.Name, Alias: item.Alias, Description: item.Description, Ingredient: item.Ingredient, Dosage: item.Dosage, SideAffection: item.SideAffection, BranchID: item.BranchID, UnitID: item.UnitID, Stock: item.Stock, PurchasePrice: item.PurchasePrice, SalesPrice: item.SalesPrice, AlternatePrice: item.AlternatePrice, ProductCategoryID: item.ProductCategoryID, ExpiredDate: item.ExpiredDate}).Error
 }
 
 func (r Repositories) FindProductByID(ctx context.Context, id string) (product.Product, error) {
@@ -324,16 +324,86 @@ func (r Repositories) FindProductByID(ctx context.Context, id string) (product.P
 	return toDomainProduct(m), nil
 }
 
+func (r Repositories) FindProductDetailByID(ctx context.Context, id, branchID string) (product.Product, error) {
+	var row struct {
+		ID                  string
+		SKU                 string
+		Name                string
+		Alias               string
+		Description         string
+		Ingredient          string
+		Dosage              string
+		SideAffection       string
+		UnitID              string
+		UnitName            string
+		Stock               int
+		PurchasePrice       int
+		ExpiredDate         time.Time
+		SalesPrice          int
+		AlternatePrice      int
+		ProductCategoryID   uint
+		ProductCategoryName string
+		BranchID            string
+	}
+	if err := r.DB.WithContext(ctx).
+		Table("products pro").
+		Select("pro.id, pro.sku, pro.name, pro.alias, pro.description, pro.ingredient, pro.dosage, pro.side_affection, pro.unit_id, un.name AS unit_name, pro.stock, pro.purchase_price, pro.expired_date, pro.sales_price, pro.alternate_price, pro.product_category_id, pc.name AS product_category_name, pro.branch_id").
+		Joins("LEFT JOIN product_categories pc ON pc.id = pro.product_category_id").
+		Joins("LEFT JOIN units un ON un.id = pro.unit_id").
+		Where("pro.id = ? AND pro.branch_id = ?", id, branchID).
+		Scan(&row).Error; err != nil {
+		return product.Product{}, err
+	}
+	if row.ID == "" {
+		return product.Product{}, gorm.ErrRecordNotFound
+	}
+	return product.Product{ID: row.ID, SKU: row.SKU, Name: row.Name, Alias: row.Alias, Description: row.Description, Ingredient: row.Ingredient, Dosage: row.Dosage, SideAffection: row.SideAffection, UnitID: row.UnitID, UnitName: row.UnitName, Stock: row.Stock, PurchasePrice: row.PurchasePrice, ExpiredDate: row.ExpiredDate, SalesPrice: row.SalesPrice, AlternatePrice: row.AlternatePrice, ProductCategoryID: row.ProductCategoryID, ProductCategoryName: row.ProductCategoryName, BranchID: row.BranchID}, nil
+}
+
+func (r Repositories) ListProducts(ctx context.Context, branchID string, req product.ListRequest) (product.ListResult, error) {
+	query := r.DB.WithContext(ctx).
+		Table("products pro").
+		Select("pro.id, pro.sku, pro.name, pro.alias, pro.description, pro.ingredient, pro.dosage, pro.side_affection, pro.unit_id, un.name AS unit_name, pro.stock, pro.purchase_price, pro.sales_price, pro.alternate_price, pro.expired_date, pro.product_category_id, pc.name AS product_category_name").
+		Joins("LEFT JOIN product_categories pc ON pc.id = pro.product_category_id").
+		Joins("LEFT JOIN units un ON un.id = pro.unit_id").
+		Where("pro.branch_id = ?", branchID)
+	if req.Search != "" {
+		like := "%" + strings.TrimSpace(req.Search) + "%"
+		query = query.Where("pro.name ILIKE ? OR pro.alias ILIKE ? OR pro.description ILIKE ? OR pro.ingredient ILIKE ? OR pro.dosage ILIKE ? OR pro.side_affection ILIKE ?", like, like, like, like, like, like)
+	}
+	var total int64
+	if err := query.Count(&total).Error; err != nil {
+		return product.ListResult{}, err
+	}
+	var rows []product.Product
+	offset := (req.Page - 1) * req.Limit
+	if err := query.Order("pro.name ASC").Offset(offset).Limit(req.Limit).Scan(&rows).Error; err != nil {
+		return product.ListResult{}, err
+	}
+	lastPage := 1
+	if req.Limit > 0 {
+		lastPage = int((total + int64(req.Limit) - 1) / int64(req.Limit))
+		if lastPage == 0 {
+			lastPage = 1
+		}
+	}
+	return product.ListResult{Items: rows, Meta: product.ListMeta{Page: req.Page, Limit: req.Limit, Search: req.Search, TotalData: int(total), LastPage: lastPage}}, nil
+}
+
 func (r Repositories) Update(ctx context.Context, item product.Product) error {
 	return r.UpdateProduct(ctx, item)
 }
 
 func (r Repositories) UpdateProduct(ctx context.Context, item product.Product) error {
 	return r.DB.WithContext(ctx).Model(&ProductModel{}).Where("id = ?", item.ID).Updates(map[string]any{
-		"sku": item.SKU, "name": item.Name, "description": item.Description, "branch_id": item.BranchID, "unit_id": item.UnitID,
-		"stock": item.Stock, "purchase_price": item.PurchasePrice, "sales_price": item.SalesPrice, "alternate_price": item.AlternatePrice,
+		"sku": item.SKU, "name": item.Name, "alias": item.Alias, "description": item.Description, "ingredient": item.Ingredient, "dosage": item.Dosage, "side_affection": item.SideAffection,
+		"branch_id": item.BranchID, "unit_id": item.UnitID, "stock": item.Stock, "purchase_price": item.PurchasePrice, "sales_price": item.SalesPrice, "alternate_price": item.AlternatePrice,
 		"product_category_id": item.ProductCategoryID, "expired_date": item.ExpiredDate,
 	}).Error
+}
+
+func (r Repositories) DeleteProduct(ctx context.Context, id, branchID string) error {
+	return r.DB.WithContext(ctx).Where("id = ? AND branch_id = ?", id, branchID).Delete(&ProductModel{}).Error
 }
 
 func (r Repositories) GetSaleCombo(ctx context.Context, branchID, search string) ([]product.SaleComboItem, error) {

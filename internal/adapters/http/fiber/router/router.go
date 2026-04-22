@@ -12,7 +12,11 @@ type Dependencies struct {
 		Profile(*fiber.Ctx) error
 	}
 	Product interface {
+		List(*fiber.Ctx) error
+		GetByID(*fiber.Ctx) error
 		Create(*fiber.Ctx) error
+		Update(*fiber.Ctx) error
+		Delete(*fiber.Ctx) error
 		SaleCombo(*fiber.Ctx) error
 		PurchaseCombo(*fiber.Ctx) error
 		OpnameCombo(*fiber.Ctx) error
@@ -108,7 +112,11 @@ func Register(app *fiber.App, deps Dependencies) {
 	app.Get("/api/detail-users/:id", deps.AuthMiddleware, deps.User.Detail)
 	app.Post("/api/users", deps.AuthMiddleware, deps.User.Create)
 	app.Put("/api/users/:id", deps.AuthMiddleware, deps.User.Update)
+	app.Get("/api/products", deps.AuthMiddleware, deps.Product.List)
 	app.Post("/api/products", deps.AuthMiddleware, deps.Product.Create)
+	app.Get("/api/products/:id", deps.AuthMiddleware, deps.Product.GetByID)
+	app.Put("/api/products/:id", deps.AuthMiddleware, deps.Product.Update)
+	app.Delete("/api/products/:id", deps.AuthMiddleware, deps.Product.Delete)
 	app.Get("/api/sales-products-combo", deps.AuthMiddleware, deps.Product.SaleCombo)
 	app.Get("/api/purchase-products-combo", deps.AuthMiddleware, deps.Product.PurchaseCombo)
 	app.Get("/api/cmb-product-opname", deps.AuthMiddleware, deps.Product.OpnameCombo)

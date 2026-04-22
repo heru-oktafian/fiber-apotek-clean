@@ -53,14 +53,18 @@ type ProductModel struct {
 	ID                string    `gorm:"column:id;primaryKey"`
 	SKU               string    `gorm:"column:sku"`
 	Name              string    `gorm:"column:name"`
+	Alias             string    `gorm:"column:alias"`
 	Description       string    `gorm:"column:description"`
+	Ingredient        string    `gorm:"column:ingredient"`
+	Dosage            string    `gorm:"column:dosage"`
+	SideAffection     string    `gorm:"column:side_affection"`
 	BranchID          string    `gorm:"column:branch_id"`
 	UnitID            string    `gorm:"column:unit_id"`
 	Stock             int       `gorm:"column:stock"`
 	PurchasePrice     int       `gorm:"column:purchase_price"`
 	SalesPrice        int       `gorm:"column:sales_price"`
 	AlternatePrice    int       `gorm:"column:alternate_price"`
-	ProductCategoryID string    `gorm:"column:product_category_id"`
+	ProductCategoryID uint      `gorm:"column:product_category_id"`
 	ExpiredDate       time.Time `gorm:"column:expired_date"`
 }
 
