@@ -899,6 +899,29 @@ func (r Repositories) FindPurchaseByID(ctx context.Context, branchID, id string)
 	return purchase.Purchase{ID: m.ID, SupplierID: m.SupplierID, PurchaseDate: m.PurchaseDate, BranchID: m.BranchID, UserID: m.UserID, Payment: common.PaymentStatus(m.Payment), TotalPurchase: m.TotalPurchase, CreatedAt: m.CreatedAt, UpdatedAt: m.UpdatedAt}, nil
 }
 
+func (r Repositories) FindPurchaseItems(ctx context.Context, purchaseID string) ([]purchase.Item, error) {
+	var items []purchase.Item
+	if err := r.DB.WithContext(ctx).
+		Table("purchase_items pit").
+		Select("pit.id, pit.purchase_id, pit.product_id, pro.name AS product_name, pit.unit_id, un.name AS unit_name, pit.price, pit.qty, pit.sub_total, pit.expired_date").
+		Joins("LEFT JOIN products pro ON pro.id = pit.product_id").
+		Joins("LEFT JOIN units un ON un.id = pit.unit_id").
+		Where("pit.purchase_id = ?", purchaseID).
+		Order("pro.name ASC").
+		Scan(&items).Error; err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+func (r Repositories) FindPurchaseItemByID(ctx context.Context, id string) (purchase.Item, error) {
+	var m PurchaseItemModel
+	if err := r.DB.WithContext(ctx).Where("id = ?", id).First(&m).Error; err != nil {
+		return purchase.Item{}, err
+	}
+	return purchase.Item{ID: m.ID, PurchaseID: m.PurchaseID, ProductID: m.ProductID, UnitID: m.UnitID, Price: m.Price, Qty: m.Qty, SubTotal: m.SubTotal, ExpiredDate: m.ExpiredDate}, nil
+}
+
 func (r Repositories) FindPurchaseDetail(ctx context.Context, branchID, id string) (purchase.Detail, error) {
 	var header struct {
 		ID            string
@@ -949,6 +972,18 @@ func (r Repositories) FindPurchaseDetail(ctx context.Context, branchID, id strin
 
 func (r Repositories) UpdatePurchaseHeader(ctx context.Context, item purchase.Purchase) error {
 	return r.DB.WithContext(ctx).Model(&PurchaseModel{}).Where("id = ? AND branch_id = ?", item.ID, item.BranchID).Updates(map[string]any{"supplier_id": item.SupplierID, "purchase_date": item.PurchaseDate, "payment": string(item.Payment), "updated_at": item.UpdatedAt}).Error
+}
+
+func (r Repositories) CreatePurchaseItem(ctx context.Context, item purchase.Item) error {
+	return r.DB.WithContext(ctx).Create(&PurchaseItemModel{ID: item.ID, PurchaseID: item.PurchaseID, ProductID: item.ProductID, UnitID: item.UnitID, Price: item.Price, Qty: item.Qty, SubTotal: item.SubTotal, ExpiredDate: item.ExpiredDate}).Error
+}
+
+func (r Repositories) UpdatePurchaseItem(ctx context.Context, item purchase.Item) error {
+	return r.DB.WithContext(ctx).Model(&PurchaseItemModel{}).Where("id = ?", item.ID).Updates(map[string]any{"product_id": item.ProductID, "unit_id": item.UnitID, "price": item.Price, "qty": item.Qty, "sub_total": item.SubTotal, "expired_date": item.ExpiredDate}).Error
+}
+
+func (r Repositories) DeletePurchaseItem(ctx context.Context, id string) error {
+	return r.DB.WithContext(ctx).Where("id = ?", id).Delete(&PurchaseItemModel{}).Error
 }
 
 func (r Repositories) DeletePurchaseHeader(ctx context.Context, branchID, id string) error {

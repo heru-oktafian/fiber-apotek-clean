@@ -92,3 +92,20 @@ type CreatePurchaseRequest struct {
 		ExpiredDate string `json:"expired_date" validate:"required"`
 	} `json:"purchase_items" validate:"required,min=1,dive"`
 }
+
+type CreateItemRequest struct {
+	PurchaseID  string `json:"purchase_id" validate:"required"`
+	ProductID   string `json:"product_id" validate:"required"`
+	UnitID      string `json:"unit_id" validate:"required"`
+	Price       int    `json:"price" validate:"required,min=1"`
+	Qty         int    `json:"qty" validate:"required,min=1"`
+	ExpiredDate string `json:"expired_date" validate:"required"`
+}
+
+type UpdateItemRequest struct {
+	ProductID   string `json:"product_id" validate:"required"`
+	UnitID      string `json:"unit_id" validate:"required"`
+	Price       int    `json:"price" validate:"required,min=1"`
+	Qty         int    `json:"qty" validate:"required,min=1"`
+	ExpiredDate string `json:"expired_date" validate:"required"`
+}

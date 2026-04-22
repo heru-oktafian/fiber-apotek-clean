@@ -75,6 +75,161 @@ func (s Service) Delete(ctx context.Context, branchID, id string) error {
 	return nil
 }
 
+func (s Service) ListItems(ctx context.Context, branchID, purchaseID string) ([]purchase.Item, error) {
+	if _, err := s.Repo.FindPurchaseByID(ctx, branchID, purchaseID); err != nil {
+		return nil, apperror.New(http.StatusNotFound, "Get purchase items failed", "purchase not found")
+	}
+	items, err := s.Repo.FindPurchaseItems(ctx, purchaseID)
+	if err != nil {
+		return nil, apperror.New(http.StatusInternalServerError, "Get purchase items failed", err.Error())
+	}
+	return items, nil
+}
+
+func (s Service) CreateItem(ctx context.Context, branchID string, req purchase.CreateItemRequest) (purchase.Item, error) {
+	header, err := s.Repo.FindPurchaseByID(ctx, branchID, req.PurchaseID)
+	if err != nil {
+		return purchase.Item{}, apperror.New(http.StatusNotFound, "Create purchase item failed", "purchase not found")
+	}
+	prod, err := s.Repo.FindProductByID(ctx, req.ProductID)
+	if err != nil {
+		return purchase.Item{}, apperror.New(http.StatusNotFound, "Create purchase item failed", "product not found")
+	}
+	if req.UnitID == "" {
+		req.UnitID = prod.UnitID
+	}
+	expiredDate, err := time.Parse("2006-01-02", req.ExpiredDate)
+	if err != nil {
+		return purchase.Item{}, apperror.New(http.StatusBadRequest, "Create purchase item failed", "invalid expired_date format. use YYYY-MM-DD")
+	}
+	items, err := s.Repo.FindPurchaseItems(ctx, req.PurchaseID)
+	if err != nil {
+		return purchase.Item{}, apperror.New(http.StatusInternalServerError, "Create purchase item failed", err.Error())
+	}
+	for _, existing := range items {
+		if existing.ProductID == req.ProductID {
+			existing.Qty += req.Qty
+			existing.SubTotal = existing.Qty * existing.Price
+			if err := s.Repo.UpdatePurchaseItem(ctx, existing); err != nil {
+				return purchase.Item{}, apperror.New(http.StatusInternalServerError, "Create purchase item failed", err.Error())
+			}
+			prod.Stock += req.Qty
+			if req.Price > prod.PurchasePrice {
+				prod.PurchasePrice = req.Price
+			}
+			prod.ExpiredDate = expiredDate
+			if err := s.Repo.UpdateProduct(ctx, prod); err != nil {
+				return purchase.Item{}, apperror.New(http.StatusInternalServerError, "Create purchase item failed", err.Error())
+			}
+			header.TotalPurchase += req.Price * req.Qty
+			header.UpdatedAt = s.Clock.Now()
+			if err := s.Repo.UpdatePurchaseHeader(ctx, header); err != nil {
+				return purchase.Item{}, apperror.New(http.StatusInternalServerError, "Create purchase item failed", err.Error())
+			}
+			return s.Repo.FindPurchaseItemByID(ctx, existing.ID)
+		}
+	}
+	item := purchase.Item{ID: s.IDs.New("PIT"), PurchaseID: req.PurchaseID, ProductID: req.ProductID, UnitID: req.UnitID, Price: req.Price, Qty: req.Qty, SubTotal: req.Price * req.Qty, ExpiredDate: expiredDate}
+	if err := s.Repo.CreatePurchaseItem(ctx, item); err != nil {
+		return purchase.Item{}, apperror.New(http.StatusInternalServerError, "Create purchase item failed", err.Error())
+	}
+	prod.Stock += req.Qty
+	if req.Price > prod.PurchasePrice {
+		prod.PurchasePrice = req.Price
+	}
+	prod.ExpiredDate = expiredDate
+	if err := s.Repo.UpdateProduct(ctx, prod); err != nil {
+		return purchase.Item{}, apperror.New(http.StatusInternalServerError, "Create purchase item failed", err.Error())
+	}
+	header.TotalPurchase += item.SubTotal
+	header.UpdatedAt = s.Clock.Now()
+	if err := s.Repo.UpdatePurchaseHeader(ctx, header); err != nil {
+		return purchase.Item{}, apperror.New(http.StatusInternalServerError, "Create purchase item failed", err.Error())
+	}
+	return s.Repo.FindPurchaseItemByID(ctx, item.ID)
+}
+
+func (s Service) UpdateItem(ctx context.Context, branchID, id string, req purchase.UpdateItemRequest) (purchase.Item, error) {
+	item, err := s.Repo.FindPurchaseItemByID(ctx, id)
+	if err != nil {
+		return purchase.Item{}, apperror.New(http.StatusNotFound, "Update purchase item failed", "item not found")
+	}
+	header, err := s.Repo.FindPurchaseByID(ctx, branchID, item.PurchaseID)
+	if err != nil {
+		return purchase.Item{}, apperror.New(http.StatusNotFound, "Update purchase item failed", "purchase not found")
+	}
+	oldSubtotal := item.SubTotal
+	oldProductID := item.ProductID
+	oldQty := item.Qty
+	prodOld, err := s.Repo.FindProductByID(ctx, oldProductID)
+	if err != nil {
+		return purchase.Item{}, apperror.New(http.StatusInternalServerError, "Update purchase item failed", err.Error())
+	}
+	prodOld.Stock -= oldQty
+	if err := s.Repo.UpdateProduct(ctx, prodOld); err != nil {
+		return purchase.Item{}, apperror.New(http.StatusInternalServerError, "Update purchase item failed", err.Error())
+	}
+	prodNew, err := s.Repo.FindProductByID(ctx, req.ProductID)
+	if err != nil {
+		return purchase.Item{}, apperror.New(http.StatusNotFound, "Update purchase item failed", "product not found")
+	}
+	expiredDate, err := time.Parse("2006-01-02", req.ExpiredDate)
+	if err != nil {
+		return purchase.Item{}, apperror.New(http.StatusBadRequest, "Update purchase item failed", "invalid expired_date format. use YYYY-MM-DD")
+	}
+	prodNew.Stock += req.Qty
+	if req.Price > prodNew.PurchasePrice {
+		prodNew.PurchasePrice = req.Price
+	}
+	prodNew.ExpiredDate = expiredDate
+	if err := s.Repo.UpdateProduct(ctx, prodNew); err != nil {
+		return purchase.Item{}, apperror.New(http.StatusInternalServerError, "Update purchase item failed", err.Error())
+	}
+	item.ProductID = req.ProductID
+	item.UnitID = req.UnitID
+	item.Price = req.Price
+	item.Qty = req.Qty
+	item.SubTotal = req.Price * req.Qty
+	item.ExpiredDate = expiredDate
+	if err := s.Repo.UpdatePurchaseItem(ctx, item); err != nil {
+		return purchase.Item{}, apperror.New(http.StatusInternalServerError, "Update purchase item failed", err.Error())
+	}
+	header.TotalPurchase += item.SubTotal - oldSubtotal
+	header.UpdatedAt = s.Clock.Now()
+	if err := s.Repo.UpdatePurchaseHeader(ctx, header); err != nil {
+		return purchase.Item{}, apperror.New(http.StatusInternalServerError, "Update purchase item failed", err.Error())
+	}
+	return s.Repo.FindPurchaseItemByID(ctx, id)
+}
+
+func (s Service) DeleteItem(ctx context.Context, branchID, id string) error {
+	item, err := s.Repo.FindPurchaseItemByID(ctx, id)
+	if err != nil {
+		return apperror.New(http.StatusNotFound, "Delete purchase item failed", "item not found")
+	}
+	header, err := s.Repo.FindPurchaseByID(ctx, branchID, item.PurchaseID)
+	if err != nil {
+		return apperror.New(http.StatusNotFound, "Delete purchase item failed", "purchase not found")
+	}
+	prod, err := s.Repo.FindProductByID(ctx, item.ProductID)
+	if err != nil {
+		return apperror.New(http.StatusInternalServerError, "Delete purchase item failed", err.Error())
+	}
+	prod.Stock -= item.Qty
+	if err := s.Repo.UpdateProduct(ctx, prod); err != nil {
+		return apperror.New(http.StatusInternalServerError, "Delete purchase item failed", err.Error())
+	}
+	if err := s.Repo.DeletePurchaseItem(ctx, id); err != nil {
+		return apperror.New(http.StatusInternalServerError, "Delete purchase item failed", err.Error())
+	}
+	header.TotalPurchase -= item.SubTotal
+	header.UpdatedAt = s.Clock.Now()
+	if err := s.Repo.UpdatePurchaseHeader(ctx, header); err != nil {
+		return apperror.New(http.StatusInternalServerError, "Delete purchase item failed", err.Error())
+	}
+	return nil
+}
+
 func (s Service) CreateTransaction(ctx context.Context, branchID, userID string, req purchase.CreatePurchaseRequest) (purchase.Purchase, []purchase.Item, error) {
 	now := s.Clock.Now()
 	purchaseDate := now

@@ -180,11 +180,14 @@ Tujuannya sederhana:
 - `POST /api/purchases`
 - `PUT /api/purchases/:id`
 - `DELETE /api/purchases/:id`
+- `GET /api/purchase-items/all/:id`
+- `POST /api/purchase-items`
+- `PUT /api/purchase-items/:id`
+- `DELETE /api/purchase-items/:id`
 
 **Next target:**
-- item-level CRUD (`purchase-items/*`)
 - export/print
-- validasi runtime end-to-end purchase header flow
+- validasi runtime end-to-end purchase flow
 
 ### Sales
 **Implemented:**
@@ -279,10 +282,9 @@ Urutan yang paling sehat saat ini:
 
 Urutan yang paling sehat saat ini:
 
-1. **Sales full CRUD**
-2. **Purchase items CRUD**
-3. **Returns / Another Incomes / Expenses**
-4. **First Stocks / Reports / Export**
+1. **Sale items CRUD**
+2. **Returns / Another Incomes / Expenses**
+3. **First Stocks / Reports / Export**
 
 ---
 

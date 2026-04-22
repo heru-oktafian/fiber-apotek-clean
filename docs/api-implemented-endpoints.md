@@ -92,7 +92,11 @@ Api Apotek (Implemented)
 │   │   ├── Get - /api/purchases/:id
 │   │   ├── Post - /api/purchases
 │   │   ├── Put - /api/purchases/:id
-│   │   └── Delete - /api/purchases/:id
+│   │   ├── Delete - /api/purchases/:id
+│   │   ├── Get - /api/purchase-items/all/:id
+│   │   ├── Post - /api/purchase-items
+│   │   ├── Put - /api/purchase-items/:id
+│   │   └── Delete - /api/purchase-items/:id
 │   └── Sales/
 │       ├── Get - /api/sales
 │       ├── Get - /api/sales/:id
@@ -1119,6 +1123,69 @@ Authorization: Bearer <TOKEN_2>
 
 ---
 
+### GET `/api/purchase-items/all/:id`
+**Header:**
+```http
+Authorization: Bearer <TOKEN_2>
+```
+
+**Path param:**
+- `id` = ID purchase
+
+---
+
+### POST `/api/purchase-items`
+**Header:**
+```http
+Content-Type: application/json
+Authorization: Bearer <TOKEN_2>
+```
+
+**Body contoh:**
+```json
+{
+  "purchase_id": "PUR250423000001",
+  "product_id": "PRD25050451578",
+  "unit_id": "UNT250118132755",
+  "price": 7000,
+  "qty": 2,
+  "expired_date": "2027-12-31"
+}
+```
+
+---
+
+### PUT `/api/purchase-items/:id`
+**Header:**
+```http
+Content-Type: application/json
+Authorization: Bearer <TOKEN_2>
+```
+
+**Body contoh:**
+```json
+{
+  "product_id": "PRD25050451578",
+  "unit_id": "UNT250118132755",
+  "price": 7500,
+  "qty": 3,
+  "expired_date": "2027-12-31"
+}
+```
+
+---
+
+### DELETE `/api/purchase-items/:id`
+**Header:**
+```http
+Authorization: Bearer <TOKEN_2>
+```
+
+**Path param:**
+- `id` = ID purchase item
+
+---
+
 ## 13. Sales
 
 ### GET `/api/sales`
@@ -1337,6 +1404,10 @@ Authorization: Bearer <TOKEN_2>
 - `POST /api/purchases`
 - `PUT /api/purchases/:id`
 - `DELETE /api/purchases/:id`
+- `GET /api/purchase-items/all/:id`
+- `POST /api/purchase-items`
+- `PUT /api/purchase-items/:id`
+- `DELETE /api/purchase-items/:id`
 - `GET /api/sales`
 - `GET /api/sales/:id`
 - `POST /api/sales`

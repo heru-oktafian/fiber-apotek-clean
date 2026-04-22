@@ -136,7 +136,14 @@ type PurchaseRepository interface {
 	ListPurchases(ctx context.Context, branchID string, req purchase.ListRequest) (purchase.ListResult, error)
 	FindPurchaseDetail(ctx context.Context, branchID, id string) (purchase.Detail, error)
 	FindPurchaseByID(ctx context.Context, branchID, id string) (purchase.Purchase, error)
+	FindPurchaseItemByID(ctx context.Context, id string) (purchase.Item, error)
+	FindPurchaseItems(ctx context.Context, purchaseID string) ([]purchase.Item, error)
+	FindProductByID(ctx context.Context, id string) (product.Product, error)
 	UpdatePurchaseHeader(ctx context.Context, item purchase.Purchase) error
+	UpdatePurchaseItem(ctx context.Context, item purchase.Item) error
+	CreatePurchaseItem(ctx context.Context, item purchase.Item) error
+	DeletePurchaseItem(ctx context.Context, id string) error
+	UpdateProduct(ctx context.Context, item product.Product) error
 	DeletePurchaseHeader(ctx context.Context, branchID, id string) error
 }
 
