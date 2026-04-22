@@ -106,6 +106,12 @@ type Dependencies struct {
 		GetByID(*fiber.Ctx) error
 		GetItems(*fiber.Ctx) error
 	}
+	Export interface {
+		ProductsExcel(*fiber.Ctx) error
+		ProductsPDF(*fiber.Ctx) error
+		UnitsExcel(*fiber.Ctx) error
+		UnitsPDF(*fiber.Ctx) error
+	}
 	AuthMiddleware fiber.Handler
 }
 
@@ -129,6 +135,8 @@ func Register(app *fiber.App, deps Dependencies) {
 	app.Post("/api/users", deps.AuthMiddleware, deps.User.Create)
 	app.Put("/api/users/:id", deps.AuthMiddleware, deps.User.Update)
 	app.Get("/api/products", deps.AuthMiddleware, deps.Product.List)
+	app.Get("/api/products/excel", deps.AuthMiddleware, deps.Export.ProductsExcel)
+	app.Get("/api/products/pdf", deps.AuthMiddleware, deps.Export.ProductsPDF)
 	app.Post("/api/products", deps.AuthMiddleware, deps.Product.Create)
 	app.Get("/api/products/:id", deps.AuthMiddleware, deps.Product.GetByID)
 	app.Put("/api/products/:id", deps.AuthMiddleware, deps.Product.Update)
@@ -143,6 +151,8 @@ func Register(app *fiber.App, deps Dependencies) {
 	app.Delete("/api/suppliers/:id", deps.AuthMiddleware, deps.Supplier.Delete)
 	app.Get("/api/suppliers-combo", deps.AuthMiddleware, deps.Supplier.Combo)
 	app.Get("/api/units", deps.AuthMiddleware, deps.Unit.List)
+	app.Get("/api/units/excel", deps.AuthMiddleware, deps.Export.UnitsExcel)
+	app.Get("/api/units/pdf", deps.AuthMiddleware, deps.Export.UnitsPDF)
 	app.Get("/api/units/:id", deps.AuthMiddleware, deps.Unit.GetByID)
 	app.Post("/api/units", deps.AuthMiddleware, deps.Unit.Create)
 	app.Put("/api/units/:id", deps.AuthMiddleware, deps.Unit.Update)

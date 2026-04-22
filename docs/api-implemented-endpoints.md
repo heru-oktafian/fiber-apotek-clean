@@ -44,6 +44,8 @@ Api Apotek (Implemented)
 ├── Masters/
 │   ├── Products/
 │   │   ├── Get - /api/products
+│   │   ├── Get - /api/products/excel
+│   │   ├── Get - /api/products/pdf
 │   │   ├── Post - /api/products
 │   │   ├── Get - /api/products/:id
 │   │   ├── Put - /api/products/:id
@@ -60,6 +62,8 @@ Api Apotek (Implemented)
 │   │   └── Get - /api/suppliers-combo
 │   ├── Units/
 │   │   ├── Get - /api/units
+│   │   ├── Get - /api/units/excel
+│   │   ├── Get - /api/units/pdf
 │   │   ├── Get - /api/units/:id
 │   │   ├── Post - /api/units
 │   │   ├── Put - /api/units/:id
@@ -564,6 +568,28 @@ Authorization: Bearer <TOKEN_2>
 
 ---
 
+### GET `/api/products/excel`
+**Header:**
+```http
+Authorization: Bearer <TOKEN_2>
+```
+
+**Catatan:**
+- download data products dalam format Excel
+
+---
+
+### GET `/api/products/pdf`
+**Header:**
+```http
+Authorization: Bearer <TOKEN_2>
+```
+
+**Catatan:**
+- download data products dalam format PDF
+
+---
+
 ### GET `/api/sales-products-combo`
 **Header:**
 ```http
@@ -774,6 +800,28 @@ Authorization: Bearer <TOKEN_2>
 
 **Path param:**
 - `id` = ID unit
+
+---
+
+### GET `/api/units/excel`
+**Header:**
+```http
+Authorization: Bearer <TOKEN_2>
+```
+
+**Catatan:**
+- download data units dalam format Excel
+
+---
+
+### GET `/api/units/pdf`
+**Header:**
+```http
+Authorization: Bearer <TOKEN_2>
+```
+
+**Catatan:**
+- download data units dalam format PDF
 
 ---
 
@@ -1429,6 +1477,8 @@ Authorization: Bearer <TOKEN_2>
 - `POST /api/users`
 - `PUT /api/users/:id`
 - `GET /api/products`
+- `GET /api/products/excel`
+- `GET /api/products/pdf`
 - `POST /api/products`
 - `GET /api/products/:id`
 - `PUT /api/products/:id`
@@ -1443,6 +1493,8 @@ Authorization: Bearer <TOKEN_2>
 - `DELETE /api/suppliers/:id`
 - `GET /api/suppliers-combo`
 - `GET /api/units`
+- `GET /api/units/excel`
+- `GET /api/units/pdf`
 - `GET /api/units/:id`
 - `POST /api/units`
 - `PUT /api/units/:id`

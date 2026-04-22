@@ -210,11 +210,23 @@ Api Apotek (Implemented)
 │       ├── Post - /api/users
 │       └── Put - /api/users/:id
 ├── Masters/
-│   └── Products/
-│       ├── Post - /api/products
-│       ├── Get - /api/sales-products-combo
-│       ├── Get - /api/purchase-products-combo
-│       └── Get - /api/cmb-product-opname
+│   ├── Products/
+│   │   ├── Get - /api/products
+│   │   ├── Get - /api/products/excel
+│   │   ├── Get - /api/products/pdf
+│   │   ├── Post - /api/products
+│   │   ├── Get - /api/sales-products-combo
+│   │   ├── Get - /api/purchase-products-combo
+│   │   └── Get - /api/cmb-product-opname
+│   └── Units/
+│       ├── Get - /api/units
+│       ├── Get - /api/units/excel
+│       ├── Get - /api/units/pdf
+│       ├── Get - /api/units/:id
+│       ├── Post - /api/units
+│       ├── Put - /api/units/:id
+│       ├── Delete - /api/units/:id
+│       └── Get - /api/cmb-units
 ├── Transactions/
 │   ├── Purchases/
 │   │   ├── Get - /api/purchases

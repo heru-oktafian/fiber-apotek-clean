@@ -2,12 +2,15 @@ package product
 
 import (
 	"context"
+	"fmt"
 	"net/http"
 	"strings"
+	"time"
 
 	"github.com/heru-oktafian/fiber-apotek-clean/internal/domain/product"
 	"github.com/heru-oktafian/fiber-apotek-clean/internal/ports"
 	"github.com/heru-oktafian/fiber-apotek-clean/internal/shared/apperror"
+	exportshared "github.com/heru-oktafian/fiber-apotek-clean/internal/shared/export"
 )
 
 type Service struct {
@@ -99,4 +102,67 @@ func (s Service) OpnameCombo(ctx context.Context, branchID, search string) ([]pr
 		return nil, apperror.New(http.StatusNotFound, "Combobox tidak ditemukan", err)
 	}
 	return items, nil
+}
+
+func (s Service) ExportExcel(ctx context.Context, branchID string) ([]byte, string, error) {
+	items, err := s.Products.ListProducts(ctx, branchID, product.ListRequest{Page: 1, Limit: 10000})
+	if err != nil {
+		return nil, "", apperror.New(http.StatusInternalServerError, "Export products excel failed", err)
+	}
+	f := exportshared.NewExcelFile("Produk")
+	sheet := "Produk"
+	f.SetCellValue(sheet, "A1", "DATA PRODUK")
+	headers := []string{"ID", "SKU", "NAME", "ALIAS", "PURCHASE PRI", "SALE PRI", "ALTERNATIF PRI", "STOCK", "UNIT", "EXPIRED DATE"}
+	for i, h := range headers {
+		cell, _ := exportshared.ExcelColumnName(i + 1)
+		f.SetCellValue(sheet, fmt.Sprintf("%s3", cell), h)
+	}
+	for i, p := range items.Items {
+		row := i + 4
+		f.SetCellValue(sheet, fmt.Sprintf("A%d", row), p.ID)
+		f.SetCellValue(sheet, fmt.Sprintf("B%d", row), p.SKU)
+		f.SetCellValue(sheet, fmt.Sprintf("C%d", row), p.Name)
+		f.SetCellValue(sheet, fmt.Sprintf("D%d", row), p.Alias)
+		f.SetCellValue(sheet, fmt.Sprintf("E%d", row), p.PurchasePrice)
+		f.SetCellValue(sheet, fmt.Sprintf("F%d", row), p.SalesPrice)
+		f.SetCellValue(sheet, fmt.Sprintf("G%d", row), p.AlternatePrice)
+		f.SetCellValue(sheet, fmt.Sprintf("H%d", row), fmt.Sprintf("%d %s", p.Stock, p.UnitName))
+		f.SetCellValue(sheet, fmt.Sprintf("I%d", row), p.UnitName)
+		f.SetCellValue(sheet, fmt.Sprintf("J%d", row), p.ExpiredDate.Format("02/01/2006"))
+	}
+	bytes, err := exportshared.WriteExcel(f)
+	if err != nil {
+		return nil, "", apperror.New(http.StatusInternalServerError, "Export products excel failed", err)
+	}
+	return bytes, fmt.Sprintf("products-%s.xlsx", time.Now().Format("2006-01-02-15-04-05")), nil
+}
+
+func (s Service) ExportPDF(ctx context.Context, branchID string) ([]byte, string, error) {
+	items, err := s.Products.ListProducts(ctx, branchID, product.ListRequest{Page: 1, Limit: 10000})
+	if err != nil {
+		return nil, "", apperror.New(http.StatusInternalServerError, "Export products pdf failed", err)
+	}
+	pdf := exportshared.NewPDF("MASTER PRODUCTS")
+	pdf.SetFont("Arial", "B", 14)
+	pdf.CellFormat(277, 10, "MASTER PRODUCTS", "", 1, "C", false, 0, "")
+	pdf.SetFont("Arial", "B", 9)
+	headers := []string{"SKU", "NAME", "ALIAS", "PURCHASE", "SALE", "ALT", "STOCK", "UNIT", "EXPIRED"}
+	widths := []float64{28, 40, 35, 25, 25, 25, 20, 20, 30}
+	for i, h := range headers {
+		pdf.CellFormat(widths[i], 8, h, "1", 0, "C", false, 0, "")
+	}
+	pdf.Ln(-1)
+	pdf.SetFont("Arial", "", 8)
+	for _, p := range items.Items {
+		values := []string{p.SKU, p.Name, p.Alias, fmt.Sprintf("%d", p.PurchasePrice), fmt.Sprintf("%d", p.SalesPrice), fmt.Sprintf("%d", p.AlternatePrice), fmt.Sprintf("%d", p.Stock), p.UnitName, p.ExpiredDate.Format("02/01/2006")}
+		for i, v := range values {
+			pdf.CellFormat(widths[i], 8, v, "1", 0, "L", false, 0, "")
+		}
+		pdf.Ln(-1)
+	}
+	bytes, err := exportshared.WritePDF(pdf)
+	if err != nil {
+		return nil, "", apperror.New(http.StatusInternalServerError, "Export products pdf failed", err)
+	}
+	return bytes, fmt.Sprintf("products-%s.pdf", time.Now().Format("2006-01-02-15-04-05")), nil
 }

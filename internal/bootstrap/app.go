@@ -89,10 +89,11 @@ func New() (*App, error) {
 	purchaseHandler := handlers.PurchaseHandler{Service: purchaseusecase.Service{Repo: repos, IDs: ids, Clock: clk}}
 	saleHandler := handlers.SaleHandler{Service: saleusecase.Service{Repo: repos, IDs: ids, Clock: clk}}
 	opnameHandler := handlers.OpnameHandler{Service: opnameusecase.Service{Repo: repos, IDs: ids, Clock: clk}}
+	exportHandler := handlers.ExportHandler{Products: productusecase.Service{Products: repos, IDs: ids}, Units: unitusecase.MasterService{Units: repos, IDs: ids}}
 
 	app := fiber.New(fiber.Config{DisableStartupMessage: true, ReadTimeout: 30 * time.Second, WriteTimeout: 30 * time.Second})
 	app.Use(console.RequestLogger())
 	authMw := middleware.RequireAuth(jwtSvc, blacklist)
-	router.Register(app, router.Dependencies{Auth: authHandler, Branch: branchHandler, UserBranch: userBranchHandler, User: userHandler, Product: productHandler, Supplier: supplierHandler, Unit: unitHandler, ProductCategory: productCategoryHandler, SupplierCategory: supplierCategoryHandler, MemberCategory: memberCategoryHandler, Purchase: purchaseHandler, Sale: saleHandler, Opname: opnameHandler, AuthMiddleware: authMw})
+	router.Register(app, router.Dependencies{Auth: authHandler, Branch: branchHandler, UserBranch: userBranchHandler, User: userHandler, Product: productHandler, Supplier: supplierHandler, Unit: unitHandler, ProductCategory: productCategoryHandler, SupplierCategory: supplierCategoryHandler, MemberCategory: memberCategoryHandler, Purchase: purchaseHandler, Sale: saleHandler, Opname: opnameHandler, Export: exportHandler, AuthMiddleware: authMw})
 	return &App{Fiber: app, Config: cfg}, nil
 }

@@ -90,6 +90,8 @@ Tujuannya sederhana:
 ### Products
 **Implemented:**
 - `GET /api/products`
+- `GET /api/products/excel`
+- `GET /api/products/pdf`
 - `POST /api/products`
 - `GET /api/products/:id`
 - `PUT /api/products/:id`
@@ -99,9 +101,9 @@ Tujuannya sederhana:
 - `GET /api/cmb-product-opname`
 
 **Next target:**
+- product label PDF
 - combobox category/unit jika frontend memang butuh endpoint terpisah
-- export label/pdf/excel
-- validasi runtime end-to-end untuk full CRUD product
+- validasi runtime end-to-end untuk full CRUD product + export
 
 ### Suppliers
 **Implemented:**
@@ -120,6 +122,8 @@ Tujuannya sederhana:
 ### Units
 **Implemented:**
 - `GET /api/units`
+- `GET /api/units/excel`
+- `GET /api/units/pdf`
 - `GET /api/units/:id`
 - `POST /api/units`
 - `PUT /api/units/:id`
@@ -128,7 +132,7 @@ Tujuannya sederhana:
 
 **Next target:**
 - validasi kontrak frontend jika nanti ada kebutuhan khusus
-- export PDF/Excel bila domain ini butuh parity penuh
+- refine styling export agar makin dekat ke legacy bila diperlukan
 
 ### Product Categories
 **Implemented:**
@@ -286,8 +290,10 @@ Urutan yang paling sehat saat ini:
 
 Urutan yang paling sehat saat ini:
 
-1. **Returns / Another Incomes / Expenses**
-2. **First Stocks / Reports / Export**
+1. **Export batch berikutnya: product categories / suppliers / supplier categories / member categories**
+2. **Transactions export: purchases / purchase items / sales / sale items**
+3. **Returns / Another Incomes / Expenses**
+4. **First Stocks / Reports / Export lanjutan**
 
 ---
 
