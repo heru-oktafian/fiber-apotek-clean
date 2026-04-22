@@ -34,7 +34,8 @@ Api Apotek (Implemented)
 │   │   └── Delete - /api/branches/:id
 │   ├── User Branches/
 │   │   ├── Get - /api/user-branches
-│   │   └── Get - /api/user-branches/:user_id/:branch_id
+│   │   ├── Get - /api/user-branches/:user_id/:branch_id
+│   │   └── Post - /api/user-branches
 │   └── User Management/
 │       ├── Get - /api/users
 │       ├── Get - /api/detail-users/:id
@@ -289,6 +290,28 @@ Authorization: Bearer <TOKEN_2>
 ```http
 GET /api/user-branches/USR250118132201/BRC250118132203
 ```
+
+---
+
+### POST `/api/user-branches`
+**Header:**
+```http
+Content-Type: application/json
+Authorization: Bearer <TOKEN_2>
+```
+
+**Body:**
+```json
+{
+  "user_id": "USR250118132201",
+  "branch_id": "BRC250118132203"
+}
+```
+
+**Catatan:**
+- dipakai untuk menambahkan branch ke user
+- akan ditolak jika user atau branch tidak ditemukan
+- akan ditolak jika relasi user-branch sudah ada
 
 ---
 
@@ -601,6 +624,7 @@ Authorization: Bearer <TOKEN_2>
 - `DELETE /api/branches/:id`
 - `GET /api/user-branches`
 - `GET /api/user-branches/:user_id/:branch_id`
+- `POST /api/user-branches`
 - `GET /api/users`
 - `GET /api/detail-users/:id`
 - `POST /api/users`

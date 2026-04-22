@@ -9,3 +9,8 @@ type Detail struct {
 	SIPAName   string `json:"sipa_name"`
 	Phone      string `json:"phone"`
 }
+
+type CreateRequest struct {
+	UserID   string `json:"user_id"`
+	BranchID string `json:"branch_id"`
+}

@@ -145,6 +145,10 @@ func (r Repositories) UpdateUser(ctx context.Context, item user.User) error {
 	return r.DB.WithContext(ctx).Model(&UserModel{}).Where("id = ?", item.ID).Updates(updates).Error
 }
 
+func (r Repositories) CreateUserBranch(ctx context.Context, userID, branchID string) error {
+	return r.DB.WithContext(ctx).Create(&UserBranchModel{UserID: userID, BranchID: branchID}).Error
+}
+
 func (r Repositories) FindBranchByID(ctx context.Context, id string) (branch.Branch, error) {
 	var m BranchModel
 	if err := r.DB.WithContext(ctx).Where("id = ?", id).First(&m).Error; err != nil {

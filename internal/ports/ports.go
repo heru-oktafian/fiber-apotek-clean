@@ -46,6 +46,7 @@ type UserRepository interface {
 	FindUserWithBranches(ctx context.Context, id string) (user.DetailWithBranches, error)
 	CreateUser(ctx context.Context, item user.User) error
 	UpdateUser(ctx context.Context, item user.User) error
+	CreateUserBranch(ctx context.Context, userID, branchID string) error
 }
 
 type BranchRepository interface {

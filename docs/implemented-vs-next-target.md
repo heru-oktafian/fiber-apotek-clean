@@ -61,11 +61,11 @@ Tujuannya sederhana:
 **Implemented:**
 - `GET /api/user-branches`
 - `GET /api/user-branches/:user_id/:branch_id`
+- `POST /api/user-branches`
 
 **Next target:**
-- write flow relasi user-branch
-- endpoint add branch by user ID
 - kemungkinan delete relasi branch dari user
+- jika dibutuhkan, tambahkan update flow relasi user-branch
 
 ### User Management
 **Implemented:**
@@ -77,9 +77,9 @@ Tujuannya sederhana:
 **Catatan:**
 - password di-hash server-side
 - response tidak membocorkan password
+- add branch by user ID sekarang ditangani lewat `POST /api/user-branches`
 
 **Next target:**
-- add branch by user ID
 - delete user jika memang diperlukan parity
 - rapikan flow user + user_branches agar cohesive
 
@@ -203,12 +203,11 @@ Tujuannya sederhana:
 
 Urutan yang paling sehat saat ini:
 
-1. **User Management - Add branch by user ID**
-2. **Suppliers**
-3. **Units / Product Categories / Products full CRUD**
-4. **Purchases & Sales full CRUD**
-5. **Returns / Another Incomes / Expenses**
-6. **First Stocks / Reports / Export**
+1. **Suppliers**
+2. **Units / Product Categories / Products full CRUD**
+3. **Purchases & Sales full CRUD**
+4. **Returns / Another Incomes / Expenses**
+5. **First Stocks / Reports / Export**
 
 ---
 
