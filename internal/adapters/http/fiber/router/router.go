@@ -28,6 +28,8 @@ type Dependencies struct {
 	User interface {
 		List(*fiber.Ctx) error
 		Detail(*fiber.Ctx) error
+		Create(*fiber.Ctx) error
+		Update(*fiber.Ctx) error
 	}
 	Purchase interface {
 		Create(*fiber.Ctx) error
@@ -58,6 +60,8 @@ func Register(app *fiber.App, deps Dependencies) {
 	app.Get("/api/user-branches/:user_id/:branch_id", deps.AuthMiddleware, deps.UserBranch.GetByKeys)
 	app.Get("/api/users", deps.AuthMiddleware, deps.User.List)
 	app.Get("/api/detail-users/:id", deps.AuthMiddleware, deps.User.Detail)
+	app.Post("/api/users", deps.AuthMiddleware, deps.User.Create)
+	app.Put("/api/users/:id", deps.AuthMiddleware, deps.User.Update)
 	app.Post("/api/products", deps.AuthMiddleware, deps.Product.Create)
 	app.Get("/api/sales-products-combo", deps.AuthMiddleware, deps.Product.SaleCombo)
 	app.Get("/api/purchase-products-combo", deps.AuthMiddleware, deps.Product.PurchaseCombo)

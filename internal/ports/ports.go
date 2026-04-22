@@ -24,6 +24,10 @@ type PasswordComparer interface {
 	Compare(hashed string, plain string) error
 }
 
+type PasswordHasher interface {
+	Hash(plain string) (string, error)
+}
+
 type TokenManager interface {
 	GenerateLoginToken(user user.User, expiresAt time.Time) (string, error)
 	GenerateBranchToken(claims auth.Claims, expiresAt time.Time) (string, error)
@@ -40,6 +44,8 @@ type UserRepository interface {
 	FindByID(ctx context.Context, id string) (user.User, error)
 	ListUsers(ctx context.Context, req user.ListRequest) (user.ListResult, error)
 	FindUserWithBranches(ctx context.Context, id string) (user.DetailWithBranches, error)
+	CreateUser(ctx context.Context, item user.User) error
+	UpdateUser(ctx context.Context, item user.User) error
 }
 
 type BranchRepository interface {

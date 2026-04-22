@@ -14,6 +14,18 @@ type UserHandler struct {
 	Service userusecase.Service
 }
 
+func (h UserHandler) Create(c *fiber.Ctx) error {
+	var req user.CreateRequest
+	if err := c.BodyParser(&req); err != nil {
+		return presenter.Handle(c, err)
+	}
+	result, err := h.Service.Create(c.Context(), req)
+	if err != nil {
+		return presenter.Handle(c, err)
+	}
+	return response.JSON(c, fiber.StatusCreated, "User berhasil dibuat", result)
+}
+
 func (h UserHandler) List(c *fiber.Ctx) error {
 	page, _ := strconv.Atoi(c.Query("page", "1"))
 	limit, _ := strconv.Atoi(c.Query("limit", "10"))
@@ -34,4 +46,16 @@ func (h UserHandler) Detail(c *fiber.Ctx) error {
 		return presenter.Handle(c, err)
 	}
 	return response.JSON(c, fiber.StatusOK, "Data berhasil ditemukan", result)
+}
+
+func (h UserHandler) Update(c *fiber.Ctx) error {
+	var req user.UpdateRequest
+	if err := c.BodyParser(&req); err != nil {
+		return presenter.Handle(c, err)
+	}
+	result, err := h.Service.Update(c.Context(), c.Params("id"), req)
+	if err != nil {
+		return presenter.Handle(c, err)
+	}
+	return response.JSON(c, fiber.StatusOK, "User berhasil diupdate", result)
 }

@@ -40,8 +40,18 @@ type App struct {
 
 type bcryptComparer struct{}
 
+type bcryptHasher struct{}
+
 func (bcryptComparer) Compare(hashed string, plain string) error {
 	return bcrypt.CompareHashAndPassword([]byte(hashed), []byte(plain))
+}
+
+func (bcryptHasher) Hash(plain string) (string, error) {
+	hashed, err := bcrypt.GenerateFromPassword([]byte(plain), bcrypt.DefaultCost)
+	if err != nil {
+		return "", err
+	}
+	return string(hashed), nil
 }
 
 func New() (*App, error) {
@@ -64,7 +74,7 @@ func New() (*App, error) {
 	authHandler := handlers.AuthHandler{Service: authusecase.Service{Users: repos, Branches: repos, Passwords: bcryptComparer{}, Tokens: jwtSvc, Blacklist: blacklist, Clock: clk}}
 	branchHandler := handlers.BranchHandler{Service: branchusecase.Service{Branches: repos}}
 	userBranchHandler := handlers.UserBranchHandler{Service: userbranchusecase.Service{Branches: repos}}
-	userHandler := handlers.UserHandler{Service: userusecase.Service{Users: repos}}
+	userHandler := handlers.UserHandler{Service: userusecase.Service{Users: repos, Passwords: bcryptHasher{}, IDs: ids}}
 	productHandler := handlers.ProductHandler{Service: productusecase.Service{Products: repos, IDs: ids}}
 	purchaseHandler := handlers.PurchaseHandler{Service: purchaseusecase.Service{Repo: repos, IDs: ids, Clock: clk}}
 	saleHandler := handlers.SaleHandler{Service: saleusecase.Service{Repo: repos, IDs: ids, Clock: clk}}

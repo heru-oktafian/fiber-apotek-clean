@@ -41,3 +41,19 @@ type BranchDetail struct {
 	Address    string `json:"address"`
 	Phone      string `json:"phone"`
 }
+
+type CreateRequest struct {
+	Username   string `json:"username"`
+	Name       string `json:"name"`
+	Password   string `json:"password"`
+	UserRole   string `json:"user_role"`
+	UserStatus string `json:"user_status"`
+}
+
+type UpdateRequest struct {
+	Username   string `json:"username"`
+	Name       string `json:"name"`
+	Password   string `json:"password"`
+	UserRole   string `json:"user_role"`
+	UserStatus string `json:"user_status"`
+}

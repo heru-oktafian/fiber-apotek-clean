@@ -121,6 +121,30 @@ func (r Repositories) FindUserWithBranches(ctx context.Context, id string) (user
 	return user.DetailWithBranches{User: usr, DetailBranches: branchDetails}, nil
 }
 
+func (r Repositories) CreateUser(ctx context.Context, item user.User) error {
+	return r.DB.WithContext(ctx).Create(&UserModel{
+		ID:         item.ID,
+		Name:       item.Name,
+		Username:   item.Username,
+		Password:   item.Password,
+		UserRole:   string(item.Role),
+		UserStatus: item.Status,
+	}).Error
+}
+
+func (r Repositories) UpdateUser(ctx context.Context, item user.User) error {
+	updates := map[string]any{
+		"name":        item.Name,
+		"username":    item.Username,
+		"user_role":   string(item.Role),
+		"user_status": item.Status,
+	}
+	if item.Password != "" {
+		updates["password"] = item.Password
+	}
+	return r.DB.WithContext(ctx).Model(&UserModel{}).Where("id = ?", item.ID).Updates(updates).Error
+}
+
 func (r Repositories) FindBranchByID(ctx context.Context, id string) (branch.Branch, error) {
 	var m BranchModel
 	if err := r.DB.WithContext(ctx).Where("id = ?", id).First(&m).Error; err != nil {
