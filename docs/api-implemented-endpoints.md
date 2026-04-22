@@ -112,11 +112,15 @@ Api Apotek (Implemented)
 │   │   └── Delete - /api/expenses/:id
 │   ├── First Stocks/
 │   │   ├── Get - /api/first-stocks
+│   │   ├── Get - /api/first-stocks/excel
+│   │   ├── Get - /api/first-stocks/pdf
 │   │   ├── Post - /api/first-stocks
 │   │   ├── Put - /api/first-stocks/:id
 │   │   ├── Delete - /api/first-stocks/:id
 │   │   ├── Get - /api/first-stock-with-items/:id
 │   │   ├── Get - /api/first-stock-items/:id
+│   │   ├── Get - /api/first-stock-items/excel
+│   │   ├── Get - /api/first-stock-items/pdf
 │   │   ├── Post - /api/first-stock-items
 │   │   ├── Put - /api/first-stock-items/:id
 │   │   └── Delete - /api/first-stock-items/:id
@@ -1323,6 +1327,28 @@ Authorization: Bearer <TOKEN_2>
 
 ---
 
+### GET `/api/first-stocks/excel`
+**Header:**
+```http
+Authorization: Bearer <TOKEN_2>
+```
+
+**Query:**
+- `month` (opsional, format `YYYY-MM`)
+
+---
+
+### GET `/api/first-stocks/pdf`
+**Header:**
+```http
+Authorization: Bearer <TOKEN_2>
+```
+
+**Query:**
+- `month` (opsional, format `YYYY-MM`)
+
+---
+
 ### POST `/api/first-stocks`
 **Header:**
 ```http
@@ -1370,6 +1396,28 @@ Authorization: Bearer <TOKEN_2>
 ```http
 Authorization: Bearer <TOKEN_2>
 ```
+
+---
+
+### GET `/api/first-stock-items/excel`
+**Header:**
+```http
+Authorization: Bearer <TOKEN_2>
+```
+
+**Query:**
+- `first_stock_id` (wajib)
+
+---
+
+### GET `/api/first-stock-items/pdf`
+**Header:**
+```http
+Authorization: Bearer <TOKEN_2>
+```
+
+**Query:**
+- `first_stock_id` (wajib)
 
 ---
 

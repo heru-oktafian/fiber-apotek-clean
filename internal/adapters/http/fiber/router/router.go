@@ -154,6 +154,10 @@ type Dependencies struct {
 		AnotherIncomesPDF(*fiber.Ctx) error
 		ExpensesExcel(*fiber.Ctx) error
 		ExpensesPDF(*fiber.Ctx) error
+		FirstStocksExcel(*fiber.Ctx) error
+		FirstStocksPDF(*fiber.Ctx) error
+		FirstStockItemsExcel(*fiber.Ctx) error
+		FirstStockItemsPDF(*fiber.Ctx) error
 	}
 	AuthMiddleware fiber.Handler
 }
@@ -233,11 +237,15 @@ func Register(app *fiber.App, deps Dependencies) {
 	app.Put("/api/expenses/:id", deps.AuthMiddleware, deps.Expense.Update)
 	app.Delete("/api/expenses/:id", deps.AuthMiddleware, deps.Expense.Delete)
 	app.Get("/api/first-stocks", deps.AuthMiddleware, deps.FirstStock.List)
+	app.Get("/api/first-stocks/excel", deps.AuthMiddleware, deps.Export.FirstStocksExcel)
+	app.Get("/api/first-stocks/pdf", deps.AuthMiddleware, deps.Export.FirstStocksPDF)
 	app.Post("/api/first-stocks", deps.AuthMiddleware, deps.FirstStock.Create)
 	app.Put("/api/first-stocks/:id", deps.AuthMiddleware, deps.FirstStock.Update)
 	app.Delete("/api/first-stocks/:id", deps.AuthMiddleware, deps.FirstStock.Delete)
 	app.Get("/api/first-stock-with-items/:id", deps.AuthMiddleware, deps.FirstStock.GetByID)
 	app.Get("/api/first-stock-items/:id", deps.AuthMiddleware, deps.FirstStock.ListItems)
+	app.Get("/api/first-stock-items/excel", deps.AuthMiddleware, deps.Export.FirstStockItemsExcel)
+	app.Get("/api/first-stock-items/pdf", deps.AuthMiddleware, deps.Export.FirstStockItemsPDF)
 	app.Post("/api/first-stock-items", deps.AuthMiddleware, deps.FirstStock.CreateItem)
 	app.Put("/api/first-stock-items/:id", deps.AuthMiddleware, deps.FirstStock.UpdateItem)
 	app.Delete("/api/first-stock-items/:id", deps.AuthMiddleware, deps.FirstStock.DeleteItem)

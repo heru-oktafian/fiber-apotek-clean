@@ -288,11 +288,15 @@ Tujuannya sederhana:
 ### First Stocks
 **Implemented:**
 - `GET /api/first-stocks`
+- `GET /api/first-stocks/excel`
+- `GET /api/first-stocks/pdf`
 - `POST /api/first-stocks`
 - `PUT /api/first-stocks/:id`
 - `DELETE /api/first-stocks/:id`
 - `GET /api/first-stock-with-items/:id`
 - `GET /api/first-stock-items/:id`
+- `GET /api/first-stock-items/excel`
+- `GET /api/first-stock-items/pdf`
 - `POST /api/first-stock-items`
 - `PUT /api/first-stock-items/:id`
 - `DELETE /api/first-stock-items/:id`
@@ -304,8 +308,8 @@ Tujuannya sederhana:
 - item-level flow sudah menangani stock adjustment, total recalculation, dan basic unit conversion
 
 **Next target:**
-- export header dan item Excel/PDF
 - validasi runtime end-to-end
+- refinement styling export agar makin dekat ke legacy
 
 ---
 
@@ -346,9 +350,9 @@ Tujuannya sederhana:
 
 Urutan yang paling sehat saat ini:
 
-1. **First Stocks export header/items**
-2. **Returns / Duplicate Receipts**
-3. **Reports / Export lanjutan**
+1. **Returns / Duplicate Receipts**
+2. **Reports / Export lanjutan**
+3. **Refinement styling export parity**
 
 ---
 

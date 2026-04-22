@@ -3,6 +3,7 @@ package firststock
 import (
 	"context"
 	"errors"
+	"fmt"
 	"net/http"
 	"strings"
 	"time"
@@ -11,6 +12,7 @@ import (
 	"github.com/heru-oktafian/fiber-apotek-clean/internal/domain/firststock"
 	"github.com/heru-oktafian/fiber-apotek-clean/internal/ports"
 	"github.com/heru-oktafian/fiber-apotek-clean/internal/shared/apperror"
+	exportshared "github.com/heru-oktafian/fiber-apotek-clean/internal/shared/export"
 	"gorm.io/gorm"
 )
 
@@ -291,4 +293,152 @@ func (s Service) DeleteItem(ctx context.Context, branchID, id string) error {
 		_ = s.Repo.UpsertTransactionReport(ctx, header.ID, "first_stock", header.UserID, header.BranchID, total, string(header.Payment), header.CreatedAt, s.Clock.Now())
 	}
 	return nil
+}
+
+func (s Service) ExportExcel(ctx context.Context, branchID, month string) ([]byte, string, error) {
+	result, err := s.List(ctx, branchID, firststock.ListRequest{Month: month, Page: 1, Limit: 10000})
+	if err != nil {
+		return nil, "", err
+	}
+	f := exportshared.NewExcelFile("First Stocks")
+	sheet := "First Stocks"
+	f.SetCellValue(sheet, "A1", fmt.Sprintf("STOK AWAL %s", month))
+	headers := []string{"ID", "KETERANGAN", "TANGGAL", "PEMBAYARAN", "TOTAL"}
+	for i, h := range headers {
+		col, _ := exportshared.ExcelColumnName(i + 1)
+		f.SetCellValue(sheet, fmt.Sprintf("%s3", col), h)
+	}
+	grandTotal := 0
+	for i, item := range result.Items {
+		row := i + 4
+		f.SetCellValue(sheet, fmt.Sprintf("A%d", row), item.ID)
+		f.SetCellValue(sheet, fmt.Sprintf("B%d", row), item.Description)
+		f.SetCellValue(sheet, fmt.Sprintf("C%d", row), item.FirstStockDate)
+		f.SetCellValue(sheet, fmt.Sprintf("D%d", row), item.Payment)
+		f.SetCellValue(sheet, fmt.Sprintf("E%d", row), item.TotalFirstStock)
+		grandTotal += item.TotalFirstStock
+	}
+	totalRow := len(result.Items) + 4
+	f.SetCellValue(sheet, fmt.Sprintf("A%d", totalRow), "GRAND TOTAL")
+	f.SetCellValue(sheet, fmt.Sprintf("E%d", totalRow), grandTotal)
+	bytes, err := exportshared.WriteExcel(f)
+	if err != nil {
+		return nil, "", apperror.New(http.StatusInternalServerError, "Export first stocks excel failed", err.Error())
+	}
+	return bytes, fmt.Sprintf("first-stocks-%s.xlsx", time.Now().Format("2006-01-02-15-04-05")), nil
+}
+
+func (s Service) ExportPDF(ctx context.Context, branchID, month string) ([]byte, string, error) {
+	result, err := s.List(ctx, branchID, firststock.ListRequest{Month: month, Page: 1, Limit: 10000})
+	if err != nil {
+		return nil, "", err
+	}
+	pdf := exportshared.NewPDF("STOK AWAL")
+	pdf.SetFont("Arial", "B", 14)
+	pdf.CellFormat(277, 10, fmt.Sprintf("STOK AWAL %s", month), "", 1, "C", false, 0, "")
+	pdf.SetFont("Arial", "B", 10)
+	widths := []float64{45, 110, 40, 40, 42}
+	headers := []string{"ID", "KETERANGAN", "TANGGAL", "PEMBAYARAN", "TOTAL"}
+	for i, h := range headers {
+		pdf.CellFormat(widths[i], 8, h, "1", 0, "C", false, 0, "")
+	}
+	pdf.Ln(-1)
+	pdf.SetFont("Arial", "", 9)
+	grandTotal := 0
+	for _, item := range result.Items {
+		values := []string{item.ID, item.Description, item.FirstStockDate, item.Payment, fmt.Sprintf("%d", item.TotalFirstStock)}
+		for i, v := range values {
+			pdf.CellFormat(widths[i], 8, v, "1", 0, "L", false, 0, "")
+		}
+		pdf.Ln(-1)
+		grandTotal += item.TotalFirstStock
+	}
+	pdf.SetFont("Arial", "B", 10)
+	pdf.CellFormat(235, 8, "TOTAL", "1", 0, "C", false, 0, "")
+	pdf.CellFormat(42, 8, fmt.Sprintf("%d", grandTotal), "1", 1, "R", false, 0, "")
+	bytes, err := exportshared.WritePDF(pdf)
+	if err != nil {
+		return nil, "", apperror.New(http.StatusInternalServerError, "Export first stocks pdf failed", err.Error())
+	}
+	return bytes, fmt.Sprintf("STOK-AWAL-%s.pdf", time.Now().Format("2006-01-02-15-04-05")), nil
+}
+
+func (s Service) ExportItemsExcel(ctx context.Context, branchID, firstStockID string) ([]byte, string, error) {
+	if strings.TrimSpace(firstStockID) == "" {
+		return nil, "", apperror.New(http.StatusBadRequest, "Export first stock items excel failed", "first_stock_id is required")
+	}
+	header, err := s.GetDetail(ctx, branchID, firstStockID)
+	if err != nil {
+		return nil, "", err
+	}
+	f := exportshared.NewExcelFile("Detail Stok Awal")
+	sheet := "Detail Stok Awal"
+	f.SetCellValue(sheet, "A1", "LAPORAN DETAIL STOK AWAL")
+	f.SetCellValue(sheet, "A2", "ID STOK AWAL")
+	f.SetCellValue(sheet, "B2", ": "+header.ID)
+	f.SetCellValue(sheet, "A3", "TANGGAL")
+	f.SetCellValue(sheet, "B3", ": "+header.FirstStockDate)
+	f.SetCellValue(sheet, "A4", "METODE PEMBAYARAN")
+	f.SetCellValue(sheet, "B4", ": "+header.Payment)
+	f.SetCellValue(sheet, "A5", "DESKRIPSI")
+	f.SetCellValue(sheet, "B5", ": "+header.Description)
+	headers := []string{"PRODUK", "QTY", "HARGA", "SUB TOTAL"}
+	for i, h := range headers {
+		col, _ := exportshared.ExcelColumnName(i + 1)
+		f.SetCellValue(sheet, fmt.Sprintf("%s7", col), h)
+	}
+	for i, item := range header.Items {
+		row := i + 8
+		f.SetCellValue(sheet, fmt.Sprintf("A%d", row), item.ProductName)
+		f.SetCellValue(sheet, fmt.Sprintf("B%d", row), fmt.Sprintf("%d %s", item.Qty, item.UnitName))
+		f.SetCellValue(sheet, fmt.Sprintf("C%d", row), item.Price)
+		f.SetCellValue(sheet, fmt.Sprintf("D%d", row), item.SubTotal)
+	}
+	totalRow := len(header.Items) + 8
+	f.SetCellValue(sheet, fmt.Sprintf("A%d", totalRow), "TOTAL")
+	f.SetCellValue(sheet, fmt.Sprintf("D%d", totalRow), header.TotalFirstStock)
+	bytes, err := exportshared.WriteExcel(f)
+	if err != nil {
+		return nil, "", apperror.New(http.StatusInternalServerError, "Export first stock items excel failed", err.Error())
+	}
+	return bytes, fmt.Sprintf("DETAIL-STOK-AWAL-%s-%s.xlsx", firstStockID, time.Now().Format("20060102150405")), nil
+}
+
+func (s Service) ExportItemsPDF(ctx context.Context, branchID, firstStockID string) ([]byte, string, error) {
+	if strings.TrimSpace(firstStockID) == "" {
+		return nil, "", apperror.New(http.StatusBadRequest, "Export first stock items pdf failed", "first_stock_id is required")
+	}
+	header, err := s.GetDetail(ctx, branchID, firstStockID)
+	if err != nil {
+		return nil, "", err
+	}
+	pdf := exportshared.NewPDF("DETAIL STOK AWAL")
+	pdf.SetFont("Arial", "B", 14)
+	pdf.CellFormat(277, 10, fmt.Sprintf("STOK AWAL : %s", header.ID), "", 1, "C", false, 0, "")
+	pdf.SetFont("Arial", "", 10)
+	pdf.CellFormat(277, 8, fmt.Sprintf("TANGGAL : %s | METODE PEMBAYARAN : %s", header.FirstStockDate, header.Payment), "", 1, "C", false, 0, "")
+	pdf.CellFormat(277, 8, fmt.Sprintf("DESKRIPSI : %s", header.Description), "", 1, "C", false, 0, "")
+	pdf.SetFont("Arial", "B", 10)
+	widths := []float64{130, 45, 50, 52}
+	headers := []string{"PRODUK", "QTY", "HARGA", "SUB TOTAL"}
+	for i, h := range headers {
+		pdf.CellFormat(widths[i], 8, h, "1", 0, "C", false, 0, "")
+	}
+	pdf.Ln(-1)
+	pdf.SetFont("Arial", "", 9)
+	for _, item := range header.Items {
+		values := []string{item.ProductName, fmt.Sprintf("%d %s", item.Qty, item.UnitName), fmt.Sprintf("%d", item.Price), fmt.Sprintf("%d", item.SubTotal)}
+		for i, v := range values {
+			pdf.CellFormat(widths[i], 8, v, "1", 0, "L", false, 0, "")
+		}
+		pdf.Ln(-1)
+	}
+	pdf.SetFont("Arial", "B", 10)
+	pdf.CellFormat(225, 8, "TOTAL", "1", 0, "C", false, 0, "")
+	pdf.CellFormat(52, 8, fmt.Sprintf("%d", header.TotalFirstStock), "1", 1, "R", false, 0, "")
+	bytes, err := exportshared.WritePDF(pdf)
+	if err != nil {
+		return nil, "", apperror.New(http.StatusInternalServerError, "Export first stock items pdf failed", err.Error())
+	}
+	return bytes, fmt.Sprintf("DETAIL-STOK-AWAL-%s.pdf", time.Now().Format("2006-01-02-15:04:05")), nil
 }
