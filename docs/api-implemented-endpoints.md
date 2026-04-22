@@ -13,6 +13,50 @@ Contoh base URL dev yang saat ini dipakai:
 http://200.200.200.20:1113
 ```
 
+## Diagram struktur API yang sudah implemented
+
+```text
+Api Apotek (Implemented)
+├── Health/
+│   └── Get - /health
+├── Sys/
+│   ├── Auth/
+│   │   ├── Post - /api/login
+│   │   ├── Get - /api/list_branches
+│   │   ├── Post - /api/set_branch
+│   │   ├── Get - /api/profile
+│   │   ├── Get - /api/menus
+│   │   └── Post - /api/logout
+│   ├── Branches/
+│   │   ├── Get - /api/branches
+│   │   └── Get - /api/branches/:id
+│   ├── User Branches/
+│   │   ├── Get - /api/user-branches
+│   │   └── Get - /api/user-branches/:user_id/:branch_id
+│   └── User Management/
+│       ├── Get - /api/users
+│       ├── Get - /api/detail-users/:id
+│       ├── Post - /api/users
+│       └── Put - /api/users/:id
+├── Masters/
+│   └── Products/
+│       ├── Post - /api/products
+│       ├── Get - /api/sales-products-combo
+│       ├── Get - /api/purchase-products-combo
+│       └── Get - /api/cmb-product-opname
+├── Transactions/
+│   ├── Purchases/
+│   │   └── Post - /api/purchases
+│   └── Sales/
+│       └── Post - /api/sales
+└── Audit & Finances/
+    └── Opnames/
+        ├── Post - /api/opnames
+        ├── Get - /api/opnames/:id
+        ├── Post - /api/opname-items
+        └── Post - /api/opname-items-all
+```
+
 ## Alur token
 
 ### TOKEN_1
