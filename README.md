@@ -606,6 +606,8 @@ Di folder `docs/` sudah ada beberapa dokumen penting:
   - status fitur rewrite vs legacy
 - `docs/runtime-smoke-test.md`
   - panduan validasi runtime
+- `docs/api-implemented-endpoints.md`
+  - daftar endpoint yang sudah implemented, lengkap dengan header/body penting
 
 ---
 
