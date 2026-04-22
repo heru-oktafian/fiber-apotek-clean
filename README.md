@@ -219,6 +219,226 @@ Secara bisnis, struktur besar API yang sedang dibangun adalah:
 - Menus
 - Test
 
+### Diagram struktur API target
+
+```text
+Api Apotek
+├── Sys/
+│   ├── Auth/
+│   │    ├── Post - Login
+│   │    ├── Get - Branches List
+│   │    ├── Post - Set Branches
+│   │    └── Post - Logout
+│   ├── Branches/
+│   │    ├── Get - All Branches
+│   │    ├── Get - Branch by BranchID
+│   │    ├── Post - Create Branch
+│   │    └── Delete - Branch by BranchID
+│   ├── User Management/
+│   │    ├── Get - All Users
+│   │    ├── Get - Detail User & Branches
+│   │    ├── Post - Create User
+│   │    ├── Put - Update User by UserID
+│   │    └── Post - Adding Branch by UserID
+│   ├── Membership/
+│   │    ├── Member Category/
+│   │    │    ├── Get - All Member Category
+│   │    │    ├── Post - Create Member Category
+│   │    │    ├── Get - Member Category by MemberCategoryID
+│   │    │    ├── Put - Update Category by MemberCategoryID
+│   │    │    └── Delete - Delete Member Category by MemberCategoryID
+│   │    └── Members/
+│   │         ├── Get - Combobox Member Categories
+│   │         ├── Get - All Members
+│   │         ├── Post - Create Member
+│   │         ├── Put - Update Member
+│   │         └── Delete - Delete Member
+│   └── Defectas/
+│        ├── Get - Combobox Products (Purchase Price)
+│        ├── Get - All Defectas
+│        ├── Post - Create Defecta
+│        ├── Put - Update Defecta by DefectaID
+│        ├── Delete - Delete Defecta by DefectaID
+│        ├── Get - Get All Defecta Items by DefectaID
+│        ├── Post - Create Defecta Item by DefectaItemID
+│        ├── Put - Update Defecta Item by DefectaItemID
+│        ├── Delete - Delete Defecta Item by DefectaItemID
+│        └── Get - Download Defectas Excel by DefectaID
+├── Masters/
+│        ├── Product Categories/
+│        │    ├── Get - All Product Categories
+│        │    ├── Post - Create Product Category
+│        │    ├── Get - Product Category by CategoryProductID
+│        │    ├── Put - Update Product Category by CategoryProductID
+│        │    ├── Delete - Delete Product Category by CategoryProductID
+│        │    ├── Get - Download Product Categories PDF
+│        │    └── Get - Download Product Categories Excel
+│        ├── Units/
+│        │    ├── Get - All Units
+│        │    ├── Post - Create Unit
+│        │    ├── Get - Unit by UnitID
+│        │    ├── Put - Update Unit by UnitID
+│        │    ├── Delete - Delete Unit by UnitID
+│        │    ├── Get - Download Units PDF
+│        │    └── Get - Download Units Excel
+│        ├── Products/
+│        │    ├── Get - Combobox Categories
+│        │    ├── Get - Combobox Units
+│        │    ├── Get - All Products
+│        │    ├── Post - Create Product
+│        │    ├── Get - Product by ProductID
+│        │    ├── Put - Update Product by ProductID
+│        │    ├── Delete - Delete Product by ProductID
+│        │    ├── Get - Download Products Label
+│        │    ├── Get - Download Products PDF
+│        │    └── Get - Download Products Excel
+│        ├── Unit Conversions/
+│        │    ├── Get - Combobox Products
+│        │    ├── Get - Combobox Units
+│        │    ├── Get - All Unit Conversions
+│        │    ├── Post - Create Unit Conversion
+│        │    ├── Get - Unit Conversion by UnitConversionID
+│        │    ├── Put - Update Unit Conversion by UnitConversionID
+│        │    ├── Delete - Delete Unit Conversion by UnitConversionID
+│        │    ├── Get - Download Unit Conversions PDF
+│        │    └── Get - Download Unit Conversions Excel
+│        ├── Supplier Categories/
+│        │    ├── Get - All Supplier Categories
+│        │    ├── Post - Create Supplier Category
+│        │    ├── Get - Supplier Category by CategorySupplierID
+│        │    ├── Put - Update Supplier Category by CategorySupplierID
+│        │    ├── Delete - Delete Supplier Category by CategorySupplierID
+│        │    ├── Get - Download Supplier Categories PDF
+│        │    └── Get - Download Supplier Categories Excel
+│        └── Suppliers/
+│             ├── Get - Combobox Supplier Categories
+│             ├── Get - All Suppliers
+│             ├── Post - Create Supplier
+│             ├── Get - Supplier by SupplierID
+│             ├── Put - Update Supplier by SupplierID
+│             ├── Delete - Delete Supplier by SupplierID
+│             ├── Get - Download Suppliers PDF
+│             └── Get - Download Suppliers Excel
+├── Transactions/
+│        ├── Purchases/
+│        │    ├── Get - Combobox Product (Purchase Price)
+│        │    ├── Get - Combobox Suppliers
+│        │    ├── Get - All Purchases
+│        │    ├── Post - Create Purchase
+│        │    ├── Put - Update Purchase by PurchaseID
+│        │    ├── Delete - Delete Purchase by PurchaseID
+│        │    ├── Get - All Purchase Items by PurchaseID
+│        │    ├── Post - Create Purchase Item
+│        │    ├── Put - Update Purchase Item by PurchaseItemID
+│        │    ├── Delete - Delete Purchase Item by PurchaseItemID
+│        │    ├── Get - Cetak / Print Struk Pembelian
+│        │    ├── Get - Download Purchase - PDF
+│        │    ├── Get - Download Purchase - Excel
+│        │    ├── Get - Download Detail Purchase - PDF
+│        │    └── Get - Download Detail Purchase - Excel
+│        ├── Sales/
+│        │    ├── Get - Combobox Product (Sale Price)
+│        │    ├── Get - Combobox Members
+│        │    ├── Get - All Sales
+│        │    ├── Post - Create Sale
+│        │    ├── Put - Update Sale by SaleID
+│        │    ├── Delete - Delete Sale by SaleID
+│        │    ├── Get - All Sale Items by SaleID
+│        │    ├── Post - Create Sale Item
+│        │    ├── Put - Update Sale Item by SaleID
+│        │    ├── Delete - Delete Sale Item by SaleID
+│        │    ├── Get - Cetak / Print Struk Penjualan
+│        │    ├── Get - Download Sale - PDF
+│        │    ├── Get - Download Sale - Excel
+│        │    ├── Get - Download Detail Sale - PDF
+│        │    └── Get - Download Detail Sale - Excel
+│        ├── Kopi Resep/
+│        │    ├── Get - Combobox Product (Sale Price)
+│        │    ├── Get - Combobox Members
+│        │    ├── Get - All Duplicate Receipts
+│        │    ├── Post - Create Duplicate Receipt
+│        │    ├── Put - Update Duplicate Receipt by DuplicateReceiptID
+│        │    ├── Delete - Delete Duplicate Receipt by DuplicateReceiptID
+│        │    ├── Get - All Duplicate Receipt Items by DuplicateReceiptID
+│        │    ├── Post - Create Duplicate Receipt Item
+│        │    ├── Put - Update Duplicate Receipt Item by DuplicateReceiptID
+│        │    ├── Delete - Delete Duplicate Receipt Item by DuplicateReceiptID
+│        │    ├── Get - Cetak / Print Struk Penjualan (Duplicate Receipt)
+│        │    ├── Get - Download Duplicate Receipt - PDF
+│        │    ├── Get - Download Duplicate Receipt - Excel
+│        │    ├── Get - Download Detail Duplicate Receipt - PDF
+│        │    └── Get - Download Detail Duplicate Receipt - Excel
+│        ├── Buy or Purchase Returns/
+│        │    ├── Get - Combobox Purchases
+│        │    ├── Get - Combobox Items (from selected Purchase)
+│        │    ├── Post - Create Buy Return
+│        │    ├── Get - All Buy Returns
+│        │    ├── Get - Cetak / Print Struk Retur Pembelian (Buy Return)
+│        │    ├── Get - Download Buy Return - PDF
+│        │    ├── Get - Download Buy Return - Excel
+│        │    ├── Get - Download Detail Buy Return - PDF
+│        │    └── Get - Download Detail Buy Return - Excel
+│        ├── Sale Returns/
+│        │    ├── Get - Combobox Sales
+│        │    ├── Get - Combobox Items (from selected Sale)
+│        │    ├── Post - Create Sale Return
+│        │    ├── Get - All Sale Returns
+│        │    ├── Get - Cetak / Print Struk Retur Penjualan (Sale Return)
+│        │    ├── Get - Download Sale Return - PDF
+│        │    ├── Get - Download Sale Return - Excel
+│        │    ├── Get - Download Detail Sale Return - PDF
+│        │    └── Get - Download Detail Sale Return - Excel
+│        ├── Expenses/
+│        │    ├── Get - All Expenses
+│        │    ├── Post - Create Expense by ExpensID
+│        │    ├── Put - Update Expense by ExpensID
+│        │    ├── Delete - Delete Expense by ExpensID
+│        │    ├── Get - Download Expenses - PDF
+│        │    └── Get - Download Expenses - Excel
+│        └── Another Incomes/
+│             ├── Get - All Another Incomes
+│             ├── Post - Create Another Income by AnotherIncomeID
+│             ├── Put - Update Another Income by AnotherIncomeID
+│             ├── Delete - Delete Another Income by AnotherIncomeID
+│             ├── Get - Download Another Incomes - PDF
+│             └── Get - Download Another Incomes - Excel
+├── Audit & Finances/
+│        ├── First Stocks/
+│        │    ├── Get - All First Stocks
+│        │    ├── Post - Create First Stock
+│        │    ├── Delete - Delete First Stock by FirstStockID
+│        │    ├── Get - Cetak / Print First Stock by FirstStockID
+│        │    ├── Get - Download First Stock PDF
+│        │    ├── Get - Download First Stock Excel
+│        │    └── Get - Download Detail First Stock PDF by FirstStockID
+│        └── Opnames/
+│             ├── Mobile/
+│             ├── Desktop/
+│             ├── Get - Download Opname PDF
+│             ├── Get - Download Opname Excel
+│             └── Get - Download Detail Opname by OpnameID
+├── Reports
+│        ├── Get Neraca Saldo
+│        ├── Provit by Mounth
+│        ├── Get All Asset
+│        ├── Download Daily Assets Excel
+│        └── Download Neraca Saldo Excel
+└── Complements/
+         ├── Dashboard/
+         │    ├── Get - Monthly Profit Report - Main Chart
+         │    ├── Get - Provit Today - Second Line
+         │    ├── Get - Weekly Profit Report
+         │    ├── Get - Today Report - Total Provit, Trano, ABV
+         │    ├── Get - Fast Moving Products
+         │    ├── Get - Slow Moving Products
+         │    ├── Get - Near Expired
+         │    ├── Get - Download Fast Moving Products Excel
+         │    ├── Get - Download Slow Moving Products Excel
+         │    └── Get - Download Near Expired
+         ├── Menus
+         └── Test
+```
+
 ---
 
 ## Struktur API saat ini di repo
