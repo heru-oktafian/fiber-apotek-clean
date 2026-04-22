@@ -104,11 +104,15 @@ Tujuannya sederhana:
 
 ### Suppliers
 **Implemented:**
-- belum ada
+- `GET /api/suppliers`
+- `GET /api/suppliers/:id`
+- `POST /api/suppliers`
+- `PUT /api/suppliers/:id`
+- `DELETE /api/suppliers/:id`
+- `GET /api/suppliers-combo`
 
 **Next target:**
-- read endpoints suppliers
-- create/update/delete suppliers
+- supplier categories
 - combobox supplier category
 - export PDF/Excel
 
@@ -203,11 +207,12 @@ Tujuannya sederhana:
 
 Urutan yang paling sehat saat ini:
 
-1. **Suppliers**
-2. **Units / Product Categories / Products full CRUD**
-3. **Purchases & Sales full CRUD**
-4. **Returns / Another Incomes / Expenses**
-5. **First Stocks / Reports / Export**
+1. **Units**
+2. **Product Categories**
+3. **Products full CRUD**
+4. **Purchases & Sales full CRUD**
+5. **Returns / Another Incomes / Expenses**
+6. **First Stocks / Reports / Export**
 
 ---
 

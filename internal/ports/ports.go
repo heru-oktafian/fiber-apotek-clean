@@ -76,6 +76,8 @@ type SupplierRepository interface {
 	ListSuppliers(ctx context.Context, branchID string, req supplier.ListRequest) (supplier.ListResult, error)
 	FindSupplierByID(ctx context.Context, id, branchID string) (supplier.Supplier, error)
 	CreateSupplier(ctx context.Context, item supplier.Supplier) error
+	UpdateSupplier(ctx context.Context, item supplier.Supplier) error
+	DeleteSupplier(ctx context.Context, id, branchID string) error
 	GetSupplierCombo(ctx context.Context, branchID, search string) ([]supplier.ComboItem, error)
 }
 

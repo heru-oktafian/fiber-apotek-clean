@@ -442,6 +442,20 @@ func (r Repositories) CreateSupplier(ctx context.Context, item supplier.Supplier
 	return r.DB.WithContext(ctx).Create(&SupplierModel{ID: item.ID, Name: item.Name, Phone: item.Phone, Address: item.Address, PIC: item.PIC, SupplierCategoryID: item.SupplierCategoryID, BranchID: item.BranchID}).Error
 }
 
+func (r Repositories) UpdateSupplier(ctx context.Context, item supplier.Supplier) error {
+	return r.DB.WithContext(ctx).Model(&SupplierModel{}).Where("id = ? AND branch_id = ?", item.ID, item.BranchID).Updates(map[string]any{
+		"name": item.Name,
+		"phone": item.Phone,
+		"address": item.Address,
+		"pic": item.PIC,
+		"supplier_category_id": item.SupplierCategoryID,
+	}).Error
+}
+
+func (r Repositories) DeleteSupplier(ctx context.Context, id, branchID string) error {
+	return r.DB.WithContext(ctx).Where("id = ? AND branch_id = ?", id, branchID).Delete(&SupplierModel{}).Error
+}
+
 func (r Repositories) GetSupplierCombo(ctx context.Context, branchID, search string) ([]supplier.ComboItem, error) {
 	search = strings.TrimSpace(strings.ToLower(search))
 	var items []supplier.ComboItem

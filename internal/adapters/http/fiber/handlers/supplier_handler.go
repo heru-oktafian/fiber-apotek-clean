@@ -48,6 +48,27 @@ func (h SupplierHandler) Create(c *fiber.Ctx) error {
 	return response.JSON(c, fiber.StatusCreated, "Create supplier success", item)
 }
 
+func (h SupplierHandler) Update(c *fiber.Ctx) error {
+	claims := c.Locals("claims").(auth.Claims)
+	var req supplier.CreateRequest
+	if err := c.BodyParser(&req); err != nil {
+		return presenter.Handle(c, err)
+	}
+	item, err := h.Service.Update(c.Context(), claims.BranchID, c.Params("id"), req)
+	if err != nil {
+		return presenter.Handle(c, err)
+	}
+	return response.JSON(c, fiber.StatusOK, "Update supplier success", item)
+}
+
+func (h SupplierHandler) Delete(c *fiber.Ctx) error {
+	claims := c.Locals("claims").(auth.Claims)
+	if err := h.Service.Delete(c.Context(), claims.BranchID, c.Params("id")); err != nil {
+		return presenter.Handle(c, err)
+	}
+	return response.JSON(c, fiber.StatusOK, "Delete supplier success", fiber.Map{"id": c.Params("id")})
+}
+
 func (h SupplierHandler) Combo(c *fiber.Ctx) error {
 	claims := c.Locals("claims").(auth.Claims)
 	items, err := h.Service.Combo(c.Context(), claims.BranchID, c.Query("search"))

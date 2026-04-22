@@ -60,6 +60,34 @@ func (s Service) Create(ctx context.Context, branchID string, req supplier.Creat
 	return s.Suppliers.FindSupplierByID(ctx, item.ID, branchID)
 }
 
+func (s Service) Update(ctx context.Context, branchID, id string, req supplier.CreateRequest) (supplier.Supplier, error) {
+	req.Name = strings.TrimSpace(req.Name)
+	if req.Name == "" {
+		return supplier.Supplier{}, apperror.New(http.StatusBadRequest, "Update supplier failed", "name is required")
+	}
+	if req.SupplierCategoryID == 0 {
+		return supplier.Supplier{}, apperror.New(http.StatusBadRequest, "Update supplier failed", "supplier_category_id is required")
+	}
+	if _, err := s.Suppliers.FindSupplierByID(ctx, id, branchID); err != nil {
+		return supplier.Supplier{}, apperror.New(http.StatusNotFound, "Update supplier failed", "supplier not found")
+	}
+	item := supplier.Supplier{ID: id, Name: req.Name, Phone: strings.TrimSpace(req.Phone), Address: strings.TrimSpace(req.Address), PIC: strings.TrimSpace(req.PIC), SupplierCategoryID: req.SupplierCategoryID, BranchID: branchID}
+	if err := s.Suppliers.UpdateSupplier(ctx, item); err != nil {
+		return supplier.Supplier{}, apperror.New(http.StatusInternalServerError, "Update supplier failed", err.Error())
+	}
+	return s.Suppliers.FindSupplierByID(ctx, id, branchID)
+}
+
+func (s Service) Delete(ctx context.Context, branchID, id string) error {
+	if _, err := s.Suppliers.FindSupplierByID(ctx, id, branchID); err != nil {
+		return apperror.New(http.StatusNotFound, "Delete supplier failed", "supplier not found")
+	}
+	if err := s.Suppliers.DeleteSupplier(ctx, id, branchID); err != nil {
+		return apperror.New(http.StatusInternalServerError, "Delete supplier failed", err.Error())
+	}
+	return nil
+}
+
 func (s Service) Combo(ctx context.Context, branchID, search string) ([]supplier.ComboItem, error) {
 	items, err := s.Suppliers.GetSupplierCombo(ctx, branchID, search)
 	if err != nil {

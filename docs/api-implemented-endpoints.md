@@ -42,11 +42,18 @@ Api Apotek (Implemented)
 │       ├── Post - /api/users
 │       └── Put - /api/users/:id
 ├── Masters/
-│   └── Products/
-│       ├── Post - /api/products
-│       ├── Get - /api/sales-products-combo
-│       ├── Get - /api/purchase-products-combo
-│       └── Get - /api/cmb-product-opname
+│   ├── Products/
+│   │   ├── Post - /api/products
+│   │   ├── Get - /api/sales-products-combo
+│   │   ├── Get - /api/purchase-products-combo
+│   │   └── Get - /api/cmb-product-opname
+│   └── Suppliers/
+│       ├── Get - /api/suppliers
+│       ├── Get - /api/suppliers/:id
+│       ├── Post - /api/suppliers
+│       ├── Put - /api/suppliers/:id
+│       ├── Delete - /api/suppliers/:id
+│       └── Get - /api/suppliers-combo
 ├── Transactions/
 │   ├── Purchases/
 │   │   └── Post - /api/purchases
@@ -476,7 +483,99 @@ GET /api/cmb-product-opname?search=par
 
 ---
 
-## 7. Purchases
+## 7. Suppliers
+
+### GET `/api/suppliers`
+**Header:**
+```http
+Authorization: Bearer <TOKEN_2>
+```
+
+**Query params opsional:**
+- `page`
+- `limit`
+- `search`
+
+---
+
+### GET `/api/suppliers/:id`
+**Header:**
+```http
+Authorization: Bearer <TOKEN_2>
+```
+
+**Path param:**
+- `id` = ID supplier
+
+---
+
+### POST `/api/suppliers`
+**Header:**
+```http
+Content-Type: application/json
+Authorization: Bearer <TOKEN_2>
+```
+
+**Body contoh:**
+```json
+{
+  "name": "Supplier Testing",
+  "phone": "08123456789",
+  "address": "Jl. Supplier No. 1",
+  "pic": "Budi",
+  "supplier_category_id": 1
+}
+```
+
+**Catatan:**
+- field wajib minimal: `name`, `supplier_category_id`
+- branch mengikuti branch context dari token
+
+---
+
+### PUT `/api/suppliers/:id`
+**Header:**
+```http
+Content-Type: application/json
+Authorization: Bearer <TOKEN_2>
+```
+
+**Body contoh:**
+```json
+{
+  "name": "Supplier Testing Update",
+  "phone": "08129999999",
+  "address": "Jl. Supplier Update",
+  "pic": "Andi",
+  "supplier_category_id": 1
+}
+```
+
+---
+
+### DELETE `/api/suppliers/:id`
+**Header:**
+```http
+Authorization: Bearer <TOKEN_2>
+```
+
+**Path param:**
+- `id` = ID supplier
+
+---
+
+### GET `/api/suppliers-combo`
+**Header:**
+```http
+Authorization: Bearer <TOKEN_2>
+```
+
+**Query params opsional:**
+- `search`
+
+---
+
+## 8. Purchases
 
 ### POST `/api/purchases`
 **Header:**
@@ -633,6 +732,12 @@ Authorization: Bearer <TOKEN_2>
 - `GET /api/sales-products-combo`
 - `GET /api/purchase-products-combo`
 - `GET /api/cmb-product-opname`
+- `GET /api/suppliers`
+- `GET /api/suppliers/:id`
+- `POST /api/suppliers`
+- `PUT /api/suppliers/:id`
+- `DELETE /api/suppliers/:id`
+- `GET /api/suppliers-combo`
 - `POST /api/purchases`
 - `POST /api/sales`
 - `POST /api/opnames`
