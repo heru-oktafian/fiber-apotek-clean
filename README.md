@@ -246,6 +246,8 @@ Di folder `docs/` sudah ada beberapa dokumen penting:
   - panduan validasi runtime
 - `docs/api-implemented-endpoints.md`
   - daftar endpoint yang sudah implemented, lengkap dengan header/body penting
+- `docs/implemented-vs-next-target.md`
+  - ringkasan endpoint yang sudah hidup vs target domain berikutnya
 
 ---
 
