@@ -88,7 +88,11 @@ Api Apotek (Implemented)
 │       └── Get - /api/member-categories-combo
 ├── Transactions/
 │   ├── Purchases/
-│   │   └── Post - /api/purchases
+│   │   ├── Get - /api/purchases
+│   │   ├── Get - /api/purchases/:id
+│   │   ├── Post - /api/purchases
+│   │   ├── Put - /api/purchases/:id
+│   │   └── Delete - /api/purchases/:id
 │   └── Sales/
 │       └── Post - /api/sales
 └── Audit & Finances/
