@@ -17,6 +17,111 @@ type Service struct {
 	Clock ports.Clock
 }
 
+func (s Service) List(ctx context.Context, branchID string, req sale.ListRequest) (sale.ListResult, error) {
+	if req.Page <= 0 {
+		req.Page = 1
+	}
+	if req.Limit <= 0 {
+		req.Limit = 10
+	}
+	items, err := s.Repo.ListSales(ctx, branchID, req)
+	if err != nil {
+		return sale.ListResult{}, apperror.New(http.StatusInternalServerError, "Get sales failed", err.Error())
+	}
+	return items, nil
+}
+
+func (s Service) GetByID(ctx context.Context, branchID, id string) (sale.Detail, error) {
+	item, err := s.Repo.FindSaleDetail(ctx, branchID, id)
+	if err != nil {
+		return sale.Detail{}, apperror.New(http.StatusNotFound, "Get sale failed", err.Error())
+	}
+	return item, nil
+}
+
+func (s Service) Update(ctx context.Context, branchID, id, defaultMember string, req sale.UpdateRequest) (sale.Sale, error) {
+	item, err := s.Repo.FindSaleByID(ctx, branchID, id)
+	if err != nil {
+		return sale.Sale{}, apperror.New(http.StatusNotFound, "Update sale failed", "sale not found")
+	}
+	oldTotal := item.TotalSale
+	oldProfit := item.ProfitEstimate
+	if req.MemberID != nil {
+		memberID := *req.MemberID
+		if memberID == "" {
+			memberID = defaultMember
+		}
+		if _, err := s.Repo.FindMemberByID(ctx, memberID); err != nil {
+			memberID = defaultMember
+		}
+		item.MemberID = memberID
+	}
+	if req.Payment != "" {
+		item.Payment = common.PaymentStatus(req.Payment)
+	}
+	if req.Discount != nil {
+		item.Discount = *req.Discount
+	}
+	items, err := s.Repo.FindSaleItems(ctx, id)
+	if err != nil {
+		return sale.Sale{}, apperror.New(http.StatusInternalServerError, "Update sale failed", err.Error())
+	}
+	var total int
+	var profit int
+	for _, line := range items {
+		total += line.SubTotal
+		profit += line.SubTotal - (line.Price * line.Qty)
+	}
+	item.TotalSale = total - item.Discount
+	item.ProfitEstimate = profit
+	item.UpdatedAt = s.Clock.Now()
+	if err := s.Repo.UpdateSaleHeader(ctx, item); err != nil {
+		return sale.Sale{}, apperror.New(http.StatusInternalServerError, "Update sale failed", err.Error())
+	}
+	if err := s.Repo.UpdateTransactionReport(ctx, item.ID, item.TotalSale, string(item.Payment), item.UpdatedAt); err != nil {
+		return sale.Sale{}, apperror.New(http.StatusInternalServerError, "Update sale failed", err.Error())
+	}
+	if err := s.Repo.AdjustDailyProfit(ctx, item.SaleDate, item.UserID, item.BranchID, item.TotalSale-oldTotal, item.ProfitEstimate-oldProfit, item.UpdatedAt); err != nil {
+		return sale.Sale{}, apperror.New(http.StatusInternalServerError, "Update sale failed", err.Error())
+	}
+	return s.Repo.FindSaleByID(ctx, branchID, id)
+}
+
+func (s Service) Delete(ctx context.Context, branchID, id string) error {
+	item, err := s.Repo.FindSaleByID(ctx, branchID, id)
+	if err != nil {
+		return apperror.New(http.StatusNotFound, "Delete sale failed", "sale not found")
+	}
+	items, err := s.Repo.FindSaleItems(ctx, id)
+	if err != nil {
+		return apperror.New(http.StatusInternalServerError, "Delete sale failed", err.Error())
+	}
+	for _, line := range items {
+		prod, err := s.Repo.FindProductByID(ctx, line.ProductID)
+		if err != nil {
+			return apperror.New(http.StatusInternalServerError, "Delete sale failed", err.Error())
+		}
+		prod.Stock += line.Qty
+		if err := s.Repo.UpdateProduct(ctx, prod); err != nil {
+			return apperror.New(http.StatusInternalServerError, "Delete sale failed", err.Error())
+		}
+	}
+	now := s.Clock.Now()
+	if err := s.Repo.DeleteSaleItems(ctx, id); err != nil {
+		return apperror.New(http.StatusInternalServerError, "Delete sale failed", err.Error())
+	}
+	if err := s.Repo.DeleteTransactionReport(ctx, id, "sale"); err != nil {
+		return apperror.New(http.StatusInternalServerError, "Delete sale failed", err.Error())
+	}
+	if err := s.Repo.DeleteSaleHeader(ctx, branchID, id); err != nil {
+		return apperror.New(http.StatusInternalServerError, "Delete sale failed", err.Error())
+	}
+	if err := s.Repo.AdjustDailyProfit(ctx, item.SaleDate, item.UserID, item.BranchID, -item.TotalSale, -item.ProfitEstimate, now); err != nil {
+		return apperror.New(http.StatusInternalServerError, "Delete sale failed", err.Error())
+	}
+	return nil
+}
+
 func (s Service) CreateTransaction(ctx context.Context, branchID, userID, defaultMember, subscriptionType string, req sale.CreateSaleRequest) (sale.Sale, []sale.Item, error) {
 	now := s.Clock.Now()
 	payment := common.PaymentStatus(req.Sale.Payment)

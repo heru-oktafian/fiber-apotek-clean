@@ -959,6 +959,122 @@ func (r Repositories) WithinTransaction(ctx context.Context, fn func(repo ports.
 	return r.DB.WithContext(ctx).Transaction(func(tx *gorm.DB) error { return fn(txRepo{tx: tx}) })
 }
 
+func (r Repositories) ListSales(ctx context.Context, branchID string, req sale.ListRequest) (sale.ListResult, error) {
+	query := r.DB.WithContext(ctx).
+		Table("sales sl").
+		Select("sl.id, sl.member_id, mbr.name AS member_name, sl.sale_date, sl.total_sale, sl.discount, sl.profit_estimate, sl.payment, usr.name AS cashier").
+		Joins("LEFT JOIN members mbr ON mbr.id = sl.member_id").
+		Joins("LEFT JOIN users usr ON usr.id = sl.user_id").
+		Where("sl.branch_id = ? AND sl.total_sale > 0", branchID)
+	if req.Search != "" {
+		like := "%" + strings.TrimSpace(strings.ToLower(req.Search)) + "%"
+		query = query.Where("LOWER(mbr.name) LIKE ?", like)
+	}
+	var total int64
+	if err := query.Count(&total).Error; err != nil {
+		return sale.ListResult{}, err
+	}
+	var items []sale.Sale
+	offset := (req.Page - 1) * req.Limit
+	if err := query.Order("sl.created_at DESC").Offset(offset).Limit(req.Limit).Scan(&items).Error; err != nil {
+		return sale.ListResult{}, err
+	}
+	lastPage := 1
+	if req.Limit > 0 {
+		lastPage = int((total + int64(req.Limit) - 1) / int64(req.Limit))
+		if lastPage == 0 {
+			lastPage = 1
+		}
+	}
+	return sale.ListResult{Items: items, Meta: sale.ListMeta{Page: req.Page, Limit: req.Limit, Search: req.Search, TotalData: int(total), LastPage: lastPage}}, nil
+}
+
+func (r Repositories) FindSaleByID(ctx context.Context, branchID, id string) (sale.Sale, error) {
+	var m SaleModel
+	if err := r.DB.WithContext(ctx).Where("id = ? AND branch_id = ?", id, branchID).First(&m).Error; err != nil {
+		return sale.Sale{}, err
+	}
+	return sale.Sale{ID: m.ID, MemberID: m.MemberID, UserID: m.UserID, BranchID: m.BranchID, Payment: common.PaymentStatus(m.Payment), Discount: m.Discount, TotalSale: m.TotalSale, ProfitEstimate: m.ProfitEstimate, SaleDate: m.SaleDate, CreatedAt: m.CreatedAt, UpdatedAt: m.UpdatedAt}, nil
+}
+
+func (r Repositories) FindSaleItems(ctx context.Context, saleID string) ([]sale.Item, error) {
+	var items []sale.Item
+	if err := r.DB.WithContext(ctx).
+		Table("sale_items sit").
+		Select("sit.id, sit.sale_id, sit.product_id, pro.name AS product_name, un.name AS unit_name, sit.price, sit.qty, sit.sub_total").
+		Joins("LEFT JOIN products pro ON pro.id = sit.product_id").
+		Joins("LEFT JOIN units un ON un.id = pro.unit_id").
+		Where("sit.sale_id = ?", saleID).
+		Order("pro.name ASC").
+		Scan(&items).Error; err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+func (r Repositories) FindSaleDetail(ctx context.Context, branchID, id string) (sale.Detail, error) {
+	var header struct {
+		ID             string
+		MemberID       string
+		MemberName     string
+		SaleDate       time.Time
+		TotalSale      int
+		Discount       int
+		ProfitEstimate int
+		Payment        string
+		Cashier        string
+	}
+	if err := r.DB.WithContext(ctx).
+		Table("sales sl").
+		Select("sl.id, sl.member_id, mbr.name AS member_name, sl.sale_date, sl.total_sale, sl.discount, sl.profit_estimate, sl.payment, usr.name AS cashier").
+		Joins("LEFT JOIN members mbr ON mbr.id = sl.member_id").
+		Joins("LEFT JOIN users usr ON usr.id = sl.user_id").
+		Where("sl.id = ? AND sl.branch_id = ?", id, branchID).
+		Scan(&header).Error; err != nil {
+		return sale.Detail{}, err
+	}
+	if header.ID == "" {
+		return sale.Detail{}, gorm.ErrRecordNotFound
+	}
+	items, err := r.FindSaleItems(ctx, id)
+	if err != nil {
+		return sale.Detail{}, err
+	}
+	return sale.Detail{ID: header.ID, MemberID: header.MemberID, MemberName: header.MemberName, SaleDate: header.SaleDate.Format("02 January 2006"), TotalSale: header.TotalSale, Discount: header.Discount, ProfitEstimate: header.ProfitEstimate, Payment: header.Payment, Cashier: header.Cashier, Items: items}, nil
+}
+
+func (r Repositories) UpdateSaleHeader(ctx context.Context, item sale.Sale) error {
+	return r.DB.WithContext(ctx).Model(&SaleModel{}).Where("id = ? AND branch_id = ?", item.ID, item.BranchID).Updates(map[string]any{"member_id": item.MemberID, "payment": string(item.Payment), "discount": item.Discount, "total_sale": item.TotalSale, "profit_estimate": item.ProfitEstimate, "updated_at": item.UpdatedAt}).Error
+}
+
+func (r Repositories) UpdateTransactionReport(ctx context.Context, id string, total int, payment string, updatedAt time.Time) error {
+	return r.DB.WithContext(ctx).Model(&TransactionReportModel{}).Where("id = ? AND transaction_type = ?", id, "sale").Updates(map[string]any{"total": total, "payment": payment, "updated_at": updatedAt}).Error
+}
+
+func (r Repositories) AdjustDailyProfit(ctx context.Context, reportDate time.Time, userID string, branchID string, totalDelta int, profitDelta int, now time.Time) error {
+	var report DailyProfitReportModel
+	err := r.DB.WithContext(ctx).Where("DATE(report_date) = DATE(?) AND user_id = ? AND branch_id = ?", reportDate, userID, branchID).First(&report).Error
+	if err != nil {
+		return err
+	}
+	report.TotalSales += totalDelta
+	report.ProfitEstimate += profitDelta
+	report.UpdatedAt = now
+	return r.DB.WithContext(ctx).Save(&report).Error
+}
+
+func (r Repositories) DeleteSaleItems(ctx context.Context, saleID string) error {
+	return r.DB.WithContext(ctx).Where("sale_id = ?", saleID).Delete(&SaleItemModel{}).Error
+}
+
+func (r Repositories) DeleteTransactionReport(ctx context.Context, id string, txType string) error {
+	return r.DB.WithContext(ctx).Where("id = ? AND transaction_type = ?", id, txType).Delete(&TransactionReportModel{}).Error
+}
+
+func (r Repositories) DeleteSaleHeader(ctx context.Context, branchID, id string) error {
+	return r.DB.WithContext(ctx).Where("id = ? AND branch_id = ?", id, branchID).Delete(&SaleModel{}).Error
+}
+
 func (r Repositories) WithinTransactionSale(ctx context.Context, fn func(repo ports.SaleTxRepository) error) error {
 	return r.DB.WithContext(ctx).Transaction(func(tx *gorm.DB) error { return fn(txRepo{tx: tx}) })
 }

@@ -152,6 +152,19 @@ type PurchaseTxRepository interface {
 
 type SaleRepository interface {
 	WithinTransactionSale(ctx context.Context, fn func(repo SaleTxRepository) error) error
+	ListSales(ctx context.Context, branchID string, req sale.ListRequest) (sale.ListResult, error)
+	FindSaleDetail(ctx context.Context, branchID, id string) (sale.Detail, error)
+	FindSaleByID(ctx context.Context, branchID, id string) (sale.Sale, error)
+	FindSaleItems(ctx context.Context, saleID string) ([]sale.Item, error)
+	FindMemberByID(ctx context.Context, memberID string) (member.Member, error)
+	FindProductByID(ctx context.Context, id string) (product.Product, error)
+	UpdateProduct(ctx context.Context, item product.Product) error
+	UpdateSaleHeader(ctx context.Context, item sale.Sale) error
+	UpdateTransactionReport(ctx context.Context, id string, total int, payment string, updatedAt time.Time) error
+	AdjustDailyProfit(ctx context.Context, reportDate time.Time, userID string, branchID string, totalDelta int, profitDelta int, now time.Time) error
+	DeleteSaleHeader(ctx context.Context, branchID, id string) error
+	DeleteSaleItems(ctx context.Context, saleID string) error
+	DeleteTransactionReport(ctx context.Context, id string, txType string) error
 }
 
 type SaleTxRepository interface {

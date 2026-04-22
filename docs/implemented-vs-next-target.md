@@ -188,16 +188,18 @@ Tujuannya sederhana:
 
 ### Sales
 **Implemented:**
+- `GET /api/sales`
+- `GET /api/sales/:id`
 - `POST /api/sales`
+- `PUT /api/sales/:id`
+- `DELETE /api/sales/:id`
 
 **Catatan:**
 - rewrite tidak mengikuti bug legacy yang terlalu percaya harga client
 
 **Next target:**
-- list sales
-- detail sale
-- update/delete sale
-- item-level CRUD
+- item-level CRUD (`sale-items/*`)
+- sales detail summary endpoint parity bila masih diperlukan
 - export/print
 
 ### Duplicate Receipts / Buy Returns / Sale Returns / Expenses / Another Incomes

@@ -86,7 +86,11 @@ type Dependencies struct {
 		Delete(*fiber.Ctx) error
 	}
 	Sale interface {
+		List(*fiber.Ctx) error
+		GetByID(*fiber.Ctx) error
 		Create(*fiber.Ctx) error
+		Update(*fiber.Ctx) error
+		Delete(*fiber.Ctx) error
 	}
 	Opname interface {
 		Create(*fiber.Ctx) error
@@ -159,7 +163,11 @@ func Register(app *fiber.App, deps Dependencies) {
 	app.Post("/api/purchases", deps.AuthMiddleware, deps.Purchase.Create)
 	app.Put("/api/purchases/:id", deps.AuthMiddleware, deps.Purchase.Update)
 	app.Delete("/api/purchases/:id", deps.AuthMiddleware, deps.Purchase.Delete)
+	app.Get("/api/sales", deps.AuthMiddleware, deps.Sale.List)
+	app.Get("/api/sales/:id", deps.AuthMiddleware, deps.Sale.GetByID)
 	app.Post("/api/sales", deps.AuthMiddleware, deps.Sale.Create)
+	app.Put("/api/sales/:id", deps.AuthMiddleware, deps.Sale.Update)
+	app.Delete("/api/sales/:id", deps.AuthMiddleware, deps.Sale.Delete)
 	app.Post("/api/opnames", deps.AuthMiddleware, deps.Opname.Create)
 	app.Get("/api/opnames/:id", deps.AuthMiddleware, deps.Opname.GetByID)
 	app.Post("/api/opname-items", deps.AuthMiddleware, deps.Opname.CreateItem)

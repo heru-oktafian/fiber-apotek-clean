@@ -94,7 +94,11 @@ Api Apotek (Implemented)
 │   │   ├── Put - /api/purchases/:id
 │   │   └── Delete - /api/purchases/:id
 │   └── Sales/
-│       └── Post - /api/sales
+│       ├── Get - /api/sales
+│       ├── Get - /api/sales/:id
+│       ├── Post - /api/sales
+│       ├── Put - /api/sales/:id
+│       └── Delete - /api/sales/:id
 └── Audit & Finances/
     └── Opnames/
         ├── Post - /api/opnames
@@ -1117,6 +1121,30 @@ Authorization: Bearer <TOKEN_2>
 
 ## 13. Sales
 
+### GET `/api/sales`
+**Header:**
+```http
+Authorization: Bearer <TOKEN_2>
+```
+
+**Query params opsional:**
+- `page`
+- `limit`
+- `search`
+
+---
+
+### GET `/api/sales/:id`
+**Header:**
+```http
+Authorization: Bearer <TOKEN_2>
+```
+
+**Path param:**
+- `id` = ID sale
+
+---
+
 ### POST `/api/sales`
 **Header:**
 ```http
@@ -1146,7 +1174,36 @@ Authorization: Bearer <TOKEN_2>
 
 ---
 
-## 9. Opnames
+### PUT `/api/sales/:id`
+**Header:**
+```http
+Content-Type: application/json
+Authorization: Bearer <TOKEN_2>
+```
+
+**Body contoh:**
+```json
+{
+  "member_id": "MBR000001",
+  "discount": 1000,
+  "payment": "cash"
+}
+```
+
+---
+
+### DELETE `/api/sales/:id`
+**Header:**
+```http
+Authorization: Bearer <TOKEN_2>
+```
+
+**Path param:**
+- `id` = ID sale
+
+---
+
+## 14. Opnames
 
 ### POST `/api/opnames`
 **Header:**
@@ -1280,7 +1337,11 @@ Authorization: Bearer <TOKEN_2>
 - `POST /api/purchases`
 - `PUT /api/purchases/:id`
 - `DELETE /api/purchases/:id`
+- `GET /api/sales`
+- `GET /api/sales/:id`
 - `POST /api/sales`
+- `PUT /api/sales/:id`
+- `DELETE /api/sales/:id`
 - `POST /api/opnames`
 - `GET /api/opnames/:id`
 - `POST /api/opname-items`
