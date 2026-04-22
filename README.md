@@ -203,7 +203,8 @@ Api Apotek (Implemented)
 │   │   └── Delete - /api/branches/:id
 │   ├── User Branches/
 │   │   ├── Get - /api/user-branches
-│   │   └── Get - /api/user-branches/:user_id/:branch_id
+│   │   ├── Get - /api/user-branches/:user_id/:branch_id
+│   │   └── Post - /api/user-branches
 │   └── User Management/
 │       ├── Get - /api/users
 │       ├── Get - /api/detail-users/:id
@@ -215,45 +216,122 @@ Api Apotek (Implemented)
 │   │   ├── Get - /api/products/excel
 │   │   ├── Get - /api/products/pdf
 │   │   ├── Post - /api/products
+│   │   ├── Get - /api/products/:id
+│   │   ├── Put - /api/products/:id
+│   │   ├── Delete - /api/products/:id
 │   │   ├── Get - /api/sales-products-combo
 │   │   ├── Get - /api/purchase-products-combo
 │   │   └── Get - /api/cmb-product-opname
-│   └── Units/
-│       ├── Get - /api/units
-│       ├── Get - /api/units/excel
-│       ├── Get - /api/units/pdf
-│       ├── Get - /api/units/:id
-│       ├── Post - /api/units
-│       ├── Put - /api/units/:id
-│       ├── Delete - /api/units/:id
-│       └── Get - /api/cmb-units
+│   ├── Suppliers/
+│   │   ├── Get - /api/suppliers
+│   │   ├── Get - /api/suppliers/excel
+│   │   ├── Get - /api/suppliers/pdf
+│   │   ├── Get - /api/suppliers/:id
+│   │   ├── Post - /api/suppliers
+│   │   ├── Put - /api/suppliers/:id
+│   │   ├── Delete - /api/suppliers/:id
+│   │   └── Get - /api/suppliers-combo
+│   ├── Units/
+│   │   ├── Get - /api/units
+│   │   ├── Get - /api/units/excel
+│   │   ├── Get - /api/units/pdf
+│   │   ├── Get - /api/units/:id
+│   │   ├── Post - /api/units
+│   │   ├── Put - /api/units/:id
+│   │   ├── Delete - /api/units/:id
+│   │   └── Get - /api/cmb-units
+│   └── Categories/
+│       ├── Product Categories/
+│       │   ├── Get - /api/product-categories
+│       │   ├── Get - /api/product-categories/excel
+│       │   ├── Get - /api/product-categories/pdf
+│       │   ├── Post - /api/product-categories
+│       │   ├── Get - /api/product-categories/:id
+│       │   ├── Put - /api/product-categories/:id
+│       │   ├── Delete - /api/product-categories/:id
+│       │   └── Get - /api/product-categories-combo
+│       ├── Supplier Categories/
+│       │   ├── Get - /api/supplier-categories
+│       │   ├── Get - /api/supplier-categories/excel
+│       │   ├── Get - /api/supplier-categories/pdf
+│       │   ├── Post - /api/supplier-categories
+│       │   ├── Get - /api/supplier-categories/:id
+│       │   ├── Put - /api/supplier-categories/:id
+│       │   ├── Delete - /api/supplier-categories/:id
+│       │   └── Get - /api/supplier-categories-combo
+│       └── Member Categories/
+│           ├── Get - /api/member-categories
+│           ├── Get - /api/member-categories/excel
+│           ├── Get - /api/member-categories/pdf
+│           ├── Get - /api/member-categories/:id
+│           ├── Post - /api/member-categories
+│           ├── Put - /api/member-categories/:id
+│           ├── Delete - /api/member-categories/:id
+│           └── Get - /api/member-categories-combo
 ├── Transactions/
 │   ├── Purchases/
 │   │   ├── Get - /api/purchases
+│   │   ├── Get - /api/purchases/excel
+│   │   ├── Get - /api/purchases/pdf
 │   │   ├── Get - /api/purchases/:id
 │   │   ├── Post - /api/purchases
 │   │   ├── Put - /api/purchases/:id
 │   │   ├── Delete - /api/purchases/:id
+│   │   ├── Get - /api/purchase-items/excel
+│   │   ├── Get - /api/purchase-items/pdf
 │   │   ├── Get - /api/purchase-items/all/:id
 │   │   ├── Post - /api/purchase-items
 │   │   ├── Put - /api/purchase-items/:id
 │   │   └── Delete - /api/purchase-items/:id
 │   └── Sales/
 │       ├── Get - /api/sales
+│       ├── Get - /api/sales/excel
+│       ├── Get - /api/sales/pdf
 │       ├── Get - /api/sales/:id
 │       ├── Post - /api/sales
 │       ├── Put - /api/sales/:id
 │       ├── Delete - /api/sales/:id
+│       ├── Get - /api/sale-items/excel
+│       ├── Get - /api/sale-items/pdf
 │       ├── Get - /api/sale-items/all/:id
 │       ├── Post - /api/sale-items
 │       ├── Put - /api/sale-items/:id
 │       └── Delete - /api/sale-items/:id
-└── Audit & Finances/
-    └── Opnames/
-        ├── Post - /api/opnames
-        ├── Get - /api/opnames/:id
-        ├── Post - /api/opname-items
-        └── Post - /api/opname-items-all
+├── Audits/
+│   ├── First Stocks/
+│   │   ├── Get - /api/first-stocks
+│   │   ├── Get - /api/first-stocks/excel
+│   │   ├── Get - /api/first-stocks/pdf
+│   │   ├── Post - /api/first-stocks
+│   │   ├── Put - /api/first-stocks/:id
+│   │   ├── Delete - /api/first-stocks/:id
+│   │   ├── Get - /api/first-stock-with-items/:id
+│   │   ├── Get - /api/first-stock-items/:id
+│   │   ├── Get - /api/first-stock-items/excel
+│   │   ├── Get - /api/first-stock-items/pdf
+│   │   ├── Post - /api/first-stock-items
+│   │   ├── Put - /api/first-stock-items/:id
+│   │   └── Delete - /api/first-stock-items/:id
+│   └── Opnames/
+│       ├── Post - /api/opnames
+│       ├── Get - /api/opnames/:id
+│       ├── Post - /api/opname-items
+│       └── Post - /api/opname-items-all
+└── Finances/
+    ├── Another Incomes/
+    │   ├── Get - /api/another-incomes
+    │   ├── Get - /api/another-incomes/excel
+    │   ├── Get - /api/another-incomes/pdf
+    │   ├── Post - /api/another-incomes
+    │   ├── Put - /api/another-incomes/:id
+    │   └── Delete - /api/another-incomes/:id
+    └── Expenses/
+        ├── Get - /api/expenses
+        ├── Get - /api/expenses/excel
+        ├── Get - /api/expenses/pdf
+        ├── Post - /api/expenses
+        ├── Put - /api/expenses/:id
+        └── Delete - /api/expenses/:id
 ```
 
 ---

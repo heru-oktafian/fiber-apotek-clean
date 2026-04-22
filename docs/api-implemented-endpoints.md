@@ -55,6 +55,8 @@ Api Apotek (Implemented)
 │   │   └── Get - /api/cmb-product-opname
 │   ├── Suppliers/
 │   │   ├── Get - /api/suppliers
+│   │   ├── Get - /api/suppliers/excel
+│   │   ├── Get - /api/suppliers/pdf
 │   │   ├── Get - /api/suppliers/:id
 │   │   ├── Post - /api/suppliers
 │   │   ├── Put - /api/suppliers/:id
@@ -69,91 +71,34 @@ Api Apotek (Implemented)
 │   │   ├── Put - /api/units/:id
 │   │   ├── Delete - /api/units/:id
 │   │   └── Get - /api/cmb-units
-│   ├── Product Categories/
-│   │   ├── Get - /api/product-categories
-│   │   ├── Get - /api/product-categories/excel
-│   │   ├── Get - /api/product-categories/pdf
-│   │   ├── Post - /api/product-categories
-│   │   ├── Get - /api/product-categories/:id
-│   │   ├── Put - /api/product-categories/:id
-│   │   ├── Delete - /api/product-categories/:id
-│   │   └── Get - /api/product-categories-combo
-│   ├── Suppliers/
-│   │   ├── Get - /api/suppliers
-│   │   ├── Get - /api/suppliers/excel
-│   │   ├── Get - /api/suppliers/pdf
-│   │   ├── Get - /api/suppliers/:id
-│   │   ├── Post - /api/suppliers
-│   │   ├── Put - /api/suppliers/:id
-│   │   ├── Delete - /api/suppliers/:id
-│   │   └── Get - /api/suppliers-combo
-│   ├── Supplier Categories/
-│   │   ├── Get - /api/supplier-categories
-│   │   ├── Get - /api/supplier-categories/excel
-│   │   ├── Get - /api/supplier-categories/pdf
-│   │   ├── Post - /api/supplier-categories
-│   │   ├── Get - /api/supplier-categories/:id
-│   │   ├── Put - /api/supplier-categories/:id
-│   │   ├── Delete - /api/supplier-categories/:id
-│   │   └── Get - /api/supplier-categories-combo
-│   ├── Another Incomes/
-│   │   ├── Get - /api/another-incomes
-│   │   ├── Get - /api/another-incomes/excel
-│   │   ├── Get - /api/another-incomes/pdf
-│   │   ├── Post - /api/another-incomes
-│   │   ├── Put - /api/another-incomes/:id
-│   │   └── Delete - /api/another-incomes/:id
-│   ├── Expenses/
-│   │   ├── Get - /api/expenses
-│   │   ├── Get - /api/expenses/excel
-│   │   ├── Get - /api/expenses/pdf
-│   │   ├── Post - /api/expenses
-│   │   ├── Put - /api/expenses/:id
-│   │   └── Delete - /api/expenses/:id
-│   ├── First Stocks/
-│   │   ├── Get - /api/first-stocks
-│   │   ├── Get - /api/first-stocks/excel
-│   │   ├── Get - /api/first-stocks/pdf
-│   │   ├── Post - /api/first-stocks
-│   │   ├── Put - /api/first-stocks/:id
-│   │   ├── Delete - /api/first-stocks/:id
-│   │   ├── Get - /api/first-stock-with-items/:id
-│   │   ├── Get - /api/first-stock-items/:id
-│   │   ├── Get - /api/first-stock-items/excel
-│   │   ├── Get - /api/first-stock-items/pdf
-│   │   ├── Post - /api/first-stock-items
-│   │   ├── Put - /api/first-stock-items/:id
-│   │   └── Delete - /api/first-stock-items/:id
-│   └── Member Categories/
-│       ├── Get - /api/member-categories
-│       ├── Get - /api/member-categories/excel
-│       ├── Get - /api/member-categories/pdf
-│       ├── Get - /api/member-categories/:id
-│       ├── Post - /api/member-categories
-│       ├── Put - /api/member-categories/:id
-│       ├── Delete - /api/member-categories/:id
-│       └── Get - /api/member-categories-combo
-│   ├── Product Categories/
-│   │   ├── Get - /api/product-categories
-│   │   ├── Post - /api/product-categories
-│   │   ├── Get - /api/product-categories/:id
-│   │   ├── Put - /api/product-categories/:id
-│   │   ├── Delete - /api/product-categories/:id
-│   │   └── Get - /api/product-categories-combo
-│   ├── Supplier Categories/
-│   │   ├── Get - /api/supplier-categories
-│   │   ├── Post - /api/supplier-categories
-│   │   ├── Get - /api/supplier-categories/:id
-│   │   ├── Put - /api/supplier-categories/:id
-│   │   ├── Delete - /api/supplier-categories/:id
-│   │   └── Get - /api/supplier-categories-combo
-│   └── Member Categories/
-│       ├── Get - /api/member-categories
-│       ├── Get - /api/member-categories/:id
-│       ├── Post - /api/member-categories
-│       ├── Put - /api/member-categories/:id
-│       ├── Delete - /api/member-categories/:id
-│       └── Get - /api/member-categories-combo
+│   ├── Categories/
+│   │   ├── Product Categories/
+│   │   │   ├── Get - /api/product-categories
+│   │   │   ├── Get - /api/product-categories/excel
+│   │   │   ├── Get - /api/product-categories/pdf
+│   │   │   ├── Post - /api/product-categories
+│   │   │   ├── Get - /api/product-categories/:id
+│   │   │   ├── Put - /api/product-categories/:id
+│   │   │   ├── Delete - /api/product-categories/:id
+│   │   │   └── Get - /api/product-categories-combo
+│   │   ├── Supplier Categories/
+│   │   │   ├── Get - /api/supplier-categories
+│   │   │   ├── Get - /api/supplier-categories/excel
+│   │   │   ├── Get - /api/supplier-categories/pdf
+│   │   │   ├── Post - /api/supplier-categories
+│   │   │   ├── Get - /api/supplier-categories/:id
+│   │   │   ├── Put - /api/supplier-categories/:id
+│   │   │   ├── Delete - /api/supplier-categories/:id
+│   │   │   └── Get - /api/supplier-categories-combo
+│   │   └── Member Categories/
+│   │       ├── Get - /api/member-categories
+│   │       ├── Get - /api/member-categories/excel
+│   │       ├── Get - /api/member-categories/pdf
+│   │       ├── Get - /api/member-categories/:id
+│   │       ├── Post - /api/member-categories
+│   │       ├── Put - /api/member-categories/:id
+│   │       ├── Delete - /api/member-categories/:id
+│   │       └── Get - /api/member-categories-combo
 ├── Transactions/
 │   ├── Purchases/
 │   │   ├── Get - /api/purchases
@@ -183,12 +128,41 @@ Api Apotek (Implemented)
 │       ├── Post - /api/sale-items
 │       ├── Put - /api/sale-items/:id
 │       └── Delete - /api/sale-items/:id
-└── Audit & Finances/
-    └── Opnames/
-        ├── Post - /api/opnames
-        ├── Get - /api/opnames/:id
-        ├── Post - /api/opname-items
-        └── Post - /api/opname-items-all
+├── Audits/
+│   ├── First Stocks/
+│   │   ├── Get - /api/first-stocks
+│   │   ├── Get - /api/first-stocks/excel
+│   │   ├── Get - /api/first-stocks/pdf
+│   │   ├── Post - /api/first-stocks
+│   │   ├── Put - /api/first-stocks/:id
+│   │   ├── Delete - /api/first-stocks/:id
+│   │   ├── Get - /api/first-stock-with-items/:id
+│   │   ├── Get - /api/first-stock-items/:id
+│   │   ├── Get - /api/first-stock-items/excel
+│   │   ├── Get - /api/first-stock-items/pdf
+│   │   ├── Post - /api/first-stock-items
+│   │   ├── Put - /api/first-stock-items/:id
+│   │   └── Delete - /api/first-stock-items/:id
+│   └── Opnames/
+│       ├── Post - /api/opnames
+│       ├── Get - /api/opnames/:id
+│       ├── Post - /api/opname-items
+│       └── Post - /api/opname-items-all
+└── Finances/
+    ├── Another Incomes/
+    │   ├── Get - /api/another-incomes
+    │   ├── Get - /api/another-incomes/excel
+    │   ├── Get - /api/another-incomes/pdf
+    │   ├── Post - /api/another-incomes
+    │   ├── Put - /api/another-incomes/:id
+    │   └── Delete - /api/another-incomes/:id
+    └── Expenses/
+        ├── Get - /api/expenses
+        ├── Get - /api/expenses/excel
+        ├── Get - /api/expenses/pdf
+        ├── Post - /api/expenses
+        ├── Put - /api/expenses/:id
+        └── Delete - /api/expenses/:id
 ```
 
 ## Alur token
