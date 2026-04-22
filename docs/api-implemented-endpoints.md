@@ -47,13 +47,20 @@ Api Apotek (Implemented)
 │   │   ├── Get - /api/sales-products-combo
 │   │   ├── Get - /api/purchase-products-combo
 │   │   └── Get - /api/cmb-product-opname
-│   └── Suppliers/
-│       ├── Get - /api/suppliers
-│       ├── Get - /api/suppliers/:id
-│       ├── Post - /api/suppliers
-│       ├── Put - /api/suppliers/:id
-│       ├── Delete - /api/suppliers/:id
-│       └── Get - /api/suppliers-combo
+│   ├── Suppliers/
+│   │   ├── Get - /api/suppliers
+│   │   ├── Get - /api/suppliers/:id
+│   │   ├── Post - /api/suppliers
+│   │   ├── Put - /api/suppliers/:id
+│   │   ├── Delete - /api/suppliers/:id
+│   │   └── Get - /api/suppliers-combo
+│   └── Units/
+│       ├── Get - /api/units
+│       ├── Get - /api/units/:id
+│       ├── Post - /api/units
+│       ├── Put - /api/units/:id
+│       ├── Delete - /api/units/:id
+│       └── Get - /api/cmb-units
 ├── Transactions/
 │   ├── Purchases/
 │   │   └── Post - /api/purchases
@@ -575,7 +582,91 @@ Authorization: Bearer <TOKEN_2>
 
 ---
 
-## 8. Purchases
+## 8. Units
+
+### GET `/api/units`
+**Header:**
+```http
+Authorization: Bearer <TOKEN_2>
+```
+
+**Query params opsional:**
+- `page`
+- `limit`
+- `search`
+
+---
+
+### GET `/api/units/:id`
+**Header:**
+```http
+Authorization: Bearer <TOKEN_2>
+```
+
+**Path param:**
+- `id` = ID unit
+
+---
+
+### POST `/api/units`
+**Header:**
+```http
+Content-Type: application/json
+Authorization: Bearer <TOKEN_2>
+```
+
+**Body contoh:**
+```json
+{
+  "name": "Strip"
+}
+```
+
+**Catatan:**
+- field wajib: `name`
+- branch mengikuti branch context dari token
+
+---
+
+### PUT `/api/units/:id`
+**Header:**
+```http
+Content-Type: application/json
+Authorization: Bearer <TOKEN_2>
+```
+
+**Body contoh:**
+```json
+{
+  "name": "Box"
+}
+```
+
+---
+
+### DELETE `/api/units/:id`
+**Header:**
+```http
+Authorization: Bearer <TOKEN_2>
+```
+
+**Path param:**
+- `id` = ID unit
+
+---
+
+### GET `/api/cmb-units`
+**Header:**
+```http
+Authorization: Bearer <TOKEN_2>
+```
+
+**Query params opsional:**
+- `search`
+
+---
+
+## 9. Purchases
 
 ### POST `/api/purchases`
 **Header:**
@@ -738,6 +829,12 @@ Authorization: Bearer <TOKEN_2>
 - `PUT /api/suppliers/:id`
 - `DELETE /api/suppliers/:id`
 - `GET /api/suppliers-combo`
+- `GET /api/units`
+- `GET /api/units/:id`
+- `POST /api/units`
+- `PUT /api/units/:id`
+- `DELETE /api/units/:id`
+- `GET /api/cmb-units`
 - `POST /api/purchases`
 - `POST /api/sales`
 - `POST /api/opnames`

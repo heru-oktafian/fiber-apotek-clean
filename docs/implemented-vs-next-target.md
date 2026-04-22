@@ -116,13 +116,26 @@ Tujuannya sederhana:
 - combobox supplier category
 - export PDF/Excel
 
-### Units / Product Categories / Supplier Categories / Unit Conversions
+### Units
+**Implemented:**
+- `GET /api/units`
+- `GET /api/units/:id`
+- `POST /api/units`
+- `PUT /api/units/:id`
+- `DELETE /api/units/:id`
+- `GET /api/cmb-units`
+
+**Next target:**
+- validasi kontrak frontend jika nanti ada kebutuhan khusus
+- export PDF/Excel bila domain ini butuh parity penuh
+
+### Product Categories / Supplier Categories / Unit Conversions
 **Implemented:**
 - belum ada
 
 **Next target:**
-- kerjakan bertahap setelah suppliers
-- utamakan read + create lebih dulu, lalu detail/update/delete
+- lanjut setelah units stabil
+- utamakan kategori dulu sebelum produk full CRUD
 
 ---
 
@@ -207,12 +220,11 @@ Tujuannya sederhana:
 
 Urutan yang paling sehat saat ini:
 
-1. **Units**
-2. **Product Categories**
-3. **Products full CRUD**
-4. **Purchases & Sales full CRUD**
-5. **Returns / Another Incomes / Expenses**
-6. **First Stocks / Reports / Export**
+1. **Product Categories**
+2. **Products full CRUD**
+3. **Purchases & Sales full CRUD**
+4. **Returns / Another Incomes / Expenses**
+5. **First Stocks / Reports / Export**
 
 ---
 

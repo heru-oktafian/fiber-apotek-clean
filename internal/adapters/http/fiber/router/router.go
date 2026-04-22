@@ -42,6 +42,14 @@ type Dependencies struct {
 		Delete(*fiber.Ctx) error
 		Combo(*fiber.Ctx) error
 	}
+	Unit interface {
+		List(*fiber.Ctx) error
+		GetByID(*fiber.Ctx) error
+		Create(*fiber.Ctx) error
+		Update(*fiber.Ctx) error
+		Delete(*fiber.Ctx) error
+		Combo(*fiber.Ctx) error
+	}
 	Purchase interface {
 		Create(*fiber.Ctx) error
 	}
@@ -86,6 +94,12 @@ func Register(app *fiber.App, deps Dependencies) {
 	app.Put("/api/suppliers/:id", deps.AuthMiddleware, deps.Supplier.Update)
 	app.Delete("/api/suppliers/:id", deps.AuthMiddleware, deps.Supplier.Delete)
 	app.Get("/api/suppliers-combo", deps.AuthMiddleware, deps.Supplier.Combo)
+	app.Get("/api/units", deps.AuthMiddleware, deps.Unit.List)
+	app.Get("/api/units/:id", deps.AuthMiddleware, deps.Unit.GetByID)
+	app.Post("/api/units", deps.AuthMiddleware, deps.Unit.Create)
+	app.Put("/api/units/:id", deps.AuthMiddleware, deps.Unit.Update)
+	app.Delete("/api/units/:id", deps.AuthMiddleware, deps.Unit.Delete)
+	app.Get("/api/cmb-units", deps.AuthMiddleware, deps.Unit.Combo)
 	app.Post("/api/purchases", deps.AuthMiddleware, deps.Purchase.Create)
 	app.Post("/api/sales", deps.AuthMiddleware, deps.Sale.Create)
 	app.Post("/api/opnames", deps.AuthMiddleware, deps.Opname.Create)

@@ -84,6 +84,12 @@ type SupplierRepository interface {
 type UnitRepository interface {
 	FindUnitByID(ctx context.Context, id string) (unit.Unit, error)
 	FindConversion(ctx context.Context, productID, initID, finalID, branchID string) (unit.Conversion, error)
+	ListMasterUnits(ctx context.Context, branchID string, req unit.MasterUnitListRequest) (unit.MasterUnitListResult, error)
+	FindMasterUnitByID(ctx context.Context, id, branchID string) (unit.MasterUnit, error)
+	CreateMasterUnit(ctx context.Context, item unit.MasterUnit) error
+	UpdateMasterUnit(ctx context.Context, item unit.MasterUnit) error
+	DeleteMasterUnit(ctx context.Context, id, branchID string) error
+	GetMasterUnitCombo(ctx context.Context, branchID, search string) ([]unit.MasterUnitComboItem, error)
 }
 
 type MemberRepository interface {

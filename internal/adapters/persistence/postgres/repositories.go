@@ -466,6 +466,65 @@ func (r Repositories) GetSupplierCombo(ctx context.Context, branchID, search str
 	return items, query.Order("name ASC").Scan(&items).Error
 }
 
+func (r Repositories) ListMasterUnits(ctx context.Context, branchID string, req unit.MasterUnitListRequest) (unit.MasterUnitListResult, error) {
+	query := r.DB.WithContext(ctx).Table("units un").Select("un.id, un.name, un.branch_id").Where("un.branch_id = ?", branchID)
+	if req.Search != "" {
+		like := "%" + strings.TrimSpace(req.Search) + "%"
+		query = query.Where("un.name ILIKE ?", like)
+	}
+	var total int64
+	if err := query.Count(&total).Error; err != nil {
+		return unit.MasterUnitListResult{}, err
+	}
+	var rows []UnitModel
+	offset := (req.Page - 1) * req.Limit
+	if err := query.Order("un.name ASC").Offset(offset).Limit(req.Limit).Scan(&rows).Error; err != nil {
+		return unit.MasterUnitListResult{}, err
+	}
+	items := make([]unit.MasterUnit, 0, len(rows))
+	for _, row := range rows {
+		items = append(items, unit.MasterUnit{ID: row.ID, Name: row.Name, BranchID: row.BranchID})
+	}
+	lastPage := 1
+	if req.Limit > 0 {
+		lastPage = int((total + int64(req.Limit) - 1) / int64(req.Limit))
+		if lastPage == 0 {
+			lastPage = 1
+		}
+	}
+	return unit.MasterUnitListResult{Items: items, Meta: unit.MasterUnitListMeta{Page: req.Page, Limit: req.Limit, Search: req.Search, TotalData: int(total), LastPage: lastPage}}, nil
+}
+
+func (r Repositories) FindMasterUnitByID(ctx context.Context, id, branchID string) (unit.MasterUnit, error) {
+	var m UnitModel
+	if err := r.DB.WithContext(ctx).Where("id = ? AND branch_id = ?", id, branchID).First(&m).Error; err != nil {
+		return unit.MasterUnit{}, err
+	}
+	return unit.MasterUnit{ID: m.ID, Name: m.Name, BranchID: m.BranchID}, nil
+}
+
+func (r Repositories) CreateMasterUnit(ctx context.Context, item unit.MasterUnit) error {
+	return r.DB.WithContext(ctx).Create(&UnitModel{ID: item.ID, Name: item.Name, BranchID: item.BranchID}).Error
+}
+
+func (r Repositories) UpdateMasterUnit(ctx context.Context, item unit.MasterUnit) error {
+	return r.DB.WithContext(ctx).Model(&UnitModel{}).Where("id = ? AND branch_id = ?", item.ID, item.BranchID).Update("name", item.Name).Error
+}
+
+func (r Repositories) DeleteMasterUnit(ctx context.Context, id, branchID string) error {
+	return r.DB.WithContext(ctx).Where("id = ? AND branch_id = ?", id, branchID).Delete(&UnitModel{}).Error
+}
+
+func (r Repositories) GetMasterUnitCombo(ctx context.Context, branchID, search string) ([]unit.MasterUnitComboItem, error) {
+	search = strings.TrimSpace(strings.ToLower(search))
+	var items []unit.MasterUnitComboItem
+	query := r.DB.WithContext(ctx).Table("units").Select("id as unit_id, name as unit_name").Where("branch_id = ?", branchID)
+	if search != "" {
+		query = query.Where("LOWER(name) LIKE ?", "%"+search+"%")
+	}
+	return items, query.Order("name ASC").Scan(&items).Error
+}
+
 func (r Repositories) FindUnitByID(ctx context.Context, id string) (unit.Unit, error) {
 	var m UnitModel
 	if err := r.DB.WithContext(ctx).Where("id = ?", id).First(&m).Error; err != nil {
