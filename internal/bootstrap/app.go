@@ -72,7 +72,7 @@ func New() (*App, error) {
 	ids := idgen.Generator{}
 
 	authHandler := handlers.AuthHandler{Service: authusecase.Service{Users: repos, Branches: repos, Passwords: bcryptComparer{}, Tokens: jwtSvc, Blacklist: blacklist, Clock: clk}}
-	branchHandler := handlers.BranchHandler{Service: branchusecase.Service{Branches: repos}}
+	branchHandler := handlers.BranchHandler{Service: branchusecase.Service{Branches: repos, IDs: ids}}
 	userBranchHandler := handlers.UserBranchHandler{Service: userbranchusecase.Service{Branches: repos}}
 	userHandler := handlers.UserHandler{Service: userusecase.Service{Users: repos, Passwords: bcryptHasher{}, IDs: ids}}
 	productHandler := handlers.ProductHandler{Service: productusecase.Service{Products: repos, IDs: ids}}

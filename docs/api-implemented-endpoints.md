@@ -29,7 +29,9 @@ Api Apotek (Implemented)
 │   │   └── Post - /api/logout
 │   ├── Branches/
 │   │   ├── Get - /api/branches
-│   │   └── Get - /api/branches/:id
+│   │   ├── Get - /api/branches/:id
+│   │   ├── Post - /api/branches
+│   │   └── Delete - /api/branches/:id
 │   ├── User Branches/
 │   │   ├── Get - /api/user-branches
 │   │   └── Get - /api/user-branches/:user_id/:branch_id
@@ -217,6 +219,46 @@ Authorization: Bearer <TOKEN_2>
 ```http
 GET /api/branches/BRC250118132203
 ```
+
+---
+
+### POST `/api/branches`
+**Header:**
+```http
+Content-Type: application/json
+Authorization: Bearer <TOKEN_2>
+```
+
+**Body contoh:**
+```json
+{
+  "branch_name": "Cabang Testing API",
+  "address": "Jl. Testing No. 1",
+  "phone": "08123456789",
+  "email": "testing@apotek.local",
+  "branch_status": "active"
+}
+```
+
+**Catatan:**
+- field wajib minimal: `branch_name`
+- `branch_status` default ke `active` jika kosong
+- ID branch digenerate server dengan prefix `BRC`
+
+---
+
+### DELETE `/api/branches/:id`
+**Header:**
+```http
+Authorization: Bearer <TOKEN_2>
+```
+
+**Path param:**
+- `id` = ID branch
+
+**Catatan:**
+- delete akan ditolak jika branch masih dipakai di `user_branches`
+- guard ini sengaja ditambahkan agar branch yang masih punya relasi user tidak bisa dihapus
 
 ---
 
@@ -555,6 +597,8 @@ Authorization: Bearer <TOKEN_2>
 - `POST /api/logout`
 - `GET /api/branches`
 - `GET /api/branches/:id`
+- `POST /api/branches`
+- `DELETE /api/branches/:id`
 - `GET /api/user-branches`
 - `GET /api/user-branches/:user_id/:branch_id`
 - `GET /api/users`

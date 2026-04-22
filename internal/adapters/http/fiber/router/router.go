@@ -20,6 +20,8 @@ type Dependencies struct {
 	Branch interface {
 		List(*fiber.Ctx) error
 		GetByID(*fiber.Ctx) error
+		Create(*fiber.Ctx) error
+		Delete(*fiber.Ctx) error
 	}
 	UserBranch interface {
 		List(*fiber.Ctx) error
@@ -56,6 +58,8 @@ func Register(app *fiber.App, deps Dependencies) {
 	app.Post("/api/logout", deps.AuthMiddleware, deps.Auth.Logout)
 	app.Get("/api/branches", deps.AuthMiddleware, deps.Branch.List)
 	app.Get("/api/branches/:id", deps.AuthMiddleware, deps.Branch.GetByID)
+	app.Post("/api/branches", deps.AuthMiddleware, deps.Branch.Create)
+	app.Delete("/api/branches/:id", deps.AuthMiddleware, deps.Branch.Delete)
 	app.Get("/api/user-branches", deps.AuthMiddleware, deps.UserBranch.List)
 	app.Get("/api/user-branches/:user_id/:branch_id", deps.AuthMiddleware, deps.UserBranch.GetByKeys)
 	app.Get("/api/users", deps.AuthMiddleware, deps.User.List)

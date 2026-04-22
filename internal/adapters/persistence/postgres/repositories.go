@@ -195,6 +195,59 @@ func (r Repositories) ListBranches(ctx context.Context, req branch.ListRequest) 
 	}, nil
 }
 
+func (r Repositories) CreateBranch(ctx context.Context, item branch.Branch) error {
+	var licenseDate time.Time
+	if strings.TrimSpace(item.LicenseDate) != "" {
+		parsed, err := time.Parse("2006-01-02", item.LicenseDate)
+		if err != nil {
+			parsed, err = time.Parse(time.RFC3339, item.LicenseDate)
+			if err != nil {
+				return err
+			}
+		}
+		licenseDate = parsed
+	}
+
+	return r.DB.WithContext(ctx).Create(&BranchModel{
+		ID:               item.ID,
+		BranchName:       item.BranchName,
+		Address:          item.Address,
+		Phone:            item.Phone,
+		Email:            item.Email,
+		SIAID:            item.SIAID,
+		SIAName:          item.SIAName,
+		PSAID:            item.PSAID,
+		PSAName:          item.PSAName,
+		SIPA:             item.SIPA,
+		SIPAName:         item.SIPAName,
+		APINGID:          item.APINGID,
+		APINGName:        item.APINGName,
+		BankName:         item.BankName,
+		AccountName:      item.AccountName,
+		AccountNumber:    item.AccountNumber,
+		TaxPercentage:    item.TaxPercentage,
+		JournalMethod:    item.JournalMethod,
+		BranchStatus:     item.BranchStatus,
+		LicenseDate:      licenseDate,
+		DefaultMember:    item.DefaultMemberID,
+		Quota:            item.Quota,
+		SubscriptionType: item.SubscriptionType,
+		RealAsset:        item.RealAsset,
+	}).Error
+}
+
+func (r Repositories) DeleteBranch(ctx context.Context, id string) error {
+	return r.DB.WithContext(ctx).Delete(&BranchModel{}, "id = ?", id).Error
+}
+
+func (r Repositories) BranchHasUsers(ctx context.Context, branchID string) (bool, error) {
+	var count int64
+	if err := r.DB.WithContext(ctx).Model(&UserBranchModel{}).Where("branch_id = ?", branchID).Count(&count).Error; err != nil {
+		return false, err
+	}
+	return count > 0, nil
+}
+
 func (r Repositories) UserHasBranch(ctx context.Context, userID, branchID string) (bool, error) {
 	var count int64
 	if err := r.DB.WithContext(ctx).Model(&UserBranchModel{}).Where("user_id = ? AND branch_id = ?", userID, branchID).Count(&count).Error; err != nil {
