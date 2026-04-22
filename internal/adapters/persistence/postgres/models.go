@@ -66,6 +66,25 @@ type ProductModel struct {
 
 func (ProductModel) TableName() string { return "products" }
 
+type SupplierModel struct {
+	ID                 string `gorm:"column:id;primaryKey"`
+	Name               string `gorm:"column:name"`
+	Phone              string `gorm:"column:phone"`
+	Address            string `gorm:"column:address"`
+	PIC                string `gorm:"column:pic"`
+	SupplierCategoryID uint   `gorm:"column:supplier_category_id"`
+	BranchID           string `gorm:"column:branch_id"`
+}
+
+func (SupplierModel) TableName() string { return "suppliers" }
+
+type SupplierCategoryModel struct {
+	ID   uint   `gorm:"column:id;primaryKey"`
+	Name string `gorm:"column:name"`
+}
+
+func (SupplierCategoryModel) TableName() string { return "supplier_categories" }
+
 type UnitModel struct {
 	ID   string `gorm:"column:id;primaryKey"`
 	Name string `gorm:"column:name"`

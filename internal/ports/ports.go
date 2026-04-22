@@ -11,6 +11,7 @@ import (
 	"github.com/heru-oktafian/fiber-apotek-clean/internal/domain/product"
 	"github.com/heru-oktafian/fiber-apotek-clean/internal/domain/purchase"
 	"github.com/heru-oktafian/fiber-apotek-clean/internal/domain/sale"
+	"github.com/heru-oktafian/fiber-apotek-clean/internal/domain/supplier"
 	"github.com/heru-oktafian/fiber-apotek-clean/internal/domain/unit"
 	"github.com/heru-oktafian/fiber-apotek-clean/internal/domain/user"
 	"github.com/heru-oktafian/fiber-apotek-clean/internal/domain/userbranch"
@@ -69,6 +70,13 @@ type ProductRepository interface {
 	GetSaleCombo(ctx context.Context, branchID, search string) ([]product.SaleComboItem, error)
 	GetPurchaseCombo(ctx context.Context, branchID, search string) ([]product.PurchaseComboItem, error)
 	GetOpnameCombo(ctx context.Context, branchID, search string) ([]product.OpnameComboItem, error)
+}
+
+type SupplierRepository interface {
+	ListSuppliers(ctx context.Context, branchID string, req supplier.ListRequest) (supplier.ListResult, error)
+	FindSupplierByID(ctx context.Context, id, branchID string) (supplier.Supplier, error)
+	CreateSupplier(ctx context.Context, item supplier.Supplier) error
+	GetSupplierCombo(ctx context.Context, branchID, search string) ([]supplier.ComboItem, error)
 }
 
 type UnitRepository interface {

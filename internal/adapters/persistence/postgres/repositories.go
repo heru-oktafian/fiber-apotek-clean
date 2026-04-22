@@ -15,6 +15,7 @@ import (
 	"github.com/heru-oktafian/fiber-apotek-clean/internal/domain/product"
 	"github.com/heru-oktafian/fiber-apotek-clean/internal/domain/purchase"
 	"github.com/heru-oktafian/fiber-apotek-clean/internal/domain/sale"
+	"github.com/heru-oktafian/fiber-apotek-clean/internal/domain/supplier"
 	"github.com/heru-oktafian/fiber-apotek-clean/internal/domain/unit"
 	"github.com/heru-oktafian/fiber-apotek-clean/internal/domain/user"
 	"github.com/heru-oktafian/fiber-apotek-clean/internal/domain/userbranch"
@@ -363,6 +364,92 @@ func (r Repositories) GetOpnameCombo(ctx context.Context, branchID, search strin
 		query = query.Where("LOWER(pro.name) LIKE ? OR LOWER(pro.id) LIKE ?", like, like)
 	}
 	return items, query.Order("pro.name ASC").Scan(&items).Error
+}
+
+func (r Repositories) ListSuppliers(ctx context.Context, branchID string, req supplier.ListRequest) (supplier.ListResult, error) {
+	query := r.DB.WithContext(ctx).
+		Table("suppliers s").
+		Select("s.id, s.name, s.phone, s.address, s.pic, s.supplier_category_id, sc.name AS supplier_category").
+		Joins("LEFT JOIN supplier_categories sc ON sc.id = s.supplier_category_id").
+		Where("s.branch_id = ?", branchID)
+
+	if req.Search != "" {
+		like := "%" + strings.TrimSpace(req.Search) + "%"
+		query = query.Where("s.name ILIKE ? OR s.address ILIKE ? OR sc.name ILIKE ?", like, like, like)
+	}
+
+	var total int64
+	if err := query.Count(&total).Error; err != nil {
+		return supplier.ListResult{}, err
+	}
+
+	var rows []struct {
+		ID               string
+		Name             string
+		Phone            string
+		Address          string
+		PIC              string
+		SupplierCategory string
+		SupplierCategoryID uint
+	}
+	offset := (req.Page - 1) * req.Limit
+	if err := query.Order("s.name ASC").Offset(offset).Limit(req.Limit).Scan(&rows).Error; err != nil {
+		return supplier.ListResult{}, err
+	}
+
+	items := make([]supplier.Supplier, 0, len(rows))
+	for _, row := range rows {
+		items = append(items, supplier.Supplier{ID: row.ID, Name: row.Name, Phone: row.Phone, Address: row.Address, PIC: row.PIC, SupplierCategoryID: row.SupplierCategoryID, SupplierCategory: row.SupplierCategory})
+	}
+
+	lastPage := 1
+	if req.Limit > 0 {
+		lastPage = int((total + int64(req.Limit) - 1) / int64(req.Limit))
+		if lastPage == 0 {
+			lastPage = 1
+		}
+	}
+
+	return supplier.ListResult{Items: items, Meta: supplier.ListMeta{Page: req.Page, Limit: req.Limit, Search: req.Search, TotalData: int(total), LastPage: lastPage}}, nil
+}
+
+func (r Repositories) FindSupplierByID(ctx context.Context, id, branchID string) (supplier.Supplier, error) {
+	var row struct {
+		ID                 string
+		Name               string
+		Phone              string
+		Address            string
+		PIC                string
+		SupplierCategoryID uint
+		SupplierCategory   string
+		BranchID           string
+	}
+	if err := r.DB.WithContext(ctx).
+		Table("suppliers s").
+		Select("s.id, s.name, s.phone, s.address, s.pic, s.supplier_category_id, s.branch_id, sc.name AS supplier_category").
+		Joins("LEFT JOIN supplier_categories sc ON sc.id = s.supplier_category_id").
+		Where("s.id = ? AND s.branch_id = ?", id, branchID).
+		Scan(&row).Error; err != nil {
+		return supplier.Supplier{}, err
+	}
+	if row.ID == "" {
+		return supplier.Supplier{}, gorm.ErrRecordNotFound
+	}
+	return supplier.Supplier{ID: row.ID, Name: row.Name, Phone: row.Phone, Address: row.Address, PIC: row.PIC, SupplierCategoryID: row.SupplierCategoryID, SupplierCategory: row.SupplierCategory, BranchID: row.BranchID}, nil
+}
+
+func (r Repositories) CreateSupplier(ctx context.Context, item supplier.Supplier) error {
+	return r.DB.WithContext(ctx).Create(&SupplierModel{ID: item.ID, Name: item.Name, Phone: item.Phone, Address: item.Address, PIC: item.PIC, SupplierCategoryID: item.SupplierCategoryID, BranchID: item.BranchID}).Error
+}
+
+func (r Repositories) GetSupplierCombo(ctx context.Context, branchID, search string) ([]supplier.ComboItem, error) {
+	search = strings.TrimSpace(strings.ToLower(search))
+	var items []supplier.ComboItem
+	query := r.DB.WithContext(ctx).Table("suppliers").Select("id AS supplier_id, name AS supplier_name").Where("branch_id = ?", branchID)
+	if search != "" {
+		query = query.Where("LOWER(name) LIKE ?", "%"+search+"%")
+	}
+	return items, query.Order("name ASC").Scan(&items).Error
 }
 
 func (r Repositories) FindUnitByID(ctx context.Context, id string) (unit.Unit, error) {
