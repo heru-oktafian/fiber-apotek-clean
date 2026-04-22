@@ -4,12 +4,15 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"net/http"
 	"strings"
 	"time"
 
+	"github.com/heru-oktafian/fiber-apotek-clean/internal/domain/anotherincome"
 	"github.com/heru-oktafian/fiber-apotek-clean/internal/domain/auth"
 	"github.com/heru-oktafian/fiber-apotek-clean/internal/domain/branch"
 	"github.com/heru-oktafian/fiber-apotek-clean/internal/domain/common"
+	"github.com/heru-oktafian/fiber-apotek-clean/internal/domain/expense"
 	"github.com/heru-oktafian/fiber-apotek-clean/internal/domain/member"
 	"github.com/heru-oktafian/fiber-apotek-clean/internal/domain/membercategory"
 	"github.com/heru-oktafian/fiber-apotek-clean/internal/domain/opname"
@@ -23,6 +26,7 @@ import (
 	"github.com/heru-oktafian/fiber-apotek-clean/internal/domain/user"
 	"github.com/heru-oktafian/fiber-apotek-clean/internal/domain/userbranch"
 	"github.com/heru-oktafian/fiber-apotek-clean/internal/ports"
+	"github.com/heru-oktafian/fiber-apotek-clean/internal/shared/apperror"
 	"gorm.io/gorm"
 )
 
@@ -1116,6 +1120,148 @@ func (r Repositories) AdjustDailyProfit(ctx context.Context, reportDate time.Tim
 
 func (r Repositories) DeleteSaleItem(ctx context.Context, id string) error {
 	return r.DB.WithContext(ctx).Where("id = ?", id).Delete(&SaleItemModel{}).Error
+}
+
+func (r Repositories) ListAnotherIncomes(ctx context.Context, branchID string, req anotherincome.ListRequest) (anotherincome.ListResult, error) {
+	if req.Page <= 0 {
+		req.Page = 1
+	}
+	if req.Limit <= 0 {
+		req.Limit = 10
+	}
+	query := r.DB.WithContext(ctx).Table("another_incomes ai").Select("ai.id, ai.description, ai.income_date, ai.total_income, ai.payment").Where("ai.branch_id = ?", branchID)
+	count := r.DB.WithContext(ctx).Table("another_incomes ai").Where("ai.branch_id = ?", branchID)
+	search := strings.TrimSpace(req.Search)
+	if search != "" {
+		like := "%" + strings.ToLower(search) + "%"
+		query = query.Where("LOWER(ai.description) LIKE ?", like)
+		count = count.Where("LOWER(ai.description) LIKE ?", like)
+	}
+	month := strings.TrimSpace(req.Month)
+	if month != "" {
+		parsedMonth, err := time.Parse("2006-01", month)
+		if err != nil {
+			return anotherincome.ListResult{}, apperror.New(http.StatusBadRequest, "List another incomes failed", "invalid month format, use YYYY-MM")
+		}
+		startDate := parsedMonth
+		endDate := parsedMonth.AddDate(0, 1, 0).Add(-time.Nanosecond)
+		query = query.Where("ai.income_date BETWEEN ? AND ?", startDate, endDate)
+		count = count.Where("ai.income_date BETWEEN ? AND ?", startDate, endDate)
+	}
+	var total int64
+	if err := count.Count(&total).Error; err != nil {
+		return anotherincome.ListResult{}, err
+	}
+	var rows []AnotherIncomeModel
+	if err := query.Order("ai.created_at DESC").Limit(req.Limit).Offset((req.Page - 1) * req.Limit).Scan(&rows).Error; err != nil {
+		return anotherincome.ListResult{}, err
+	}
+	items := make([]anotherincome.ListItem, 0, len(rows))
+	for _, row := range rows {
+		items = append(items, anotherincome.ListItem{ID: row.ID, Description: row.Description, IncomeDate: row.IncomeDate.Format("02 Jan 2006"), TotalIncome: row.TotalIncome, Payment: row.Payment})
+	}
+	lastPage := 0
+	if total > 0 {
+		lastPage = int((total + int64(req.Limit) - 1) / int64(req.Limit))
+	}
+	return anotherincome.ListResult{Items: items, Meta: anotherincome.ListMeta{Page: req.Page, Limit: req.Limit, Search: search, Month: month, TotalData: int(total), LastPage: lastPage}}, nil
+}
+
+func (r Repositories) FindAnotherIncomeByID(ctx context.Context, branchID, id string) (anotherincome.AnotherIncome, error) {
+	var m AnotherIncomeModel
+	if err := r.DB.WithContext(ctx).Where("id = ? AND branch_id = ?", id, branchID).First(&m).Error; err != nil {
+		return anotherincome.AnotherIncome{}, err
+	}
+	return anotherincome.AnotherIncome{ID: m.ID, Description: m.Description, IncomeDate: m.IncomeDate, BranchID: m.BranchID, UserID: m.UserID, TotalIncome: m.TotalIncome, Payment: common.PaymentStatus(m.Payment), CreatedAt: m.CreatedAt, UpdatedAt: m.UpdatedAt}, nil
+}
+
+func (r Repositories) CreateAnotherIncome(ctx context.Context, item anotherincome.AnotherIncome) error {
+	return r.DB.WithContext(ctx).Create(&AnotherIncomeModel{ID: item.ID, Description: item.Description, IncomeDate: item.IncomeDate, BranchID: item.BranchID, UserID: item.UserID, TotalIncome: item.TotalIncome, Payment: string(item.Payment), CreatedAt: item.CreatedAt, UpdatedAt: item.UpdatedAt}).Error
+}
+
+func (r Repositories) UpdateAnotherIncome(ctx context.Context, item anotherincome.AnotherIncome) error {
+	return r.DB.WithContext(ctx).Model(&AnotherIncomeModel{}).Where("id = ? AND branch_id = ?", item.ID, item.BranchID).Updates(map[string]any{"description": item.Description, "income_date": item.IncomeDate, "total_income": item.TotalIncome, "payment": string(item.Payment), "updated_at": item.UpdatedAt}).Error
+}
+
+func (r Repositories) DeleteAnotherIncome(ctx context.Context, branchID, id string) error {
+	return r.DB.WithContext(ctx).Where("id = ? AND branch_id = ?", id, branchID).Delete(&AnotherIncomeModel{}).Error
+}
+
+func (r Repositories) UpsertTransactionReport(ctx context.Context, id string, txType string, userID string, branchID string, total int, payment string, createdAt time.Time, updatedAt time.Time) error {
+	var report TransactionReportModel
+	err := r.DB.WithContext(ctx).Where("id = ?", id).First(&report).Error
+	if errors.Is(err, gorm.ErrRecordNotFound) {
+		return r.DB.WithContext(ctx).Create(&TransactionReportModel{ID: id, TransactionType: txType, UserID: userID, BranchID: branchID, Total: total, Payment: payment, CreatedAt: createdAt, UpdatedAt: updatedAt}).Error
+	}
+	if err != nil {
+		return err
+	}
+	return r.DB.WithContext(ctx).Model(&TransactionReportModel{}).Where("id = ?", id).Updates(map[string]any{"transaction_type": txType, "user_id": userID, "branch_id": branchID, "total": total, "payment": payment, "updated_at": updatedAt}).Error
+}
+
+func (r Repositories) ListExpenses(ctx context.Context, branchID string, req expense.ListRequest) (expense.ListResult, error) {
+	if req.Page <= 0 {
+		req.Page = 1
+	}
+	if req.Limit <= 0 {
+		req.Limit = 10
+	}
+	query := r.DB.WithContext(ctx).Table("expenses ex").Select("ex.id, ex.description, ex.expense_date, ex.total_expense, ex.payment").Where("ex.branch_id = ?", branchID)
+	count := r.DB.WithContext(ctx).Table("expenses ex").Where("ex.branch_id = ?", branchID)
+	search := strings.TrimSpace(req.Search)
+	if search != "" {
+		like := "%" + strings.ToLower(search) + "%"
+		query = query.Where("LOWER(ex.description) LIKE ?", like)
+		count = count.Where("LOWER(ex.description) LIKE ?", like)
+	}
+	month := strings.TrimSpace(req.Month)
+	if month != "" {
+		parsedMonth, err := time.Parse("2006-01", month)
+		if err != nil {
+			return expense.ListResult{}, apperror.New(http.StatusBadRequest, "List expenses failed", "invalid month format, use YYYY-MM")
+		}
+		startDate := parsedMonth
+		endDate := parsedMonth.AddDate(0, 1, 0).Add(-time.Nanosecond)
+		query = query.Where("ex.expense_date BETWEEN ? AND ?", startDate, endDate)
+		count = count.Where("ex.expense_date BETWEEN ? AND ?", startDate, endDate)
+	}
+	var total int64
+	if err := count.Count(&total).Error; err != nil {
+		return expense.ListResult{}, err
+	}
+	var rows []ExpenseModel
+	if err := query.Order("ex.created_at DESC").Limit(req.Limit).Offset((req.Page - 1) * req.Limit).Scan(&rows).Error; err != nil {
+		return expense.ListResult{}, err
+	}
+	items := make([]expense.ListItem, 0, len(rows))
+	for _, row := range rows {
+		items = append(items, expense.ListItem{ID: row.ID, Description: row.Description, ExpenseDate: row.ExpenseDate.Format("02 Jan 2006"), TotalExpense: row.TotalExpense, Payment: row.Payment})
+	}
+	lastPage := 0
+	if total > 0 {
+		lastPage = int((total + int64(req.Limit) - 1) / int64(req.Limit))
+	}
+	return expense.ListResult{Items: items, Meta: expense.ListMeta{Page: req.Page, Limit: req.Limit, Search: search, Month: month, TotalData: int(total), LastPage: lastPage}}, nil
+}
+
+func (r Repositories) FindExpenseByID(ctx context.Context, branchID, id string) (expense.Expense, error) {
+	var m ExpenseModel
+	if err := r.DB.WithContext(ctx).Where("id = ? AND branch_id = ?", id, branchID).First(&m).Error; err != nil {
+		return expense.Expense{}, err
+	}
+	return expense.Expense{ID: m.ID, Description: m.Description, ExpenseDate: m.ExpenseDate, BranchID: m.BranchID, UserID: m.UserID, TotalExpense: m.TotalExpense, Payment: common.PaymentStatus(m.Payment), CreatedAt: m.CreatedAt, UpdatedAt: m.UpdatedAt}, nil
+}
+
+func (r Repositories) CreateExpense(ctx context.Context, item expense.Expense) error {
+	return r.DB.WithContext(ctx).Create(&ExpenseModel{ID: item.ID, Description: item.Description, ExpenseDate: item.ExpenseDate, BranchID: item.BranchID, UserID: item.UserID, TotalExpense: item.TotalExpense, Payment: string(item.Payment), CreatedAt: item.CreatedAt, UpdatedAt: item.UpdatedAt}).Error
+}
+
+func (r Repositories) UpdateExpense(ctx context.Context, item expense.Expense) error {
+	return r.DB.WithContext(ctx).Model(&ExpenseModel{}).Where("id = ? AND branch_id = ?", item.ID, item.BranchID).Updates(map[string]any{"description": item.Description, "expense_date": item.ExpenseDate, "total_expense": item.TotalExpense, "payment": string(item.Payment), "updated_at": item.UpdatedAt}).Error
+}
+
+func (r Repositories) DeleteExpense(ctx context.Context, branchID, id string) error {
+	return r.DB.WithContext(ctx).Where("id = ? AND branch_id = ?", id, branchID).Delete(&ExpenseModel{}).Error
 }
 
 func (r Repositories) DeleteSaleItems(ctx context.Context, saleID string) error {

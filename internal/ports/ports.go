@@ -4,8 +4,10 @@ import (
 	"context"
 	"time"
 
+	"github.com/heru-oktafian/fiber-apotek-clean/internal/domain/anotherincome"
 	"github.com/heru-oktafian/fiber-apotek-clean/internal/domain/auth"
 	"github.com/heru-oktafian/fiber-apotek-clean/internal/domain/branch"
+	"github.com/heru-oktafian/fiber-apotek-clean/internal/domain/expense"
 	"github.com/heru-oktafian/fiber-apotek-clean/internal/domain/member"
 	"github.com/heru-oktafian/fiber-apotek-clean/internal/domain/membercategory"
 	"github.com/heru-oktafian/fiber-apotek-clean/internal/domain/opname"
@@ -190,6 +192,26 @@ type SaleTxRepository interface {
 	FindMember(ctx context.Context, memberID string) (member.Member, error)
 	FindMemberCategory(ctx context.Context, categoryID string) (member.MemberCategory, error)
 	UpdateMemberPoints(ctx context.Context, memberID string, points int) error
+}
+
+type AnotherIncomeRepository interface {
+	ListAnotherIncomes(ctx context.Context, branchID string, req anotherincome.ListRequest) (anotherincome.ListResult, error)
+	FindAnotherIncomeByID(ctx context.Context, branchID, id string) (anotherincome.AnotherIncome, error)
+	CreateAnotherIncome(ctx context.Context, item anotherincome.AnotherIncome) error
+	UpdateAnotherIncome(ctx context.Context, item anotherincome.AnotherIncome) error
+	DeleteAnotherIncome(ctx context.Context, branchID, id string) error
+	UpsertTransactionReport(ctx context.Context, id string, txType string, userID string, branchID string, total int, payment string, createdAt time.Time, updatedAt time.Time) error
+	DeleteTransactionReport(ctx context.Context, id string, txType string) error
+}
+
+type ExpenseRepository interface {
+	ListExpenses(ctx context.Context, branchID string, req expense.ListRequest) (expense.ListResult, error)
+	FindExpenseByID(ctx context.Context, branchID, id string) (expense.Expense, error)
+	CreateExpense(ctx context.Context, item expense.Expense) error
+	UpdateExpense(ctx context.Context, item expense.Expense) error
+	DeleteExpense(ctx context.Context, branchID, id string) error
+	UpsertTransactionReport(ctx context.Context, id string, txType string, userID string, branchID string, total int, payment string, createdAt time.Time, updatedAt time.Time) error
+	DeleteTransactionReport(ctx context.Context, id string, txType string) error
 }
 
 type OpnameRepository interface {

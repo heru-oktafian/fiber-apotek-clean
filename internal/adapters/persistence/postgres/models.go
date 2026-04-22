@@ -183,6 +183,34 @@ type TransactionReportModel struct {
 
 func (TransactionReportModel) TableName() string { return "transaction_reports" }
 
+type AnotherIncomeModel struct {
+	ID          string    `gorm:"column:id;primaryKey"`
+	Description string    `gorm:"column:description"`
+	IncomeDate  time.Time `gorm:"column:income_date"`
+	BranchID    string    `gorm:"column:branch_id"`
+	TotalIncome int       `gorm:"column:total_income"`
+	Payment     string    `gorm:"column:payment"`
+	UserID      string    `gorm:"column:user_id"`
+	CreatedAt   time.Time `gorm:"column:created_at"`
+	UpdatedAt   time.Time `gorm:"column:updated_at"`
+}
+
+func (AnotherIncomeModel) TableName() string { return "another_incomes" }
+
+type ExpenseModel struct {
+	ID           string    `gorm:"column:id;primaryKey"`
+	Description  string    `gorm:"column:description"`
+	ExpenseDate  time.Time `gorm:"column:expense_date"`
+	BranchID     string    `gorm:"column:branch_id"`
+	TotalExpense int       `gorm:"column:total_expense"`
+	Payment      string    `gorm:"column:payment"`
+	UserID       string    `gorm:"column:user_id"`
+	CreatedAt    time.Time `gorm:"column:created_at"`
+	UpdatedAt    time.Time `gorm:"column:updated_at"`
+}
+
+func (ExpenseModel) TableName() string { return "expenses" }
+
 type DailyProfitReportModel struct {
 	ID             string    `gorm:"column:id;primaryKey"`
 	ReportDate     time.Time `gorm:"column:report_date"`

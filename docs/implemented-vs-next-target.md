@@ -227,13 +227,42 @@ Tujuannya sederhana:
 - refine visual export bila ingin makin mirip legacy
 - validasi runtime end-to-end sales flow
 
-### Duplicate Receipts / Buy Returns / Sale Returns / Expenses / Another Incomes
+### Another Incomes
+**Implemented:**
+- `GET /api/another-incomes`
+- `POST /api/another-incomes`
+- `PUT /api/another-incomes/:id`
+- `DELETE /api/another-incomes/:id`
+
+**Catatan:**
+- list mendukung `search`, `page`, `limit`, dan `month`
+- create/update/delete tersinkron ke `transaction_reports` dengan transaction type `income`
+
+**Next target:**
+- export Excel/PDF
+- validasi runtime end-to-end
+
+### Expenses
+**Implemented:**
+- `GET /api/expenses`
+- `POST /api/expenses`
+- `PUT /api/expenses/:id`
+- `DELETE /api/expenses/:id`
+
+**Catatan:**
+- list mendukung `search`, `page`, `limit`, dan `month`
+- create/update/delete tersinkron ke `transaction_reports` dengan transaction type `expense`
+
+**Next target:**
+- export Excel/PDF
+- validasi runtime end-to-end
+
+### Duplicate Receipts / Buy Returns / Sale Returns
 **Implemented:**
 - belum ada
 
 **Next target:**
-- mulai bertahap setelah purchases/sales lebih matang
-- tetap ingat `another incomes` dan `expenses` adalah domain penting user
+- mulai bertahap setelah `another_incomes` dan `expenses`
 
 ---
 

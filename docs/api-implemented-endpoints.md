@@ -96,6 +96,16 @@ Api Apotek (Implemented)
 │   │   ├── Put - /api/supplier-categories/:id
 │   │   ├── Delete - /api/supplier-categories/:id
 │   │   └── Get - /api/supplier-categories-combo
+│   ├── Another Incomes/
+│   │   ├── Get - /api/another-incomes
+│   │   ├── Post - /api/another-incomes
+│   │   ├── Put - /api/another-incomes/:id
+│   │   └── Delete - /api/another-incomes/:id
+│   ├── Expenses/
+│   │   ├── Get - /api/expenses
+│   │   ├── Post - /api/expenses
+│   │   ├── Put - /api/expenses/:id
+│   │   └── Delete - /api/expenses/:id
 │   └── Member Categories/
 │       ├── Get - /api/member-categories
 │       ├── Get - /api/member-categories/excel
@@ -1114,6 +1124,132 @@ Authorization: Bearer <TOKEN_2>
 ---
 
 ## 11. Member Categories
+
+### GET `/api/another-incomes`
+**Header:**
+```http
+Authorization: Bearer <TOKEN_2>
+```
+
+**Query:**
+- `search` (opsional)
+- `month` (opsional, format `YYYY-MM`)
+- `page` (opsional, default `1`)
+- `limit` (opsional, default `10`)
+
+**Catatan:**
+- list another incomes dengan dukungan filter pencarian dan bulan
+
+---
+
+### POST `/api/another-incomes`
+**Header:**
+```http
+Authorization: Bearer <TOKEN_2>
+Content-Type: application/json
+```
+
+**Body:**
+```json
+{
+  "income_date": "2026-04-23",
+  "description": "Pendapatan tambahan jasa racik",
+  "total_income": 50000,
+  "payment": "paid_by_cash"
+}
+```
+
+---
+
+### PUT `/api/another-incomes/:id`
+**Header:**
+```http
+Authorization: Bearer <TOKEN_2>
+Content-Type: application/json
+```
+
+**Body:**
+```json
+{
+  "income_date": "2026-04-23",
+  "description": "Pendapatan tambahan update",
+  "total_income": 60000,
+  "payment": "paid_by_cash"
+}
+```
+
+---
+
+### DELETE `/api/another-incomes/:id`
+**Header:**
+```http
+Authorization: Bearer <TOKEN_2>
+```
+
+---
+
+### GET `/api/expenses`
+**Header:**
+```http
+Authorization: Bearer <TOKEN_2>
+```
+
+**Query:**
+- `search` (opsional)
+- `month` (opsional, format `YYYY-MM`)
+- `page` (opsional, default `1`)
+- `limit` (opsional, default `10`)
+
+**Catatan:**
+- list expenses dengan dukungan filter pencarian dan bulan
+
+---
+
+### POST `/api/expenses`
+**Header:**
+```http
+Authorization: Bearer <TOKEN_2>
+Content-Type: application/json
+```
+
+**Body:**
+```json
+{
+  "expense_date": "2026-04-23",
+  "description": "Biaya operasional harian",
+  "total_expense": 25000,
+  "payment": "paid_by_cash"
+}
+```
+
+---
+
+### PUT `/api/expenses/:id`
+**Header:**
+```http
+Authorization: Bearer <TOKEN_2>
+Content-Type: application/json
+```
+
+**Body:**
+```json
+{
+  "expense_date": "2026-04-23",
+  "description": "Biaya operasional update",
+  "total_expense": 30000,
+  "payment": "paid_by_cash"
+}
+```
+
+---
+
+### DELETE `/api/expenses/:id`
+**Header:**
+```http
+Authorization: Bearer <TOKEN_2>
+```
+
+---
 
 ### GET `/api/member-categories`
 **Header:**

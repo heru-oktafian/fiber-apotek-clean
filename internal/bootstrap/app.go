@@ -24,7 +24,9 @@ import (
 	"github.com/heru-oktafian/fiber-apotek-clean/internal/shared/console"
 	"github.com/heru-oktafian/fiber-apotek-clean/internal/shared/idgen"
 	authusecase "github.com/heru-oktafian/fiber-apotek-clean/internal/usecase/auth"
+	anotherincomeusecase "github.com/heru-oktafian/fiber-apotek-clean/internal/usecase/anotherincome"
 	branchusecase "github.com/heru-oktafian/fiber-apotek-clean/internal/usecase/branch"
+	expenseusecase "github.com/heru-oktafian/fiber-apotek-clean/internal/usecase/expense"
 	opnameusecase "github.com/heru-oktafian/fiber-apotek-clean/internal/usecase/opname"
 	membercategoryusecase "github.com/heru-oktafian/fiber-apotek-clean/internal/usecase/membercategory"
 	productusecase "github.com/heru-oktafian/fiber-apotek-clean/internal/usecase/product"
@@ -113,6 +115,8 @@ func New() (*App, error) {
 	productCategoryHandler := handlers.ProductCategoryHandler{Service: productcategoryusecase.Service{Categories: repos}}
 	supplierCategoryHandler := handlers.SupplierCategoryHandler{Service: suppliercategoryusecase.Service{Categories: repos}}
 	memberCategoryHandler := handlers.MemberCategoryHandler{Service: membercategoryusecase.Service{Categories: repos}}
+	anotherIncomeHandler := handlers.AnotherIncomeHandler{Service: anotherincomeusecase.Service{Repo: repos, IDs: ids, Clock: clk}}
+	expenseHandler := handlers.ExpenseHandler{Service: expenseusecase.Service{Repo: repos, IDs: ids, Clock: clk}}
 	purchaseHandler := handlers.PurchaseHandler{Service: purchaseusecase.Service{Repo: repos, IDs: ids, Clock: clk}}
 	saleHandler := handlers.SaleHandler{Service: saleusecase.Service{Repo: repos, IDs: ids, Clock: clk}}
 	opnameHandler := handlers.OpnameHandler{Service: opnameusecase.Service{Repo: repos, IDs: ids, Clock: clk}}
@@ -123,6 +127,6 @@ func New() (*App, error) {
 	app := fiber.New(fiber.Config{DisableStartupMessage: true, ReadTimeout: 30 * time.Second, WriteTimeout: 30 * time.Second})
 	app.Use(console.RequestLogger())
 	authMw := middleware.RequireAuth(jwtSvc, blacklist)
-	router.Register(app, router.Dependencies{Auth: authHandler, Branch: branchHandler, UserBranch: userBranchHandler, User: userHandler, Product: productHandler, Supplier: supplierHandler, Unit: unitHandler, ProductCategory: productCategoryHandler, SupplierCategory: supplierCategoryHandler, MemberCategory: memberCategoryHandler, Purchase: purchaseHandler, Sale: saleHandler, Opname: opnameHandler, Export: exportBundle{base: exportHandler, master: exportMasterHandler, transaction: exportTransactionHandler}, AuthMiddleware: authMw})
+	router.Register(app, router.Dependencies{Auth: authHandler, Branch: branchHandler, UserBranch: userBranchHandler, User: userHandler, Product: productHandler, Supplier: supplierHandler, Unit: unitHandler, ProductCategory: productCategoryHandler, SupplierCategory: supplierCategoryHandler, MemberCategory: memberCategoryHandler, AnotherIncome: anotherIncomeHandler, Expense: expenseHandler, Purchase: purchaseHandler, Sale: saleHandler, Opname: opnameHandler, Export: exportBundle{base: exportHandler, master: exportMasterHandler, transaction: exportTransactionHandler}, AuthMiddleware: authMw})
 	return &App{Fiber: app, Config: cfg}, nil
 }
