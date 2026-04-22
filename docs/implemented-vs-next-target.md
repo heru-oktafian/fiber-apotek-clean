@@ -108,6 +108,8 @@ Tujuannya sederhana:
 ### Suppliers
 **Implemented:**
 - `GET /api/suppliers`
+- `GET /api/suppliers/excel`
+- `GET /api/suppliers/pdf`
 - `GET /api/suppliers/:id`
 - `POST /api/suppliers`
 - `PUT /api/suppliers/:id`
@@ -115,9 +117,8 @@ Tujuannya sederhana:
 - `GET /api/suppliers-combo`
 
 **Next target:**
-- supplier categories
-- combobox supplier category
-- export PDF/Excel
+- refine visual export bila ingin makin mirip legacy
+- validasi runtime export end-to-end
 
 ### Units
 **Implemented:**
@@ -137,6 +138,8 @@ Tujuannya sederhana:
 ### Product Categories
 **Implemented:**
 - `GET /api/product-categories`
+- `GET /api/product-categories/excel`
+- `GET /api/product-categories/pdf`
 - `POST /api/product-categories`
 - `GET /api/product-categories/:id`
 - `PUT /api/product-categories/:id`
@@ -147,12 +150,14 @@ Tujuannya sederhana:
 - ID product category mengikuti schema legacy, yaitu numeric auto increment
 
 **Next target:**
-- validasi kontrak frontend bila ada format khusus
-- export PDF/Excel kalau nanti dibutuhkan parity penuh
+- refine visual export bila ingin makin mirip legacy
+- validasi runtime export end-to-end
 
 ### Supplier Categories
 **Implemented:**
 - `GET /api/supplier-categories`
+- `GET /api/supplier-categories/excel`
+- `GET /api/supplier-categories/pdf`
 - `POST /api/supplier-categories`
 - `GET /api/supplier-categories/:id`
 - `PUT /api/supplier-categories/:id`
@@ -163,8 +168,8 @@ Tujuannya sederhana:
 - ID supplier category mengikuti schema legacy, yaitu numeric auto increment
 
 **Next target:**
-- validasi kontrak frontend bila perlu
-- export PDF/Excel jika nanti dibutuhkan parity penuh
+- refine visual export bila ingin makin mirip legacy
+- validasi runtime export end-to-end
 
 ### Unit Conversions
 **Implemented:**
@@ -270,6 +275,8 @@ Urutan yang paling sehat saat ini:
 ### Member Categories
 **Implemented:**
 - `GET /api/member-categories`
+- `GET /api/member-categories/excel`
+- `GET /api/member-categories/pdf`
 - `GET /api/member-categories/:id`
 - `POST /api/member-categories`
 - `PUT /api/member-categories/:id`
@@ -281,8 +288,8 @@ Urutan yang paling sehat saat ini:
 - ID member category mengikuti schema legacy, yaitu numeric auto increment
 
 **Next target:**
-- validasi kebutuhan frontend terkait detail points conversion
-- export PDF/Excel jika nanti memang diperlukan
+- refine visual export bila ingin makin mirip legacy
+- validasi runtime export end-to-end
 
 ---
 
@@ -290,10 +297,9 @@ Urutan yang paling sehat saat ini:
 
 Urutan yang paling sehat saat ini:
 
-1. **Export batch berikutnya: product categories / suppliers / supplier categories / member categories**
-2. **Transactions export: purchases / purchase items / sales / sale items**
-3. **Returns / Another Incomes / Expenses**
-4. **First Stocks / Reports / Export lanjutan**
+1. **Transactions export: purchases / purchase items / sales / sale items**
+2. **Returns / Another Incomes / Expenses**
+3. **First Stocks / Reports / Export lanjutan**
 
 ---
 

@@ -2,12 +2,15 @@ package productcategory
 
 import (
 	"context"
+	"fmt"
 	"net/http"
 	"strings"
+	"time"
 
 	"github.com/heru-oktafian/fiber-apotek-clean/internal/domain/productcategory"
 	"github.com/heru-oktafian/fiber-apotek-clean/internal/ports"
 	"github.com/heru-oktafian/fiber-apotek-clean/internal/shared/apperror"
+	exportshared "github.com/heru-oktafian/fiber-apotek-clean/internal/shared/export"
 )
 
 type Service struct {
@@ -78,4 +81,49 @@ func (s Service) Combo(ctx context.Context, branchID, search string) ([]productc
 		return nil, apperror.New(http.StatusInternalServerError, "Get product category combo failed", err.Error())
 	}
 	return items, nil
+}
+
+func (s Service) ExportExcel(ctx context.Context, branchID string) ([]byte, string, error) {
+	items, err := s.Categories.ListProductCategories(ctx, branchID, productcategory.ListRequest{Page: 1, Limit: 10000})
+	if err != nil {
+		return nil, "", apperror.New(http.StatusInternalServerError, "Export product categories excel failed", err.Error())
+	}
+	f := exportshared.NewExcelFile("Product Categories")
+	sheet := "Product Categories"
+	f.SetCellValue(sheet, "A1", "DATA PRODUCT CATEGORIES")
+	f.SetCellValue(sheet, "A3", "ID")
+	f.SetCellValue(sheet, "B3", "NAME")
+	for i, item := range items.Items {
+		row := i + 4
+		f.SetCellValue(sheet, fmt.Sprintf("A%d", row), item.ProductCategoryID)
+		f.SetCellValue(sheet, fmt.Sprintf("B%d", row), item.ProductCategoryName)
+	}
+	bytes, err := exportshared.WriteExcel(f)
+	if err != nil {
+		return nil, "", apperror.New(http.StatusInternalServerError, "Export product categories excel failed", err.Error())
+	}
+	return bytes, fmt.Sprintf("product-categories-%s.xlsx", time.Now().Format("2006-01-02-15-04-05")), nil
+}
+
+func (s Service) ExportPDF(ctx context.Context, branchID string) ([]byte, string, error) {
+	items, err := s.Categories.ListProductCategories(ctx, branchID, productcategory.ListRequest{Page: 1, Limit: 10000})
+	if err != nil {
+		return nil, "", apperror.New(http.StatusInternalServerError, "Export product categories pdf failed", err.Error())
+	}
+	pdf := exportshared.NewPDF("MASTER PRODUCT CATEGORIES")
+	pdf.SetFont("Arial", "B", 14)
+	pdf.CellFormat(277, 10, "MASTER PRODUCT CATEGORIES", "", 1, "C", false, 0, "")
+	pdf.SetFont("Arial", "B", 10)
+	pdf.CellFormat(60, 8, "ID", "1", 0, "C", false, 0, "")
+	pdf.CellFormat(217, 8, "NAME", "1", 1, "C", false, 0, "")
+	pdf.SetFont("Arial", "", 9)
+	for _, item := range items.Items {
+		pdf.CellFormat(60, 8, fmt.Sprintf("%d", item.ProductCategoryID), "1", 0, "L", false, 0, "")
+		pdf.CellFormat(217, 8, item.ProductCategoryName, "1", 1, "L", false, 0, "")
+	}
+	bytes, err := exportshared.WritePDF(pdf)
+	if err != nil {
+		return nil, "", apperror.New(http.StatusInternalServerError, "Export product categories pdf failed", err.Error())
+	}
+	return bytes, fmt.Sprintf("product-categories-%s.pdf", time.Now().Format("2006-01-02-15-04-05")), nil
 }

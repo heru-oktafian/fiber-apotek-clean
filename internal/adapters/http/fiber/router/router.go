@@ -111,6 +111,14 @@ type Dependencies struct {
 		ProductsPDF(*fiber.Ctx) error
 		UnitsExcel(*fiber.Ctx) error
 		UnitsPDF(*fiber.Ctx) error
+		ProductCategoriesExcel(*fiber.Ctx) error
+		ProductCategoriesPDF(*fiber.Ctx) error
+		SuppliersExcel(*fiber.Ctx) error
+		SuppliersPDF(*fiber.Ctx) error
+		SupplierCategoriesExcel(*fiber.Ctx) error
+		SupplierCategoriesPDF(*fiber.Ctx) error
+		MemberCategoriesExcel(*fiber.Ctx) error
+		MemberCategoriesPDF(*fiber.Ctx) error
 	}
 	AuthMiddleware fiber.Handler
 }
@@ -145,6 +153,8 @@ func Register(app *fiber.App, deps Dependencies) {
 	app.Get("/api/purchase-products-combo", deps.AuthMiddleware, deps.Product.PurchaseCombo)
 	app.Get("/api/cmb-product-opname", deps.AuthMiddleware, deps.Product.OpnameCombo)
 	app.Get("/api/suppliers", deps.AuthMiddleware, deps.Supplier.List)
+	app.Get("/api/suppliers/excel", deps.AuthMiddleware, deps.Export.SuppliersExcel)
+	app.Get("/api/suppliers/pdf", deps.AuthMiddleware, deps.Export.SuppliersPDF)
 	app.Get("/api/suppliers/:id", deps.AuthMiddleware, deps.Supplier.GetByID)
 	app.Post("/api/suppliers", deps.AuthMiddleware, deps.Supplier.Create)
 	app.Put("/api/suppliers/:id", deps.AuthMiddleware, deps.Supplier.Update)
@@ -159,18 +169,24 @@ func Register(app *fiber.App, deps Dependencies) {
 	app.Delete("/api/units/:id", deps.AuthMiddleware, deps.Unit.Delete)
 	app.Get("/api/cmb-units", deps.AuthMiddleware, deps.Unit.Combo)
 	app.Get("/api/product-categories", deps.AuthMiddleware, deps.ProductCategory.List)
+	app.Get("/api/product-categories/excel", deps.AuthMiddleware, deps.Export.ProductCategoriesExcel)
+	app.Get("/api/product-categories/pdf", deps.AuthMiddleware, deps.Export.ProductCategoriesPDF)
 	app.Post("/api/product-categories", deps.AuthMiddleware, deps.ProductCategory.Create)
 	app.Get("/api/product-categories/:id", deps.AuthMiddleware, deps.ProductCategory.GetByID)
 	app.Put("/api/product-categories/:id", deps.AuthMiddleware, deps.ProductCategory.Update)
 	app.Delete("/api/product-categories/:id", deps.AuthMiddleware, deps.ProductCategory.Delete)
 	app.Get("/api/product-categories-combo", deps.AuthMiddleware, deps.ProductCategory.Combo)
 	app.Get("/api/supplier-categories", deps.AuthMiddleware, deps.SupplierCategory.List)
+	app.Get("/api/supplier-categories/excel", deps.AuthMiddleware, deps.Export.SupplierCategoriesExcel)
+	app.Get("/api/supplier-categories/pdf", deps.AuthMiddleware, deps.Export.SupplierCategoriesPDF)
 	app.Post("/api/supplier-categories", deps.AuthMiddleware, deps.SupplierCategory.Create)
 	app.Get("/api/supplier-categories/:id", deps.AuthMiddleware, deps.SupplierCategory.GetByID)
 	app.Put("/api/supplier-categories/:id", deps.AuthMiddleware, deps.SupplierCategory.Update)
 	app.Delete("/api/supplier-categories/:id", deps.AuthMiddleware, deps.SupplierCategory.Delete)
 	app.Get("/api/supplier-categories-combo", deps.AuthMiddleware, deps.SupplierCategory.Combo)
 	app.Get("/api/member-categories", deps.AuthMiddleware, deps.MemberCategory.List)
+	app.Get("/api/member-categories/excel", deps.AuthMiddleware, deps.Export.MemberCategoriesExcel)
+	app.Get("/api/member-categories/pdf", deps.AuthMiddleware, deps.Export.MemberCategoriesPDF)
 	app.Get("/api/member-categories/:id", deps.AuthMiddleware, deps.MemberCategory.GetByID)
 	app.Post("/api/member-categories", deps.AuthMiddleware, deps.MemberCategory.Create)
 	app.Put("/api/member-categories/:id", deps.AuthMiddleware, deps.MemberCategory.Update)

@@ -2,12 +2,15 @@ package suppliercategory
 
 import (
 	"context"
+	"fmt"
 	"net/http"
 	"strings"
+	"time"
 
 	"github.com/heru-oktafian/fiber-apotek-clean/internal/domain/suppliercategory"
 	"github.com/heru-oktafian/fiber-apotek-clean/internal/ports"
 	"github.com/heru-oktafian/fiber-apotek-clean/internal/shared/apperror"
+	exportshared "github.com/heru-oktafian/fiber-apotek-clean/internal/shared/export"
 )
 
 type Service struct {
@@ -78,4 +81,49 @@ func (s Service) Combo(ctx context.Context, branchID string) ([]suppliercategory
 		return nil, apperror.New(http.StatusInternalServerError, "Get supplier category combo failed", err.Error())
 	}
 	return items, nil
+}
+
+func (s Service) ExportExcel(ctx context.Context, branchID string) ([]byte, string, error) {
+	items, err := s.Categories.ListSupplierCategories(ctx, branchID, suppliercategory.ListRequest{Page: 1, Limit: 10000})
+	if err != nil {
+		return nil, "", apperror.New(http.StatusInternalServerError, "Export supplier categories excel failed", err.Error())
+	}
+	f := exportshared.NewExcelFile("Supplier Categories")
+	sheet := "Supplier Categories"
+	f.SetCellValue(sheet, "A1", "DATA SUPPLIER CATEGORIES")
+	f.SetCellValue(sheet, "A3", "ID")
+	f.SetCellValue(sheet, "B3", "NAME")
+	for i, item := range items.Items {
+		row := i + 4
+		f.SetCellValue(sheet, fmt.Sprintf("A%d", row), item.ID)
+		f.SetCellValue(sheet, fmt.Sprintf("B%d", row), item.Name)
+	}
+	bytes, err := exportshared.WriteExcel(f)
+	if err != nil {
+		return nil, "", apperror.New(http.StatusInternalServerError, "Export supplier categories excel failed", err.Error())
+	}
+	return bytes, fmt.Sprintf("supplier-categories-%s.xlsx", time.Now().Format("2006-01-02-15-04-05")), nil
+}
+
+func (s Service) ExportPDF(ctx context.Context, branchID string) ([]byte, string, error) {
+	items, err := s.Categories.ListSupplierCategories(ctx, branchID, suppliercategory.ListRequest{Page: 1, Limit: 10000})
+	if err != nil {
+		return nil, "", apperror.New(http.StatusInternalServerError, "Export supplier categories pdf failed", err.Error())
+	}
+	pdf := exportshared.NewPDF("MASTER SUPPLIER CATEGORIES")
+	pdf.SetFont("Arial", "B", 14)
+	pdf.CellFormat(277, 10, "MASTER SUPPLIER CATEGORIES", "", 1, "C", false, 0, "")
+	pdf.SetFont("Arial", "B", 10)
+	pdf.CellFormat(60, 8, "ID", "1", 0, "C", false, 0, "")
+	pdf.CellFormat(217, 8, "NAME", "1", 1, "C", false, 0, "")
+	pdf.SetFont("Arial", "", 9)
+	for _, item := range items.Items {
+		pdf.CellFormat(60, 8, fmt.Sprintf("%d", item.ID), "1", 0, "L", false, 0, "")
+		pdf.CellFormat(217, 8, item.Name, "1", 1, "L", false, 0, "")
+	}
+	bytes, err := exportshared.WritePDF(pdf)
+	if err != nil {
+		return nil, "", apperror.New(http.StatusInternalServerError, "Export supplier categories pdf failed", err.Error())
+	}
+	return bytes, fmt.Sprintf("supplier-categories-%s.pdf", time.Now().Format("2006-01-02-15-04-05")), nil
 }

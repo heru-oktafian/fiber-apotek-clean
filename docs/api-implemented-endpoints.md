@@ -71,6 +71,42 @@ Api Apotek (Implemented)
 │   │   └── Get - /api/cmb-units
 │   ├── Product Categories/
 │   │   ├── Get - /api/product-categories
+│   │   ├── Get - /api/product-categories/excel
+│   │   ├── Get - /api/product-categories/pdf
+│   │   ├── Post - /api/product-categories
+│   │   ├── Get - /api/product-categories/:id
+│   │   ├── Put - /api/product-categories/:id
+│   │   ├── Delete - /api/product-categories/:id
+│   │   └── Get - /api/product-categories-combo
+│   ├── Suppliers/
+│   │   ├── Get - /api/suppliers
+│   │   ├── Get - /api/suppliers/excel
+│   │   ├── Get - /api/suppliers/pdf
+│   │   ├── Get - /api/suppliers/:id
+│   │   ├── Post - /api/suppliers
+│   │   ├── Put - /api/suppliers/:id
+│   │   ├── Delete - /api/suppliers/:id
+│   │   └── Get - /api/suppliers-combo
+│   ├── Supplier Categories/
+│   │   ├── Get - /api/supplier-categories
+│   │   ├── Get - /api/supplier-categories/excel
+│   │   ├── Get - /api/supplier-categories/pdf
+│   │   ├── Post - /api/supplier-categories
+│   │   ├── Get - /api/supplier-categories/:id
+│   │   ├── Put - /api/supplier-categories/:id
+│   │   ├── Delete - /api/supplier-categories/:id
+│   │   └── Get - /api/supplier-categories-combo
+│   └── Member Categories/
+│       ├── Get - /api/member-categories
+│       ├── Get - /api/member-categories/excel
+│       ├── Get - /api/member-categories/pdf
+│       ├── Get - /api/member-categories/:id
+│       ├── Post - /api/member-categories
+│       ├── Put - /api/member-categories/:id
+│       ├── Delete - /api/member-categories/:id
+│       └── Get - /api/member-categories-combo
+│   ├── Product Categories/
+│   │   ├── Get - /api/product-categories
 │   │   ├── Post - /api/product-categories
 │   │   ├── Get - /api/product-categories/:id
 │   │   ├── Put - /api/product-categories/:id
@@ -653,6 +689,28 @@ Authorization: Bearer <TOKEN_2>
 
 ---
 
+### GET `/api/suppliers/excel`
+**Header:**
+```http
+Authorization: Bearer <TOKEN_2>
+```
+
+**Catatan:**
+- download data suppliers dalam format Excel
+
+---
+
+### GET `/api/suppliers/pdf`
+**Header:**
+```http
+Authorization: Bearer <TOKEN_2>
+```
+
+**Catatan:**
+- download data suppliers dalam format PDF
+
+---
+
 ### GET `/api/suppliers/:id`
 **Header:**
 ```http
@@ -872,6 +930,28 @@ Authorization: Bearer <TOKEN_2>
 
 ---
 
+### GET `/api/product-categories/excel`
+**Header:**
+```http
+Authorization: Bearer <TOKEN_2>
+```
+
+**Catatan:**
+- download data product categories dalam format Excel
+
+---
+
+### GET `/api/product-categories/pdf`
+**Header:**
+```http
+Authorization: Bearer <TOKEN_2>
+```
+
+**Catatan:**
+- download data product categories dalam format PDF
+
+---
+
 ### GET `/api/product-categories/:id`
 **Header:**
 ```http
@@ -957,6 +1037,28 @@ Authorization: Bearer <TOKEN_2>
 
 ---
 
+### GET `/api/supplier-categories/excel`
+**Header:**
+```http
+Authorization: Bearer <TOKEN_2>
+```
+
+**Catatan:**
+- download data supplier categories dalam format Excel
+
+---
+
+### GET `/api/supplier-categories/pdf`
+**Header:**
+```http
+Authorization: Bearer <TOKEN_2>
+```
+
+**Catatan:**
+- download data supplier categories dalam format PDF
+
+---
+
 ### GET `/api/supplier-categories/:id`
 **Header:**
 ```http
@@ -1015,6 +1117,28 @@ Authorization: Bearer <TOKEN_2>
 - `page`
 - `limit`
 - `search`
+
+---
+
+### GET `/api/member-categories/excel`
+**Header:**
+```http
+Authorization: Bearer <TOKEN_2>
+```
+
+**Catatan:**
+- download data member categories dalam format Excel
+
+---
+
+### GET `/api/member-categories/pdf`
+**Header:**
+```http
+Authorization: Bearer <TOKEN_2>
+```
+
+**Catatan:**
+- download data member categories dalam format PDF
 
 ---
 
@@ -1487,6 +1611,8 @@ Authorization: Bearer <TOKEN_2>
 - `GET /api/purchase-products-combo`
 - `GET /api/cmb-product-opname`
 - `GET /api/suppliers`
+- `GET /api/suppliers/excel`
+- `GET /api/suppliers/pdf`
 - `GET /api/suppliers/:id`
 - `POST /api/suppliers`
 - `PUT /api/suppliers/:id`
@@ -1501,18 +1627,24 @@ Authorization: Bearer <TOKEN_2>
 - `DELETE /api/units/:id`
 - `GET /api/cmb-units`
 - `GET /api/product-categories`
+- `GET /api/product-categories/excel`
+- `GET /api/product-categories/pdf`
 - `POST /api/product-categories`
 - `GET /api/product-categories/:id`
 - `PUT /api/product-categories/:id`
 - `DELETE /api/product-categories/:id`
 - `GET /api/product-categories-combo`
 - `GET /api/supplier-categories`
+- `GET /api/supplier-categories/excel`
+- `GET /api/supplier-categories/pdf`
 - `POST /api/supplier-categories`
 - `GET /api/supplier-categories/:id`
 - `PUT /api/supplier-categories/:id`
 - `DELETE /api/supplier-categories/:id`
 - `GET /api/supplier-categories-combo`
 - `GET /api/member-categories`
+- `GET /api/member-categories/excel`
+- `GET /api/member-categories/pdf`
 - `GET /api/member-categories/:id`
 - `POST /api/member-categories`
 - `PUT /api/member-categories/:id`
