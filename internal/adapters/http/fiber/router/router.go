@@ -139,6 +139,10 @@ type Dependencies struct {
 		SalesPDF(*fiber.Ctx) error
 		SaleItemsExcel(*fiber.Ctx) error
 		SaleItemsPDF(*fiber.Ctx) error
+		AnotherIncomesExcel(*fiber.Ctx) error
+		AnotherIncomesPDF(*fiber.Ctx) error
+		ExpensesExcel(*fiber.Ctx) error
+		ExpensesPDF(*fiber.Ctx) error
 	}
 	AuthMiddleware fiber.Handler
 }
@@ -206,10 +210,14 @@ func Register(app *fiber.App, deps Dependencies) {
 	app.Get("/api/supplier-categories-combo", deps.AuthMiddleware, deps.SupplierCategory.Combo)
 	app.Get("/api/member-categories", deps.AuthMiddleware, deps.MemberCategory.List)
 	app.Get("/api/another-incomes", deps.AuthMiddleware, deps.AnotherIncome.List)
+	app.Get("/api/another-incomes/excel", deps.AuthMiddleware, deps.Export.AnotherIncomesExcel)
+	app.Get("/api/another-incomes/pdf", deps.AuthMiddleware, deps.Export.AnotherIncomesPDF)
 	app.Post("/api/another-incomes", deps.AuthMiddleware, deps.AnotherIncome.Create)
 	app.Put("/api/another-incomes/:id", deps.AuthMiddleware, deps.AnotherIncome.Update)
 	app.Delete("/api/another-incomes/:id", deps.AuthMiddleware, deps.AnotherIncome.Delete)
 	app.Get("/api/expenses", deps.AuthMiddleware, deps.Expense.List)
+	app.Get("/api/expenses/excel", deps.AuthMiddleware, deps.Export.ExpensesExcel)
+	app.Get("/api/expenses/pdf", deps.AuthMiddleware, deps.Export.ExpensesPDF)
 	app.Post("/api/expenses", deps.AuthMiddleware, deps.Expense.Create)
 	app.Put("/api/expenses/:id", deps.AuthMiddleware, deps.Expense.Update)
 	app.Delete("/api/expenses/:id", deps.AuthMiddleware, deps.Expense.Delete)

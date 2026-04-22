@@ -98,11 +98,15 @@ Api Apotek (Implemented)
 │   │   └── Get - /api/supplier-categories-combo
 │   ├── Another Incomes/
 │   │   ├── Get - /api/another-incomes
+│   │   ├── Get - /api/another-incomes/excel
+│   │   ├── Get - /api/another-incomes/pdf
 │   │   ├── Post - /api/another-incomes
 │   │   ├── Put - /api/another-incomes/:id
 │   │   └── Delete - /api/another-incomes/:id
 │   ├── Expenses/
 │   │   ├── Get - /api/expenses
+│   │   ├── Get - /api/expenses/excel
+│   │   ├── Get - /api/expenses/pdf
 │   │   ├── Post - /api/expenses
 │   │   ├── Put - /api/expenses/:id
 │   │   └── Delete - /api/expenses/:id
@@ -1142,6 +1146,28 @@ Authorization: Bearer <TOKEN_2>
 
 ---
 
+### GET `/api/another-incomes/excel`
+**Header:**
+```http
+Authorization: Bearer <TOKEN_2>
+```
+
+**Query:**
+- `month` (opsional, format `YYYY-MM`)
+
+---
+
+### GET `/api/another-incomes/pdf`
+**Header:**
+```http
+Authorization: Bearer <TOKEN_2>
+```
+
+**Query:**
+- `month` (opsional, format `YYYY-MM`)
+
+---
+
 ### POST `/api/another-incomes`
 **Header:**
 ```http
@@ -1202,6 +1228,28 @@ Authorization: Bearer <TOKEN_2>
 
 **Catatan:**
 - list expenses dengan dukungan filter pencarian dan bulan
+
+---
+
+### GET `/api/expenses/excel`
+**Header:**
+```http
+Authorization: Bearer <TOKEN_2>
+```
+
+**Query:**
+- `month` (opsional, format `YYYY-MM`)
+
+---
+
+### GET `/api/expenses/pdf`
+**Header:**
+```http
+Authorization: Bearer <TOKEN_2>
+```
+
+**Query:**
+- `month` (opsional, format `YYYY-MM`)
 
 ---
 

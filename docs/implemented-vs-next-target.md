@@ -230,6 +230,8 @@ Tujuannya sederhana:
 ### Another Incomes
 **Implemented:**
 - `GET /api/another-incomes`
+- `GET /api/another-incomes/excel`
+- `GET /api/another-incomes/pdf`
 - `POST /api/another-incomes`
 - `PUT /api/another-incomes/:id`
 - `DELETE /api/another-incomes/:id`
@@ -239,12 +241,14 @@ Tujuannya sederhana:
 - create/update/delete tersinkron ke `transaction_reports` dengan transaction type `income`
 
 **Next target:**
-- export Excel/PDF
+- refine visual export bila ingin makin mirip legacy
 - validasi runtime end-to-end
 
 ### Expenses
 **Implemented:**
 - `GET /api/expenses`
+- `GET /api/expenses/excel`
+- `GET /api/expenses/pdf`
 - `POST /api/expenses`
 - `PUT /api/expenses/:id`
 - `DELETE /api/expenses/:id`
@@ -254,7 +258,7 @@ Tujuannya sederhana:
 - create/update/delete tersinkron ke `transaction_reports` dengan transaction type `expense`
 
 **Next target:**
-- export Excel/PDF
+- refine visual export bila ingin makin mirip legacy
 - validasi runtime end-to-end
 
 ### Duplicate Receipts / Buy Returns / Sale Returns
@@ -262,7 +266,7 @@ Tujuannya sederhana:
 - belum ada
 
 **Next target:**
-- mulai bertahap setelah `another_incomes` dan `expenses`
+- mulai bertahap setelah `another_incomes` dan `expenses` parity dasarnya selesai
 
 ---
 
