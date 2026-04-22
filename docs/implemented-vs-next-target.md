@@ -287,14 +287,25 @@ Tujuannya sederhana:
 
 ### First Stocks
 **Implemented:**
-- belum ada
+- `GET /api/first-stocks`
+- `POST /api/first-stocks`
+- `PUT /api/first-stocks/:id`
+- `DELETE /api/first-stocks/:id`
+- `GET /api/first-stock-with-items/:id`
+- `GET /api/first-stock-items/:id`
+- `POST /api/first-stock-items`
+- `PUT /api/first-stock-items/:id`
+- `DELETE /api/first-stock-items/:id`
 
 **Catatan bisnis penting:**
 - first stock memengaruhi stok produk
 - tetapi secara bisnis dianggap nol, bukan pembelian/pengeluaran biasa
+- untuk parity legacy, transaction report compatibility tetap dijaga dengan type `first_stock`
+- item-level flow sudah menangani stock adjustment, total recalculation, dan basic unit conversion
 
 **Next target:**
-- implement sebagai domain sendiri, jangan disamakan dengan purchase biasa
+- export header dan item Excel/PDF
+- validasi runtime end-to-end
 
 ---
 
@@ -335,8 +346,9 @@ Tujuannya sederhana:
 
 Urutan yang paling sehat saat ini:
 
-1. **Returns / Another Incomes / Expenses**
-2. **First Stocks / Reports / Export lanjutan**
+1. **First Stocks export header/items**
+2. **Returns / Duplicate Receipts**
+3. **Reports / Export lanjutan**
 
 ---
 

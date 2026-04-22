@@ -211,6 +211,32 @@ type ExpenseModel struct {
 
 func (ExpenseModel) TableName() string { return "expenses" }
 
+type FirstStockModel struct {
+	ID              string    `gorm:"column:id;primaryKey"`
+	Description     string    `gorm:"column:description"`
+	FirstStockDate  time.Time `gorm:"column:first_stock_date"`
+	BranchID        string    `gorm:"column:branch_id"`
+	TotalFirstStock int       `gorm:"column:total_first_stock"`
+	Payment         string    `gorm:"column:payment"`
+	UserID          string    `gorm:"column:user_id"`
+	CreatedAt       time.Time `gorm:"column:created_at"`
+	UpdatedAt       time.Time `gorm:"column:updated_at"`
+}
+
+func (FirstStockModel) TableName() string { return "first_stocks" }
+
+type FirstStockItemModel struct {
+	ID           string    `gorm:"column:id;primaryKey"`
+	FirstStockID string    `gorm:"column:first_stock_id"`
+	ProductID    string    `gorm:"column:product_id"`
+	Price        int       `gorm:"column:price"`
+	Qty          int       `gorm:"column:qty"`
+	SubTotal     int       `gorm:"column:sub_total"`
+	ExpiredDate  time.Time `gorm:"column:expired_date"`
+}
+
+func (FirstStockItemModel) TableName() string { return "first_stock_items" }
+
 type DailyProfitReportModel struct {
 	ID             string    `gorm:"column:id;primaryKey"`
 	ReportDate     time.Time `gorm:"column:report_date"`

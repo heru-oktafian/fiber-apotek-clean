@@ -8,6 +8,7 @@ import (
 	"github.com/heru-oktafian/fiber-apotek-clean/internal/domain/auth"
 	"github.com/heru-oktafian/fiber-apotek-clean/internal/domain/branch"
 	"github.com/heru-oktafian/fiber-apotek-clean/internal/domain/expense"
+	"github.com/heru-oktafian/fiber-apotek-clean/internal/domain/firststock"
 	"github.com/heru-oktafian/fiber-apotek-clean/internal/domain/member"
 	"github.com/heru-oktafian/fiber-apotek-clean/internal/domain/membercategory"
 	"github.com/heru-oktafian/fiber-apotek-clean/internal/domain/opname"
@@ -210,6 +211,26 @@ type ExpenseRepository interface {
 	CreateExpense(ctx context.Context, item expense.Expense) error
 	UpdateExpense(ctx context.Context, item expense.Expense) error
 	DeleteExpense(ctx context.Context, branchID, id string) error
+	UpsertTransactionReport(ctx context.Context, id string, txType string, userID string, branchID string, total int, payment string, createdAt time.Time, updatedAt time.Time) error
+	DeleteTransactionReport(ctx context.Context, id string, txType string) error
+}
+
+type FirstStockRepository interface {
+	ListFirstStocks(ctx context.Context, branchID string, req firststock.ListRequest) (firststock.ListResult, error)
+	FindFirstStockByID(ctx context.Context, branchID, id string) (firststock.FirstStock, error)
+	FindFirstStockItems(ctx context.Context, firstStockID string) ([]firststock.Item, error)
+	FindFirstStockItemByID(ctx context.Context, id string) (firststock.Item, error)
+	CreateFirstStock(ctx context.Context, item firststock.FirstStock) error
+	UpdateFirstStock(ctx context.Context, item firststock.FirstStock) error
+	DeleteFirstStock(ctx context.Context, branchID, id string) error
+	CreateFirstStockItem(ctx context.Context, item firststock.Item) error
+	UpdateFirstStockItem(ctx context.Context, item firststock.Item) error
+	DeleteFirstStockItem(ctx context.Context, id string) error
+	FindProductByID(ctx context.Context, id string) (product.Product, error)
+	FindUnit(ctx context.Context, id string) (unit.Unit, error)
+	FindConversion(ctx context.Context, productID, initID, finalID, branchID string) (unit.Conversion, error)
+	UpdateProduct(ctx context.Context, item product.Product) error
+	RecalculateFirstStockTotal(ctx context.Context, firstStockID string) (int, error)
 	UpsertTransactionReport(ctx context.Context, id string, txType string, userID string, branchID string, total int, payment string, createdAt time.Time, updatedAt time.Time) error
 	DeleteTransactionReport(ctx context.Context, id string, txType string) error
 }

@@ -110,6 +110,16 @@ Api Apotek (Implemented)
 │   │   ├── Post - /api/expenses
 │   │   ├── Put - /api/expenses/:id
 │   │   └── Delete - /api/expenses/:id
+│   ├── First Stocks/
+│   │   ├── Get - /api/first-stocks
+│   │   ├── Post - /api/first-stocks
+│   │   ├── Put - /api/first-stocks/:id
+│   │   ├── Delete - /api/first-stocks/:id
+│   │   ├── Get - /api/first-stock-with-items/:id
+│   │   ├── Get - /api/first-stock-items/:id
+│   │   ├── Post - /api/first-stock-items
+│   │   ├── Put - /api/first-stock-items/:id
+│   │   └── Delete - /api/first-stock-items/:id
 │   └── Member Categories/
 │       ├── Get - /api/member-categories
 │       ├── Get - /api/member-categories/excel
@@ -1292,6 +1302,107 @@ Content-Type: application/json
 ---
 
 ### DELETE `/api/expenses/:id`
+**Header:**
+```http
+Authorization: Bearer <TOKEN_2>
+```
+
+---
+
+### GET `/api/first-stocks`
+**Header:**
+```http
+Authorization: Bearer <TOKEN_2>
+```
+
+**Query:**
+- `search` (opsional)
+- `month` (opsional, format `YYYY-MM`)
+- `page` (opsional, default `1`)
+- `limit` (opsional, default `10`)
+
+---
+
+### POST `/api/first-stocks`
+**Header:**
+```http
+Authorization: Bearer <TOKEN_2>
+Content-Type: application/json
+```
+
+**Body:**
+```json
+{
+  "description": "Stok awal pembukaan sistem",
+  "first_stock_date": "2026-04-23"
+}
+```
+
+---
+
+### PUT `/api/first-stocks/:id`
+**Header:**
+```http
+Authorization: Bearer <TOKEN_2>
+Content-Type: application/json
+```
+
+---
+
+### DELETE `/api/first-stocks/:id`
+**Header:**
+```http
+Authorization: Bearer <TOKEN_2>
+```
+
+---
+
+### GET `/api/first-stock-with-items/:id`
+**Header:**
+```http
+Authorization: Bearer <TOKEN_2>
+```
+
+---
+
+### GET `/api/first-stock-items/:id`
+**Header:**
+```http
+Authorization: Bearer <TOKEN_2>
+```
+
+---
+
+### POST `/api/first-stock-items`
+**Header:**
+```http
+Authorization: Bearer <TOKEN_2>
+Content-Type: application/json
+```
+
+**Body:**
+```json
+{
+  "first_stock_id": "FSTxxxx",
+  "product_id": "PRDxxxx",
+  "unit_id": "UNTxxxx",
+  "qty": 10,
+  "expired_date": "2026-12-31"
+}
+```
+
+---
+
+### PUT `/api/first-stock-items/:id`
+**Header:**
+```http
+Authorization: Bearer <TOKEN_2>
+Content-Type: application/json
+```
+
+---
+
+### DELETE `/api/first-stock-items/:id`
 **Header:**
 ```http
 Authorization: Bearer <TOKEN_2>

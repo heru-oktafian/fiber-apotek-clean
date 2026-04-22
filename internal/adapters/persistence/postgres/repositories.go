@@ -13,6 +13,7 @@ import (
 	"github.com/heru-oktafian/fiber-apotek-clean/internal/domain/branch"
 	"github.com/heru-oktafian/fiber-apotek-clean/internal/domain/common"
 	"github.com/heru-oktafian/fiber-apotek-clean/internal/domain/expense"
+	"github.com/heru-oktafian/fiber-apotek-clean/internal/domain/firststock"
 	"github.com/heru-oktafian/fiber-apotek-clean/internal/domain/member"
 	"github.com/heru-oktafian/fiber-apotek-clean/internal/domain/membercategory"
 	"github.com/heru-oktafian/fiber-apotek-clean/internal/domain/opname"
@@ -799,6 +800,14 @@ func (r Repositories) FindConversion(ctx context.Context, productID, initID, fin
 	return unit.Conversion{ProductID: m.ProductID, InitID: m.InitID, FinalID: m.FinalID, Value: m.ValueConv, BranchID: m.BranchID}, nil
 }
 
+func (r Repositories) FindUnit(ctx context.Context, id string) (unit.Unit, error) {
+	var m UnitModel
+	if err := r.DB.WithContext(ctx).Where("id = ?", id).First(&m).Error; err != nil {
+		return unit.Unit{}, err
+	}
+	return unit.Unit{ID: m.ID, Name: m.Name}, nil
+}
+
 func (r Repositories) FindMemberByID(ctx context.Context, id string) (member.Member, error) {
 	var m MemberModel
 	if err := r.DB.WithContext(ctx).Where("id = ?", id).First(&m).Error; err != nil {
@@ -1262,6 +1271,123 @@ func (r Repositories) UpdateExpense(ctx context.Context, item expense.Expense) e
 
 func (r Repositories) DeleteExpense(ctx context.Context, branchID, id string) error {
 	return r.DB.WithContext(ctx).Where("id = ? AND branch_id = ?", id, branchID).Delete(&ExpenseModel{}).Error
+}
+
+func (r Repositories) ListFirstStocks(ctx context.Context, branchID string, req firststock.ListRequest) (firststock.ListResult, error) {
+	if req.Page <= 0 {
+		req.Page = 1
+	}
+	if req.Limit <= 0 {
+		req.Limit = 10
+	}
+	query := r.DB.WithContext(ctx).Table("first_stocks fs").Select("fs.id, fs.description, fs.first_stock_date, fs.total_first_stock, fs.payment").Where("fs.branch_id = ?", branchID)
+	count := r.DB.WithContext(ctx).Table("first_stocks fs").Where("fs.branch_id = ?", branchID)
+	search := strings.TrimSpace(req.Search)
+	if search != "" {
+		like := "%" + strings.ToLower(search) + "%"
+		query = query.Where("LOWER(fs.description) LIKE ?", like)
+		count = count.Where("LOWER(fs.description) LIKE ?", like)
+	}
+	month := strings.TrimSpace(req.Month)
+	if month != "" {
+		parsedMonth, err := time.Parse("2006-01", month)
+		if err != nil {
+			return firststock.ListResult{}, apperror.New(http.StatusBadRequest, "List first stocks failed", "invalid month format, use YYYY-MM")
+		}
+		startDate := parsedMonth
+		endDate := parsedMonth.AddDate(0, 1, 0)
+		query = query.Where("fs.first_stock_date >= ? AND fs.first_stock_date < ?", startDate, endDate)
+		count = count.Where("fs.first_stock_date >= ? AND fs.first_stock_date < ?", startDate, endDate)
+	}
+	var total int64
+	if err := count.Count(&total).Error; err != nil {
+		return firststock.ListResult{}, err
+	}
+	var rows []FirstStockModel
+	if err := query.Order("fs.created_at DESC").Limit(req.Limit).Offset((req.Page - 1) * req.Limit).Scan(&rows).Error; err != nil {
+		return firststock.ListResult{}, err
+	}
+	items := make([]firststock.ListItem, 0, len(rows))
+	for _, row := range rows {
+		items = append(items, firststock.ListItem{ID: row.ID, Description: row.Description, FirstStockDate: row.FirstStockDate.Format("2006-01-02"), TotalFirstStock: row.TotalFirstStock, Payment: row.Payment})
+	}
+	lastPage := 0
+	if total > 0 {
+		lastPage = int((total + int64(req.Limit) - 1) / int64(req.Limit))
+	}
+	return firststock.ListResult{Items: items, Meta: firststock.ListMeta{Page: req.Page, Limit: req.Limit, Search: search, Month: month, TotalData: int(total), LastPage: lastPage}}, nil
+}
+
+func (r Repositories) FindFirstStockByID(ctx context.Context, branchID, id string) (firststock.FirstStock, error) {
+	var m FirstStockModel
+	if err := r.DB.WithContext(ctx).Where("id = ? AND branch_id = ?", id, branchID).First(&m).Error; err != nil {
+		return firststock.FirstStock{}, err
+	}
+	return firststock.FirstStock{ID: m.ID, Description: m.Description, FirstStockDate: m.FirstStockDate, BranchID: m.BranchID, UserID: m.UserID, TotalFirstStock: m.TotalFirstStock, Payment: common.PaymentStatus(m.Payment), CreatedAt: m.CreatedAt, UpdatedAt: m.UpdatedAt}, nil
+}
+
+func (r Repositories) FindFirstStockItems(ctx context.Context, firstStockID string) ([]firststock.Item, error) {
+	var rows []struct {
+		ID           string
+		FirstStockID string
+		ProductID    string
+		ProductName  string
+		Price        int
+		Qty          int
+		UnitName     string
+		SubTotal     int
+	}
+	if err := r.DB.WithContext(ctx).Table("first_stock_items fsi").Select("fsi.id, fsi.first_stock_id, fsi.product_id, p.name as product_name, fsi.price, fsi.qty, u.name as unit_name, fsi.sub_total").Joins("LEFT JOIN products p ON p.id = fsi.product_id").Joins("LEFT JOIN units u ON u.id = p.unit_id").Where("fsi.first_stock_id = ?", firstStockID).Order("p.name ASC").Scan(&rows).Error; err != nil {
+		return nil, err
+	}
+	items := make([]firststock.Item, 0, len(rows))
+	for _, row := range rows {
+		items = append(items, firststock.Item{ID: row.ID, FirstStockID: row.FirstStockID, ProductID: row.ProductID, ProductName: row.ProductName, UnitName: row.UnitName, Price: row.Price, Qty: row.Qty, SubTotal: row.SubTotal})
+	}
+	return items, nil
+}
+
+func (r Repositories) FindFirstStockItemByID(ctx context.Context, id string) (firststock.Item, error) {
+	var m FirstStockItemModel
+	if err := r.DB.WithContext(ctx).Where("id = ?", id).First(&m).Error; err != nil {
+		return firststock.Item{}, err
+	}
+	return firststock.Item{ID: m.ID, FirstStockID: m.FirstStockID, ProductID: m.ProductID, Price: m.Price, Qty: m.Qty, SubTotal: m.SubTotal, ExpiredDate: m.ExpiredDate}, nil
+}
+
+func (r Repositories) CreateFirstStock(ctx context.Context, item firststock.FirstStock) error {
+	return r.DB.WithContext(ctx).Create(&FirstStockModel{ID: item.ID, Description: item.Description, FirstStockDate: item.FirstStockDate, BranchID: item.BranchID, UserID: item.UserID, TotalFirstStock: item.TotalFirstStock, Payment: string(item.Payment), CreatedAt: item.CreatedAt, UpdatedAt: item.UpdatedAt}).Error
+}
+
+func (r Repositories) UpdateFirstStock(ctx context.Context, item firststock.FirstStock) error {
+	return r.DB.WithContext(ctx).Model(&FirstStockModel{}).Where("id = ? AND branch_id = ?", item.ID, item.BranchID).Updates(map[string]any{"description": item.Description, "first_stock_date": item.FirstStockDate, "total_first_stock": item.TotalFirstStock, "payment": string(item.Payment), "updated_at": item.UpdatedAt}).Error
+}
+
+func (r Repositories) DeleteFirstStock(ctx context.Context, branchID, id string) error {
+	return r.DB.WithContext(ctx).Where("id = ? AND branch_id = ?", id, branchID).Delete(&FirstStockModel{}).Error
+}
+
+func (r Repositories) CreateFirstStockItem(ctx context.Context, item firststock.Item) error {
+	return r.DB.WithContext(ctx).Create(&FirstStockItemModel{ID: item.ID, FirstStockID: item.FirstStockID, ProductID: item.ProductID, Price: item.Price, Qty: item.Qty, SubTotal: item.SubTotal, ExpiredDate: item.ExpiredDate}).Error
+}
+
+func (r Repositories) UpdateFirstStockItem(ctx context.Context, item firststock.Item) error {
+	return r.DB.WithContext(ctx).Model(&FirstStockItemModel{}).Where("id = ?", item.ID).Updates(map[string]any{"product_id": item.ProductID, "price": item.Price, "qty": item.Qty, "sub_total": item.SubTotal, "expired_date": item.ExpiredDate}).Error
+}
+
+func (r Repositories) DeleteFirstStockItem(ctx context.Context, id string) error {
+	return r.DB.WithContext(ctx).Where("id = ?", id).Delete(&FirstStockItemModel{}).Error
+}
+
+func (r Repositories) RecalculateFirstStockTotal(ctx context.Context, firstStockID string) (int, error) {
+	var total int
+	if err := r.DB.WithContext(ctx).Table("first_stock_items").Select("COALESCE(SUM(sub_total), 0)").Where("first_stock_id = ?", firstStockID).Scan(&total).Error; err != nil {
+		return 0, err
+	}
+	if err := r.DB.WithContext(ctx).Model(&FirstStockModel{}).Where("id = ?", firstStockID).Update("total_first_stock", total).Error; err != nil {
+		return 0, err
+	}
+	return total, nil
 }
 
 func (r Repositories) DeleteSaleItems(ctx context.Context, saleID string) error {

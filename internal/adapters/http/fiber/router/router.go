@@ -90,6 +90,17 @@ type Dependencies struct {
 		Update(*fiber.Ctx) error
 		Delete(*fiber.Ctx) error
 	}
+	FirstStock interface {
+		List(*fiber.Ctx) error
+		Create(*fiber.Ctx) error
+		Update(*fiber.Ctx) error
+		Delete(*fiber.Ctx) error
+		GetByID(*fiber.Ctx) error
+		ListItems(*fiber.Ctx) error
+		CreateItem(*fiber.Ctx) error
+		UpdateItem(*fiber.Ctx) error
+		DeleteItem(*fiber.Ctx) error
+	}
 	Purchase interface {
 		List(*fiber.Ctx) error
 		GetByID(*fiber.Ctx) error
@@ -221,6 +232,15 @@ func Register(app *fiber.App, deps Dependencies) {
 	app.Post("/api/expenses", deps.AuthMiddleware, deps.Expense.Create)
 	app.Put("/api/expenses/:id", deps.AuthMiddleware, deps.Expense.Update)
 	app.Delete("/api/expenses/:id", deps.AuthMiddleware, deps.Expense.Delete)
+	app.Get("/api/first-stocks", deps.AuthMiddleware, deps.FirstStock.List)
+	app.Post("/api/first-stocks", deps.AuthMiddleware, deps.FirstStock.Create)
+	app.Put("/api/first-stocks/:id", deps.AuthMiddleware, deps.FirstStock.Update)
+	app.Delete("/api/first-stocks/:id", deps.AuthMiddleware, deps.FirstStock.Delete)
+	app.Get("/api/first-stock-with-items/:id", deps.AuthMiddleware, deps.FirstStock.GetByID)
+	app.Get("/api/first-stock-items/:id", deps.AuthMiddleware, deps.FirstStock.ListItems)
+	app.Post("/api/first-stock-items", deps.AuthMiddleware, deps.FirstStock.CreateItem)
+	app.Put("/api/first-stock-items/:id", deps.AuthMiddleware, deps.FirstStock.UpdateItem)
+	app.Delete("/api/first-stock-items/:id", deps.AuthMiddleware, deps.FirstStock.DeleteItem)
 	app.Get("/api/member-categories/excel", deps.AuthMiddleware, deps.Export.MemberCategoriesExcel)
 	app.Get("/api/member-categories/pdf", deps.AuthMiddleware, deps.Export.MemberCategoriesPDF)
 	app.Get("/api/member-categories/:id", deps.AuthMiddleware, deps.MemberCategory.GetByID)
