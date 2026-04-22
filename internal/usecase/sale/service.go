@@ -122,6 +122,194 @@ func (s Service) Delete(ctx context.Context, branchID, id string) error {
 	return nil
 }
 
+func (s Service) ListItems(ctx context.Context, branchID, saleID string) ([]sale.Item, error) {
+	if _, err := s.Repo.FindSaleByID(ctx, branchID, saleID); err != nil {
+		return nil, apperror.New(http.StatusNotFound, "Get sale items failed", "sale not found")
+	}
+	items, err := s.Repo.FindSaleItems(ctx, saleID)
+	if err != nil {
+		return nil, apperror.New(http.StatusInternalServerError, "Get sale items failed", err.Error())
+	}
+	return items, nil
+}
+
+func (s Service) CreateItem(ctx context.Context, branchID string, req sale.CreateItemRequest) (sale.Item, error) {
+	header, err := s.Repo.FindSaleByID(ctx, branchID, req.SaleID)
+	if err != nil {
+		return sale.Item{}, apperror.New(http.StatusNotFound, "Create sale item failed", "sale not found")
+	}
+	prod, err := s.Repo.FindProductByID(ctx, req.ProductID)
+	if err != nil {
+		return sale.Item{}, apperror.New(http.StatusNotFound, "Create sale item failed", "product not found")
+	}
+	if prod.Stock < req.Qty {
+		return sale.Item{}, apperror.New(http.StatusBadRequest, "Create sale item failed", fmt.Sprintf("Insufficient stock for product %s. Available: %d, Requested: %d", prod.Name, prod.Stock, req.Qty))
+	}
+	items, err := s.Repo.FindSaleItems(ctx, req.SaleID)
+	if err != nil {
+		return sale.Item{}, apperror.New(http.StatusInternalServerError, "Create sale item failed", err.Error())
+	}
+	oldTotal := header.TotalSale
+	oldProfit := header.ProfitEstimate
+	for _, existing := range items {
+		if existing.ProductID == req.ProductID {
+			existing.Qty += req.Qty
+			existing.Price = prod.SalesPrice
+			existing.SubTotal = existing.Qty * existing.Price
+			if err := s.Repo.UpdateSaleItem(ctx, existing); err != nil {
+				return sale.Item{}, apperror.New(http.StatusInternalServerError, "Create sale item failed", err.Error())
+			}
+			prod.Stock -= req.Qty
+			if err := s.Repo.UpdateProduct(ctx, prod); err != nil {
+				return sale.Item{}, apperror.New(http.StatusInternalServerError, "Create sale item failed", err.Error())
+			}
+			header.TotalSale += prod.SalesPrice * req.Qty
+			header.ProfitEstimate += (prod.SalesPrice - prod.PurchasePrice) * req.Qty
+			header.UpdatedAt = s.Clock.Now()
+			if err := s.Repo.UpdateSaleHeader(ctx, header); err != nil {
+				return sale.Item{}, apperror.New(http.StatusInternalServerError, "Create sale item failed", err.Error())
+			}
+			if err := s.Repo.UpdateTransactionReport(ctx, header.ID, header.TotalSale, string(header.Payment), header.UpdatedAt); err != nil {
+				return sale.Item{}, apperror.New(http.StatusInternalServerError, "Create sale item failed", err.Error())
+			}
+			if err := s.Repo.AdjustDailyProfit(ctx, header.SaleDate, header.UserID, header.BranchID, header.TotalSale-oldTotal, header.ProfitEstimate-oldProfit, header.UpdatedAt); err != nil {
+				return sale.Item{}, apperror.New(http.StatusInternalServerError, "Create sale item failed", err.Error())
+			}
+			return s.Repo.FindSaleItemByID(ctx, existing.ID)
+		}
+	}
+	item := sale.Item{ID: s.IDs.New("SIT"), SaleID: req.SaleID, ProductID: req.ProductID, Price: prod.SalesPrice, Qty: req.Qty, SubTotal: prod.SalesPrice * req.Qty}
+	if err := s.Repo.CreateSaleItem(ctx, item); err != nil {
+		return sale.Item{}, apperror.New(http.StatusInternalServerError, "Create sale item failed", err.Error())
+	}
+	prod.Stock -= req.Qty
+	if err := s.Repo.UpdateProduct(ctx, prod); err != nil {
+		return sale.Item{}, apperror.New(http.StatusInternalServerError, "Create sale item failed", err.Error())
+	}
+	header.TotalSale += item.SubTotal
+	header.ProfitEstimate += (item.Price - prod.PurchasePrice) * item.Qty
+	header.UpdatedAt = s.Clock.Now()
+	if err := s.Repo.UpdateSaleHeader(ctx, header); err != nil {
+		return sale.Item{}, apperror.New(http.StatusInternalServerError, "Create sale item failed", err.Error())
+	}
+	if err := s.Repo.UpdateTransactionReport(ctx, header.ID, header.TotalSale, string(header.Payment), header.UpdatedAt); err != nil {
+		return sale.Item{}, apperror.New(http.StatusInternalServerError, "Create sale item failed", err.Error())
+	}
+	if err := s.Repo.AdjustDailyProfit(ctx, header.SaleDate, header.UserID, header.BranchID, header.TotalSale-oldTotal, header.ProfitEstimate-oldProfit, header.UpdatedAt); err != nil {
+		return sale.Item{}, apperror.New(http.StatusInternalServerError, "Create sale item failed", err.Error())
+	}
+	return s.Repo.FindSaleItemByID(ctx, item.ID)
+}
+
+func (s Service) UpdateItem(ctx context.Context, branchID, id string, req sale.UpdateItemRequest) (sale.Item, error) {
+	item, err := s.Repo.FindSaleItemByID(ctx, id)
+	if err != nil {
+		return sale.Item{}, apperror.New(http.StatusNotFound, "Update sale item failed", "item not found")
+	}
+	header, err := s.Repo.FindSaleByID(ctx, branchID, item.SaleID)
+	if err != nil {
+		return sale.Item{}, apperror.New(http.StatusNotFound, "Update sale item failed", "sale not found")
+	}
+	oldTotal := header.TotalSale
+	oldProfit := header.ProfitEstimate
+	oldProduct, err := s.Repo.FindProductByID(ctx, item.ProductID)
+	if err != nil {
+		return sale.Item{}, apperror.New(http.StatusInternalServerError, "Update sale item failed", err.Error())
+	}
+	oldProduct.Stock += item.Qty
+	if err := s.Repo.UpdateProduct(ctx, oldProduct); err != nil {
+		return sale.Item{}, apperror.New(http.StatusInternalServerError, "Update sale item failed", err.Error())
+	}
+	newProduct, err := s.Repo.FindProductByID(ctx, req.ProductID)
+	if err != nil {
+		return sale.Item{}, apperror.New(http.StatusNotFound, "Update sale item failed", "product not found")
+	}
+	if newProduct.Stock < req.Qty {
+		return sale.Item{}, apperror.New(http.StatusBadRequest, "Update sale item failed", fmt.Sprintf("Insufficient stock for product %s. Available: %d, Requested: %d", newProduct.Name, newProduct.Stock, req.Qty))
+	}
+	newProduct.Stock -= req.Qty
+	if err := s.Repo.UpdateProduct(ctx, newProduct); err != nil {
+		return sale.Item{}, apperror.New(http.StatusInternalServerError, "Update sale item failed", err.Error())
+	}
+	item.ProductID = req.ProductID
+	item.Price = newProduct.SalesPrice
+	item.Qty = req.Qty
+	item.SubTotal = newProduct.SalesPrice * req.Qty
+	if err := s.Repo.UpdateSaleItem(ctx, item); err != nil {
+		return sale.Item{}, apperror.New(http.StatusInternalServerError, "Update sale item failed", err.Error())
+	}
+	items, err := s.Repo.FindSaleItems(ctx, item.SaleID)
+	if err != nil {
+		return sale.Item{}, apperror.New(http.StatusInternalServerError, "Update sale item failed", err.Error())
+	}
+	var total int
+	var profit int
+	for _, line := range items {
+		total += line.SubTotal
+		profit += line.SubTotal - (line.Price * line.Qty)
+	}
+	header.TotalSale = total - header.Discount
+	header.ProfitEstimate = profit
+	header.UpdatedAt = s.Clock.Now()
+	if err := s.Repo.UpdateSaleHeader(ctx, header); err != nil {
+		return sale.Item{}, apperror.New(http.StatusInternalServerError, "Update sale item failed", err.Error())
+	}
+	if err := s.Repo.UpdateTransactionReport(ctx, header.ID, header.TotalSale, string(header.Payment), header.UpdatedAt); err != nil {
+		return sale.Item{}, apperror.New(http.StatusInternalServerError, "Update sale item failed", err.Error())
+	}
+	if err := s.Repo.AdjustDailyProfit(ctx, header.SaleDate, header.UserID, header.BranchID, header.TotalSale-oldTotal, header.ProfitEstimate-oldProfit, header.UpdatedAt); err != nil {
+		return sale.Item{}, apperror.New(http.StatusInternalServerError, "Update sale item failed", err.Error())
+	}
+	return s.Repo.FindSaleItemByID(ctx, id)
+}
+
+func (s Service) DeleteItem(ctx context.Context, branchID, id string) error {
+	item, err := s.Repo.FindSaleItemByID(ctx, id)
+	if err != nil {
+		return apperror.New(http.StatusNotFound, "Delete sale item failed", "item not found")
+	}
+	header, err := s.Repo.FindSaleByID(ctx, branchID, item.SaleID)
+	if err != nil {
+		return apperror.New(http.StatusNotFound, "Delete sale item failed", "sale not found")
+	}
+	oldTotal := header.TotalSale
+	oldProfit := header.ProfitEstimate
+	prod, err := s.Repo.FindProductByID(ctx, item.ProductID)
+	if err != nil {
+		return apperror.New(http.StatusInternalServerError, "Delete sale item failed", err.Error())
+	}
+	prod.Stock += item.Qty
+	if err := s.Repo.UpdateProduct(ctx, prod); err != nil {
+		return apperror.New(http.StatusInternalServerError, "Delete sale item failed", err.Error())
+	}
+	if err := s.Repo.DeleteSaleItem(ctx, id); err != nil {
+		return apperror.New(http.StatusInternalServerError, "Delete sale item failed", err.Error())
+	}
+	items, err := s.Repo.FindSaleItems(ctx, item.SaleID)
+	if err != nil {
+		return apperror.New(http.StatusInternalServerError, "Delete sale item failed", err.Error())
+	}
+	var total int
+	var profit int
+	for _, line := range items {
+		total += line.SubTotal
+		profit += line.SubTotal - (line.Price * line.Qty)
+	}
+	header.TotalSale = total - header.Discount
+	header.ProfitEstimate = profit
+	header.UpdatedAt = s.Clock.Now()
+	if err := s.Repo.UpdateSaleHeader(ctx, header); err != nil {
+		return apperror.New(http.StatusInternalServerError, "Delete sale item failed", err.Error())
+	}
+	if err := s.Repo.UpdateTransactionReport(ctx, header.ID, header.TotalSale, string(header.Payment), header.UpdatedAt); err != nil {
+		return apperror.New(http.StatusInternalServerError, "Delete sale item failed", err.Error())
+	}
+	if err := s.Repo.AdjustDailyProfit(ctx, header.SaleDate, header.UserID, header.BranchID, header.TotalSale-oldTotal, header.ProfitEstimate-oldProfit, header.UpdatedAt); err != nil {
+		return apperror.New(http.StatusInternalServerError, "Delete sale item failed", err.Error())
+	}
+	return nil
+}
+
 func (s Service) CreateTransaction(ctx context.Context, branchID, userID, defaultMember, subscriptionType string, req sale.CreateSaleRequest) (sale.Sale, []sale.Item, error) {
 	now := s.Clock.Now()
 	payment := common.PaymentStatus(req.Sale.Payment)

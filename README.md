@@ -231,7 +231,11 @@ Api Apotek (Implemented)
 │       ├── Get - /api/sales/:id
 │       ├── Post - /api/sales
 │       ├── Put - /api/sales/:id
-│       └── Delete - /api/sales/:id
+│       ├── Delete - /api/sales/:id
+│       ├── Get - /api/sale-items/all/:id
+│       ├── Post - /api/sale-items
+│       ├── Put - /api/sale-items/:id
+│       └── Delete - /api/sale-items/:id
 └── Audit & Finances/
     └── Opnames/
         ├── Post - /api/opnames

@@ -102,7 +102,11 @@ Api Apotek (Implemented)
 │       ├── Get - /api/sales/:id
 │       ├── Post - /api/sales
 │       ├── Put - /api/sales/:id
-│       └── Delete - /api/sales/:id
+│       ├── Delete - /api/sales/:id
+│       ├── Get - /api/sale-items/all/:id
+│       ├── Post - /api/sale-items
+│       ├── Put - /api/sale-items/:id
+│       └── Delete - /api/sale-items/:id
 └── Audit & Finances/
     └── Opnames/
         ├── Post - /api/opnames
@@ -1270,6 +1274,69 @@ Authorization: Bearer <TOKEN_2>
 
 ---
 
+### GET `/api/sale-items/all/:id`
+**Header:**
+```http
+Authorization: Bearer <TOKEN_2>
+```
+
+**Path param:**
+- `id` = ID sale
+
+---
+
+### POST `/api/sale-items`
+**Header:**
+```http
+Content-Type: application/json
+Authorization: Bearer <TOKEN_2>
+```
+
+**Body contoh:**
+```json
+{
+  "sale_id": "SAL250423000001",
+  "product_id": "PRD25050451578",
+  "qty": 2
+}
+```
+
+**Catatan:**
+- harga item tetap dihitung server-side dari `products.sales_price`
+
+---
+
+### PUT `/api/sale-items/:id`
+**Header:**
+```http
+Content-Type: application/json
+Authorization: Bearer <TOKEN_2>
+```
+
+**Body contoh:**
+```json
+{
+  "product_id": "PRD25050451578",
+  "qty": 3
+}
+```
+
+**Catatan:**
+- harga item tetap dihitung server-side dari `products.sales_price`
+
+---
+
+### DELETE `/api/sale-items/:id`
+**Header:**
+```http
+Authorization: Bearer <TOKEN_2>
+```
+
+**Path param:**
+- `id` = ID sale item
+
+---
+
 ## 14. Opnames
 
 ### POST `/api/opnames`
@@ -1413,6 +1480,10 @@ Authorization: Bearer <TOKEN_2>
 - `POST /api/sales`
 - `PUT /api/sales/:id`
 - `DELETE /api/sales/:id`
+- `GET /api/sale-items/all/:id`
+- `POST /api/sale-items`
+- `PUT /api/sale-items/:id`
+- `DELETE /api/sale-items/:id`
 - `POST /api/opnames`
 - `GET /api/opnames/:id`
 - `POST /api/opname-items`

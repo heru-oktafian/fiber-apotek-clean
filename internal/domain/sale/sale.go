@@ -82,3 +82,14 @@ type CreateSaleRequest struct {
 		Qty       int    `json:"qty" validate:"required,min=1"`
 	} `json:"sale_items" validate:"required,min=1,dive"`
 }
+
+type CreateItemRequest struct {
+	SaleID    string `json:"sale_id" validate:"required"`
+	ProductID string `json:"product_id" validate:"required"`
+	Qty       int    `json:"qty" validate:"required,min=1"`
+}
+
+type UpdateItemRequest struct {
+	ProductID string `json:"product_id" validate:"required"`
+	Qty       int    `json:"qty" validate:"required,min=1"`
+}

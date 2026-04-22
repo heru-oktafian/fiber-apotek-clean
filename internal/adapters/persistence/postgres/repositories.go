@@ -1047,6 +1047,14 @@ func (r Repositories) FindSaleItems(ctx context.Context, saleID string) ([]sale.
 	return items, nil
 }
 
+func (r Repositories) FindSaleItemByID(ctx context.Context, id string) (sale.Item, error) {
+	var m SaleItemModel
+	if err := r.DB.WithContext(ctx).Where("id = ?", id).First(&m).Error; err != nil {
+		return sale.Item{}, err
+	}
+	return sale.Item{ID: m.ID, SaleID: m.SaleID, ProductID: m.ProductID, Price: m.Price, Qty: m.Qty, SubTotal: m.SubTotal}, nil
+}
+
 func (r Repositories) FindSaleDetail(ctx context.Context, branchID, id string) (sale.Detail, error) {
 	var header struct {
 		ID             string
@@ -1078,6 +1086,14 @@ func (r Repositories) FindSaleDetail(ctx context.Context, branchID, id string) (
 	return sale.Detail{ID: header.ID, MemberID: header.MemberID, MemberName: header.MemberName, SaleDate: header.SaleDate.Format("02 January 2006"), TotalSale: header.TotalSale, Discount: header.Discount, ProfitEstimate: header.ProfitEstimate, Payment: header.Payment, Cashier: header.Cashier, Items: items}, nil
 }
 
+func (r Repositories) CreateSaleItem(ctx context.Context, item sale.Item) error {
+	return r.DB.WithContext(ctx).Create(&SaleItemModel{ID: item.ID, SaleID: item.SaleID, ProductID: item.ProductID, Price: item.Price, Qty: item.Qty, SubTotal: item.SubTotal}).Error
+}
+
+func (r Repositories) UpdateSaleItem(ctx context.Context, item sale.Item) error {
+	return r.DB.WithContext(ctx).Model(&SaleItemModel{}).Where("id = ?", item.ID).Updates(map[string]any{"product_id": item.ProductID, "price": item.Price, "qty": item.Qty, "sub_total": item.SubTotal}).Error
+}
+
 func (r Repositories) UpdateSaleHeader(ctx context.Context, item sale.Sale) error {
 	return r.DB.WithContext(ctx).Model(&SaleModel{}).Where("id = ? AND branch_id = ?", item.ID, item.BranchID).Updates(map[string]any{"member_id": item.MemberID, "payment": string(item.Payment), "discount": item.Discount, "total_sale": item.TotalSale, "profit_estimate": item.ProfitEstimate, "updated_at": item.UpdatedAt}).Error
 }
@@ -1096,6 +1112,10 @@ func (r Repositories) AdjustDailyProfit(ctx context.Context, reportDate time.Tim
 	report.ProfitEstimate += profitDelta
 	report.UpdatedAt = now
 	return r.DB.WithContext(ctx).Save(&report).Error
+}
+
+func (r Repositories) DeleteSaleItem(ctx context.Context, id string) error {
+	return r.DB.WithContext(ctx).Where("id = ?", id).Delete(&SaleItemModel{}).Error
 }
 
 func (r Repositories) DeleteSaleItems(ctx context.Context, saleID string) error {

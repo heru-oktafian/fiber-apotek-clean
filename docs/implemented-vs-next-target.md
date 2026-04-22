@@ -196,12 +196,16 @@ Tujuannya sederhana:
 - `POST /api/sales`
 - `PUT /api/sales/:id`
 - `DELETE /api/sales/:id`
+- `GET /api/sale-items/all/:id`
+- `POST /api/sale-items`
+- `PUT /api/sale-items/:id`
+- `DELETE /api/sale-items/:id`
 
 **Catatan:**
 - rewrite tidak mengikuti bug legacy yang terlalu percaya harga client
+- harga sale item tetap dihitung server-side
 
 **Next target:**
-- item-level CRUD (`sale-items/*`)
 - sales detail summary endpoint parity bila masih diperlukan
 - export/print
 
@@ -282,9 +286,8 @@ Urutan yang paling sehat saat ini:
 
 Urutan yang paling sehat saat ini:
 
-1. **Sale items CRUD**
-2. **Returns / Another Incomes / Expenses**
-3. **First Stocks / Reports / Export**
+1. **Returns / Another Incomes / Expenses**
+2. **First Stocks / Reports / Export**
 
 ---
 
