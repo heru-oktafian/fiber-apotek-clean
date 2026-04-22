@@ -17,6 +17,7 @@ import (
 	"github.com/heru-oktafian/fiber-apotek-clean/internal/domain/purchase"
 	"github.com/heru-oktafian/fiber-apotek-clean/internal/domain/sale"
 	"github.com/heru-oktafian/fiber-apotek-clean/internal/domain/supplier"
+	"github.com/heru-oktafian/fiber-apotek-clean/internal/domain/suppliercategory"
 	"github.com/heru-oktafian/fiber-apotek-clean/internal/domain/unit"
 	"github.com/heru-oktafian/fiber-apotek-clean/internal/domain/user"
 	"github.com/heru-oktafian/fiber-apotek-clean/internal/domain/userbranch"
@@ -583,6 +584,65 @@ func (r Repositories) GetProductCategoryCombo(ctx context.Context, branchID, sea
 		query = query.Where("LOWER(name) LIKE ?", "%"+search+"%")
 	}
 	return items, query.Order("name ASC").Scan(&items).Error
+}
+
+func (r Repositories) ListSupplierCategories(ctx context.Context, branchID string, req suppliercategory.ListRequest) (suppliercategory.ListResult, error) {
+	query := r.DB.WithContext(ctx).Table("supplier_categories sc").Select("sc.id, sc.name, sc.branch_id").Where("sc.branch_id = ?", branchID).Order("sc.name ASC")
+	if req.Search != "" {
+		like := "%" + strings.TrimSpace(req.Search) + "%"
+		query = query.Where("sc.name ILIKE ?", like)
+	}
+	var total int64
+	if err := query.Count(&total).Error; err != nil {
+		return suppliercategory.ListResult{}, err
+	}
+	var rows []SupplierCategoryModel
+	offset := (req.Page - 1) * req.Limit
+	if err := query.Offset(offset).Limit(req.Limit).Scan(&rows).Error; err != nil {
+		return suppliercategory.ListResult{}, err
+	}
+	items := make([]suppliercategory.SupplierCategory, 0, len(rows))
+	for _, row := range rows {
+		items = append(items, suppliercategory.SupplierCategory{ID: row.ID, Name: row.Name, BranchID: row.BranchID})
+	}
+	lastPage := 1
+	if req.Limit > 0 {
+		lastPage = int((total + int64(req.Limit) - 1) / int64(req.Limit))
+		if lastPage == 0 {
+			lastPage = 1
+		}
+	}
+	return suppliercategory.ListResult{Items: items, Meta: suppliercategory.ListMeta{Page: req.Page, Limit: req.Limit, Search: req.Search, TotalData: int(total), LastPage: lastPage}}, nil
+}
+
+func (r Repositories) FindSupplierCategoryByID(ctx context.Context, id uint, branchID string) (suppliercategory.SupplierCategory, error) {
+	var m SupplierCategoryModel
+	if err := r.DB.WithContext(ctx).Where("id = ? AND branch_id = ?", id, branchID).First(&m).Error; err != nil {
+		return suppliercategory.SupplierCategory{}, err
+	}
+	return suppliercategory.SupplierCategory{ID: m.ID, Name: m.Name, BranchID: m.BranchID}, nil
+}
+
+func (r Repositories) CreateSupplierCategory(ctx context.Context, item suppliercategory.SupplierCategory) (suppliercategory.SupplierCategory, error) {
+	m := SupplierCategoryModel{Name: item.Name, BranchID: item.BranchID}
+	if err := r.DB.WithContext(ctx).Create(&m).Error; err != nil {
+		return suppliercategory.SupplierCategory{}, err
+	}
+	return suppliercategory.SupplierCategory{ID: m.ID, Name: m.Name, BranchID: m.BranchID}, nil
+}
+
+func (r Repositories) UpdateSupplierCategory(ctx context.Context, item suppliercategory.SupplierCategory) error {
+	return r.DB.WithContext(ctx).Model(&SupplierCategoryModel{}).Where("id = ? AND branch_id = ?", item.ID, item.BranchID).Update("name", item.Name).Error
+}
+
+func (r Repositories) DeleteSupplierCategory(ctx context.Context, id uint, branchID string) error {
+	return r.DB.WithContext(ctx).Where("id = ? AND branch_id = ?", id, branchID).Delete(&SupplierCategoryModel{}).Error
+}
+
+func (r Repositories) GetSupplierCategoryCombo(ctx context.Context, branchID string) ([]suppliercategory.ComboItem, error) {
+	var items []suppliercategory.ComboItem
+	query := r.DB.WithContext(ctx).Table("supplier_categories").Select("id AS supplier_category_id, name AS supplier_category_name").Where("branch_id = ?", branchID).Order("name ASC")
+	return items, query.Scan(&items).Error
 }
 
 func (r Repositories) FindUnitByID(ctx context.Context, id string) (unit.Unit, error) {

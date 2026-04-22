@@ -58,6 +58,14 @@ type Dependencies struct {
 		Delete(*fiber.Ctx) error
 		Combo(*fiber.Ctx) error
 	}
+	SupplierCategory interface {
+		List(*fiber.Ctx) error
+		GetByID(*fiber.Ctx) error
+		Create(*fiber.Ctx) error
+		Update(*fiber.Ctx) error
+		Delete(*fiber.Ctx) error
+		Combo(*fiber.Ctx) error
+	}
 	Purchase interface {
 		Create(*fiber.Ctx) error
 	}
@@ -114,6 +122,12 @@ func Register(app *fiber.App, deps Dependencies) {
 	app.Put("/api/product-categories/:id", deps.AuthMiddleware, deps.ProductCategory.Update)
 	app.Delete("/api/product-categories/:id", deps.AuthMiddleware, deps.ProductCategory.Delete)
 	app.Get("/api/product-categories-combo", deps.AuthMiddleware, deps.ProductCategory.Combo)
+	app.Get("/api/supplier-categories", deps.AuthMiddleware, deps.SupplierCategory.List)
+	app.Post("/api/supplier-categories", deps.AuthMiddleware, deps.SupplierCategory.Create)
+	app.Get("/api/supplier-categories/:id", deps.AuthMiddleware, deps.SupplierCategory.GetByID)
+	app.Put("/api/supplier-categories/:id", deps.AuthMiddleware, deps.SupplierCategory.Update)
+	app.Delete("/api/supplier-categories/:id", deps.AuthMiddleware, deps.SupplierCategory.Delete)
+	app.Get("/api/supplier-categories-combo", deps.AuthMiddleware, deps.SupplierCategory.Combo)
 	app.Post("/api/purchases", deps.AuthMiddleware, deps.Purchase.Create)
 	app.Post("/api/sales", deps.AuthMiddleware, deps.Sale.Create)
 	app.Post("/api/opnames", deps.AuthMiddleware, deps.Opname.Create)

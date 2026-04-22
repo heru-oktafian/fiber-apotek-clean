@@ -61,13 +61,20 @@ Api Apotek (Implemented)
 │   │   ├── Put - /api/units/:id
 │   │   ├── Delete - /api/units/:id
 │   │   └── Get - /api/cmb-units
-│   └── Product Categories/
-│       ├── Get - /api/product-categories
-│       ├── Post - /api/product-categories
-│       ├── Get - /api/product-categories/:id
-│       ├── Put - /api/product-categories/:id
-│       ├── Delete - /api/product-categories/:id
-│       └── Get - /api/product-categories-combo
+│   ├── Product Categories/
+│   │   ├── Get - /api/product-categories
+│   │   ├── Post - /api/product-categories
+│   │   ├── Get - /api/product-categories/:id
+│   │   ├── Put - /api/product-categories/:id
+│   │   ├── Delete - /api/product-categories/:id
+│   │   └── Get - /api/product-categories-combo
+│   └── Supplier Categories/
+│       ├── Get - /api/supplier-categories
+│       ├── Post - /api/supplier-categories
+│       ├── Get - /api/supplier-categories/:id
+│       ├── Put - /api/supplier-categories/:id
+│       ├── Delete - /api/supplier-categories/:id
+│       └── Get - /api/supplier-categories-combo
 ├── Transactions/
 │   ├── Purchases/
 │   │   └── Post - /api/purchases
@@ -758,7 +765,89 @@ Authorization: Bearer <TOKEN_2>
 
 ---
 
-## 10. Purchases
+## 10. Supplier Categories
+
+### GET `/api/supplier-categories`
+**Header:**
+```http
+Authorization: Bearer <TOKEN_2>
+```
+
+**Query params opsional:**
+- `page`
+- `limit`
+- `search`
+
+---
+
+### POST `/api/supplier-categories`
+**Header:**
+```http
+Content-Type: application/json
+Authorization: Bearer <TOKEN_2>
+```
+
+**Body contoh:**
+```json
+{
+  "name": "Obat Pabrik"
+}
+```
+
+**Catatan:**
+- field wajib: `name`
+- ID supplier category mengikuti schema legacy, yaitu auto increment numeric (`uint`)
+- branch mengikuti branch context dari token
+
+---
+
+### GET `/api/supplier-categories/:id`
+**Header:**
+```http
+Authorization: Bearer <TOKEN_2>
+```
+
+**Path param:**
+- `id` = numeric ID supplier category
+
+---
+
+### PUT `/api/supplier-categories/:id`
+**Header:**
+```http
+Content-Type: application/json
+Authorization: Bearer <TOKEN_2>
+```
+
+**Body contoh:**
+```json
+{
+  "name": "Distributor Utama"
+}
+```
+
+---
+
+### DELETE `/api/supplier-categories/:id`
+**Header:**
+```http
+Authorization: Bearer <TOKEN_2>
+```
+
+**Path param:**
+- `id` = numeric ID supplier category
+
+---
+
+### GET `/api/supplier-categories-combo`
+**Header:**
+```http
+Authorization: Bearer <TOKEN_2>
+```
+
+---
+
+## 11. Purchases
 
 ### POST `/api/purchases`
 **Header:**
@@ -933,6 +1022,12 @@ Authorization: Bearer <TOKEN_2>
 - `PUT /api/product-categories/:id`
 - `DELETE /api/product-categories/:id`
 - `GET /api/product-categories-combo`
+- `GET /api/supplier-categories`
+- `POST /api/supplier-categories`
+- `GET /api/supplier-categories/:id`
+- `PUT /api/supplier-categories/:id`
+- `DELETE /api/supplier-categories/:id`
+- `GET /api/supplier-categories-combo`
 - `POST /api/purchases`
 - `POST /api/sales`
 - `POST /api/opnames`

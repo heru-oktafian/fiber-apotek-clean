@@ -145,13 +145,28 @@ Tujuannya sederhana:
 - validasi kontrak frontend bila ada format khusus
 - export PDF/Excel kalau nanti dibutuhkan parity penuh
 
-### Supplier Categories / Unit Conversions
+### Supplier Categories
+**Implemented:**
+- `GET /api/supplier-categories`
+- `POST /api/supplier-categories`
+- `GET /api/supplier-categories/:id`
+- `PUT /api/supplier-categories/:id`
+- `DELETE /api/supplier-categories/:id`
+- `GET /api/supplier-categories-combo`
+
+**Catatan:**
+- ID supplier category mengikuti schema legacy, yaitu numeric auto increment
+
+**Next target:**
+- validasi kontrak frontend bila perlu
+- export PDF/Excel jika nanti dibutuhkan parity penuh
+
+### Unit Conversions
 **Implemented:**
 - belum ada
 
 **Next target:**
-- supplier categories jadi kandidat berikutnya
-- unit conversions bisa menyusul sebelum products full CRUD kalau frontend benar-benar butuh
+- bisa menyusul sebelum products full CRUD kalau frontend benar-benar butuh
 
 ---
 
@@ -236,12 +251,11 @@ Tujuannya sederhana:
 
 Urutan yang paling sehat saat ini:
 
-1. **Supplier Categories**
-2. **Member Categories**
-3. **Products full CRUD**
-4. **Purchases & Sales full CRUD**
-5. **Returns / Another Incomes / Expenses**
-6. **First Stocks / Reports / Export**
+1. **Member Categories**
+2. **Products full CRUD**
+3. **Purchases & Sales full CRUD**
+4. **Returns / Another Incomes / Expenses**
+5. **First Stocks / Reports / Export**
 
 ---
 

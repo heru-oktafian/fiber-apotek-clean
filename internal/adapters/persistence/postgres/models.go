@@ -79,8 +79,9 @@ type SupplierModel struct {
 func (SupplierModel) TableName() string { return "suppliers" }
 
 type SupplierCategoryModel struct {
-	ID   uint   `gorm:"column:id;primaryKey"`
-	Name string `gorm:"column:name"`
+	ID       uint   `gorm:"column:id;primaryKey"`
+	Name     string `gorm:"column:name"`
+	BranchID string `gorm:"column:branch_id"`
 }
 
 func (SupplierCategoryModel) TableName() string { return "supplier_categories" }
