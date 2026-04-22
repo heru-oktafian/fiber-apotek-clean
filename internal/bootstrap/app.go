@@ -48,8 +48,9 @@ type bcryptComparer struct{}
 type bcryptHasher struct{}
 
 type exportBundle struct {
-	base   handlers.ExportHandler
-	master handlers.ExportMasterHandler
+	base        handlers.ExportHandler
+	master      handlers.ExportMasterHandler
+	transaction handlers.ExportTransactionHandler
 }
 
 func (e exportBundle) ProductsExcel(c *fiber.Ctx) error            { return e.base.ProductsExcel(c) }
@@ -64,6 +65,14 @@ func (e exportBundle) SupplierCategoriesExcel(c *fiber.Ctx) error  { return e.ma
 func (e exportBundle) SupplierCategoriesPDF(c *fiber.Ctx) error    { return e.master.SupplierCategoriesPDF(c) }
 func (e exportBundle) MemberCategoriesExcel(c *fiber.Ctx) error    { return e.master.MemberCategoriesExcel(c) }
 func (e exportBundle) MemberCategoriesPDF(c *fiber.Ctx) error      { return e.master.MemberCategoriesPDF(c) }
+func (e exportBundle) PurchasesExcel(c *fiber.Ctx) error           { return e.transaction.PurchasesExcel(c) }
+func (e exportBundle) PurchasesPDF(c *fiber.Ctx) error             { return e.transaction.PurchasesPDF(c) }
+func (e exportBundle) PurchaseItemsExcel(c *fiber.Ctx) error       { return e.transaction.PurchaseItemsExcel(c) }
+func (e exportBundle) PurchaseItemsPDF(c *fiber.Ctx) error         { return e.transaction.PurchaseItemsPDF(c) }
+func (e exportBundle) SalesExcel(c *fiber.Ctx) error               { return e.transaction.SalesExcel(c) }
+func (e exportBundle) SalesPDF(c *fiber.Ctx) error                 { return e.transaction.SalesPDF(c) }
+func (e exportBundle) SaleItemsExcel(c *fiber.Ctx) error           { return e.transaction.SaleItemsExcel(c) }
+func (e exportBundle) SaleItemsPDF(c *fiber.Ctx) error             { return e.transaction.SaleItemsPDF(c) }
 
 func (bcryptComparer) Compare(hashed string, plain string) error {
 	return bcrypt.CompareHashAndPassword([]byte(hashed), []byte(plain))
@@ -109,10 +118,11 @@ func New() (*App, error) {
 	opnameHandler := handlers.OpnameHandler{Service: opnameusecase.Service{Repo: repos, IDs: ids, Clock: clk}}
 	exportHandler := handlers.ExportHandler{Products: productusecase.Service{Products: repos, IDs: ids}, Units: unitusecase.MasterService{Units: repos, IDs: ids}}
 	exportMasterHandler := handlers.ExportMasterHandler{ProductCategories: productcategoryusecase.Service{Categories: repos}, Suppliers: supplierusecase.Service{Suppliers: repos, IDs: ids}, SupplierCategories: suppliercategoryusecase.Service{Categories: repos}, MemberCategories: membercategoryusecase.Service{Categories: repos}}
+	exportTransactionHandler := handlers.ExportTransactionHandler{Purchases: purchaseusecase.Service{Repo: repos, IDs: ids, Clock: clk}, Sales: saleusecase.Service{Repo: repos, IDs: ids, Clock: clk}}
 
 	app := fiber.New(fiber.Config{DisableStartupMessage: true, ReadTimeout: 30 * time.Second, WriteTimeout: 30 * time.Second})
 	app.Use(console.RequestLogger())
 	authMw := middleware.RequireAuth(jwtSvc, blacklist)
-	router.Register(app, router.Dependencies{Auth: authHandler, Branch: branchHandler, UserBranch: userBranchHandler, User: userHandler, Product: productHandler, Supplier: supplierHandler, Unit: unitHandler, ProductCategory: productCategoryHandler, SupplierCategory: supplierCategoryHandler, MemberCategory: memberCategoryHandler, Purchase: purchaseHandler, Sale: saleHandler, Opname: opnameHandler, Export: exportBundle{base: exportHandler, master: exportMasterHandler}, AuthMiddleware: authMw})
+	router.Register(app, router.Dependencies{Auth: authHandler, Branch: branchHandler, UserBranch: userBranchHandler, User: userHandler, Product: productHandler, Supplier: supplierHandler, Unit: unitHandler, ProductCategory: productCategoryHandler, SupplierCategory: supplierCategoryHandler, MemberCategory: memberCategoryHandler, Purchase: purchaseHandler, Sale: saleHandler, Opname: opnameHandler, Export: exportBundle{base: exportHandler, master: exportMasterHandler, transaction: exportTransactionHandler}, AuthMiddleware: authMw})
 	return &App{Fiber: app, Config: cfg}, nil
 }

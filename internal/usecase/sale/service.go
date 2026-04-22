@@ -4,11 +4,13 @@ import (
 	"context"
 	"fmt"
 	"net/http"
+	"time"
 
 	"github.com/heru-oktafian/fiber-apotek-clean/internal/domain/common"
 	"github.com/heru-oktafian/fiber-apotek-clean/internal/domain/sale"
 	"github.com/heru-oktafian/fiber-apotek-clean/internal/ports"
 	"github.com/heru-oktafian/fiber-apotek-clean/internal/shared/apperror"
+	exportshared "github.com/heru-oktafian/fiber-apotek-clean/internal/shared/export"
 )
 
 type Service struct {
@@ -308,6 +310,125 @@ func (s Service) DeleteItem(ctx context.Context, branchID, id string) error {
 		return apperror.New(http.StatusInternalServerError, "Delete sale item failed", err.Error())
 	}
 	return nil
+}
+
+func (s Service) ExportExcel(ctx context.Context, branchID, month string) ([]byte, string, error) {
+	items, err := s.Repo.ListSales(ctx, branchID, sale.ListRequest{Page: 1, Limit: 10000})
+	if err != nil {
+		return nil, "", apperror.New(http.StatusInternalServerError, "Export sales excel failed", err.Error())
+	}
+	f := exportshared.NewExcelFile("Sales")
+	sheet := "Sales"
+	f.SetCellValue(sheet, "A1", "DATA PENJUALAN")
+	headers := []string{"ID", "MEMBER", "DATE", "TOTAL", "DISCOUNT", "PAYMENT", "CASHIER"}
+	for i, h := range headers {
+		col, _ := exportshared.ExcelColumnName(i + 1)
+		f.SetCellValue(sheet, fmt.Sprintf("%s3", col), h)
+	}
+	for i, item := range items.Items {
+		row := i + 4
+		f.SetCellValue(sheet, fmt.Sprintf("A%d", row), item.ID)
+		f.SetCellValue(sheet, fmt.Sprintf("B%d", row), item.MemberName)
+		f.SetCellValue(sheet, fmt.Sprintf("C%d", row), item.SaleDate.Format("02/01/2006"))
+		f.SetCellValue(sheet, fmt.Sprintf("D%d", row), item.TotalSale)
+		f.SetCellValue(sheet, fmt.Sprintf("E%d", row), item.Discount)
+		f.SetCellValue(sheet, fmt.Sprintf("F%d", row), item.Payment)
+		f.SetCellValue(sheet, fmt.Sprintf("G%d", row), item.Cashier)
+	}
+	bytes, err := exportshared.WriteExcel(f)
+	if err != nil {
+		return nil, "", apperror.New(http.StatusInternalServerError, "Export sales excel failed", err.Error())
+	}
+	return bytes, fmt.Sprintf("sales-%s.xlsx", time.Now().Format("2006-01-02-15-04-05")), nil
+}
+
+func (s Service) ExportPDF(ctx context.Context, branchID, month string) ([]byte, string, error) {
+	items, err := s.Repo.ListSales(ctx, branchID, sale.ListRequest{Page: 1, Limit: 10000})
+	if err != nil {
+		return nil, "", apperror.New(http.StatusInternalServerError, "Export sales pdf failed", err.Error())
+	}
+	pdf := exportshared.NewPDF("PENJUALAN")
+	pdf.SetFont("Arial", "B", 14)
+	pdf.CellFormat(277, 10, "PENJUALAN", "", 1, "C", false, 0, "")
+	pdf.SetFont("Arial", "B", 9)
+	widths := []float64{30, 55, 35, 35, 25, 40, 57}
+	headers := []string{"ID", "MEMBER", "DATE", "TOTAL", "DISC", "PAYMENT", "CASHIER"}
+	for i, h := range headers {
+		pdf.CellFormat(widths[i], 8, h, "1", 0, "C", false, 0, "")
+	}
+	pdf.Ln(-1)
+	pdf.SetFont("Arial", "", 8)
+	for _, item := range items.Items {
+		values := []string{item.ID, item.MemberName, item.SaleDate.Format("02/01/2006"), fmt.Sprintf("%d", item.TotalSale), fmt.Sprintf("%d", item.Discount), string(item.Payment), item.Cashier}
+		for i, v := range values {
+			pdf.CellFormat(widths[i], 8, v, "1", 0, "L", false, 0, "")
+		}
+		pdf.Ln(-1)
+	}
+	bytes, err := exportshared.WritePDF(pdf)
+	if err != nil {
+		return nil, "", apperror.New(http.StatusInternalServerError, "Export sales pdf failed", err.Error())
+	}
+	return bytes, fmt.Sprintf("PENJUALAN-%s.pdf", time.Now().Format("2006-01-02-15-04-05")), nil
+}
+
+func (s Service) ExportItemsExcel(ctx context.Context, branchID, saleID string) ([]byte, string, error) {
+	items, err := s.ListItems(ctx, branchID, saleID)
+	if err != nil {
+		return nil, "", err
+	}
+	f := exportshared.NewExcelFile("Sale Items")
+	sheet := "Sale Items"
+	f.SetCellValue(sheet, "A1", "DETAIL PENJUALAN")
+	headers := []string{"ID", "PRODUCT", "UNIT", "PRICE", "QTY", "SUB TOTAL"}
+	for i, h := range headers {
+		col, _ := exportshared.ExcelColumnName(i + 1)
+		f.SetCellValue(sheet, fmt.Sprintf("%s3", col), h)
+	}
+	for i, item := range items {
+		row := i + 4
+		f.SetCellValue(sheet, fmt.Sprintf("A%d", row), item.ID)
+		f.SetCellValue(sheet, fmt.Sprintf("B%d", row), item.ProductName)
+		f.SetCellValue(sheet, fmt.Sprintf("C%d", row), item.UnitName)
+		f.SetCellValue(sheet, fmt.Sprintf("D%d", row), item.Price)
+		f.SetCellValue(sheet, fmt.Sprintf("E%d", row), item.Qty)
+		f.SetCellValue(sheet, fmt.Sprintf("F%d", row), item.SubTotal)
+	}
+	bytes, err := exportshared.WriteExcel(f)
+	if err != nil {
+		return nil, "", apperror.New(http.StatusInternalServerError, "Export sale items excel failed", err.Error())
+	}
+	return bytes, fmt.Sprintf("DETAIL-PENJUALAN-%s-%s.xlsx", saleID, time.Now().Format("20060102150405")), nil
+}
+
+func (s Service) ExportItemsPDF(ctx context.Context, branchID, saleID string) ([]byte, string, error) {
+	items, err := s.ListItems(ctx, branchID, saleID)
+	if err != nil {
+		return nil, "", err
+	}
+	pdf := exportshared.NewPDF("DETAIL PENJUALAN")
+	pdf.SetFont("Arial", "B", 14)
+	pdf.CellFormat(277, 10, "DETAIL PENJUALAN", "", 1, "C", false, 0, "")
+	pdf.SetFont("Arial", "B", 9)
+	widths := []float64{30, 95, 40, 35, 25, 52}
+	headers := []string{"ID", "PRODUCT", "UNIT", "PRICE", "QTY", "SUB TOTAL"}
+	for i, h := range headers {
+		pdf.CellFormat(widths[i], 8, h, "1", 0, "C", false, 0, "")
+	}
+	pdf.Ln(-1)
+	pdf.SetFont("Arial", "", 8)
+	for _, item := range items {
+		values := []string{item.ID, item.ProductName, item.UnitName, fmt.Sprintf("%d", item.Price), fmt.Sprintf("%d", item.Qty), fmt.Sprintf("%d", item.SubTotal)}
+		for i, v := range values {
+			pdf.CellFormat(widths[i], 8, v, "1", 0, "L", false, 0, "")
+		}
+		pdf.Ln(-1)
+	}
+	bytes, err := exportshared.WritePDF(pdf)
+	if err != nil {
+		return nil, "", apperror.New(http.StatusInternalServerError, "Export sale items pdf failed", err.Error())
+	}
+	return bytes, fmt.Sprintf("DETAIL-PENJUALAN-%s-%s.pdf", saleID, time.Now().Format("2006-01-02-15-04-05")), nil
 }
 
 func (s Service) CreateTransaction(ctx context.Context, branchID, userID, defaultMember, subscriptionType string, req sale.CreateSaleRequest) (sale.Sale, []sale.Item, error) {

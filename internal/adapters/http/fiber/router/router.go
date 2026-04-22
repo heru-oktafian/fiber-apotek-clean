@@ -119,6 +119,14 @@ type Dependencies struct {
 		SupplierCategoriesPDF(*fiber.Ctx) error
 		MemberCategoriesExcel(*fiber.Ctx) error
 		MemberCategoriesPDF(*fiber.Ctx) error
+		PurchasesExcel(*fiber.Ctx) error
+		PurchasesPDF(*fiber.Ctx) error
+		PurchaseItemsExcel(*fiber.Ctx) error
+		PurchaseItemsPDF(*fiber.Ctx) error
+		SalesExcel(*fiber.Ctx) error
+		SalesPDF(*fiber.Ctx) error
+		SaleItemsExcel(*fiber.Ctx) error
+		SaleItemsPDF(*fiber.Ctx) error
 	}
 	AuthMiddleware fiber.Handler
 }
@@ -193,6 +201,10 @@ func Register(app *fiber.App, deps Dependencies) {
 	app.Delete("/api/member-categories/:id", deps.AuthMiddleware, deps.MemberCategory.Delete)
 	app.Get("/api/member-categories-combo", deps.AuthMiddleware, deps.MemberCategory.Combo)
 	app.Get("/api/purchases", deps.AuthMiddleware, deps.Purchase.List)
+	app.Get("/api/purchases/excel", deps.AuthMiddleware, deps.Export.PurchasesExcel)
+	app.Get("/api/purchases/pdf", deps.AuthMiddleware, deps.Export.PurchasesPDF)
+	app.Get("/api/purchase-items/excel", deps.AuthMiddleware, deps.Export.PurchaseItemsExcel)
+	app.Get("/api/purchase-items/pdf", deps.AuthMiddleware, deps.Export.PurchaseItemsPDF)
 	app.Get("/api/purchases/:id", deps.AuthMiddleware, deps.Purchase.GetByID)
 	app.Post("/api/purchases", deps.AuthMiddleware, deps.Purchase.Create)
 	app.Put("/api/purchases/:id", deps.AuthMiddleware, deps.Purchase.Update)
@@ -202,6 +214,10 @@ func Register(app *fiber.App, deps Dependencies) {
 	app.Put("/api/purchase-items/:id", deps.AuthMiddleware, deps.Purchase.UpdateItem)
 	app.Delete("/api/purchase-items/:id", deps.AuthMiddleware, deps.Purchase.DeleteItem)
 	app.Get("/api/sales", deps.AuthMiddleware, deps.Sale.List)
+	app.Get("/api/sales/excel", deps.AuthMiddleware, deps.Export.SalesExcel)
+	app.Get("/api/sales/pdf", deps.AuthMiddleware, deps.Export.SalesPDF)
+	app.Get("/api/sale-items/excel", deps.AuthMiddleware, deps.Export.SaleItemsExcel)
+	app.Get("/api/sale-items/pdf", deps.AuthMiddleware, deps.Export.SaleItemsPDF)
 	app.Get("/api/sales/:id", deps.AuthMiddleware, deps.Sale.GetByID)
 	app.Post("/api/sales", deps.AuthMiddleware, deps.Sale.Create)
 	app.Put("/api/sales/:id", deps.AuthMiddleware, deps.Sale.Update)

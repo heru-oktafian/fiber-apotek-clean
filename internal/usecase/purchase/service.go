@@ -10,6 +10,7 @@ import (
 	"github.com/heru-oktafian/fiber-apotek-clean/internal/domain/purchase"
 	"github.com/heru-oktafian/fiber-apotek-clean/internal/ports"
 	"github.com/heru-oktafian/fiber-apotek-clean/internal/shared/apperror"
+	exportshared "github.com/heru-oktafian/fiber-apotek-clean/internal/shared/export"
 )
 
 type Service struct {
@@ -228,6 +229,124 @@ func (s Service) DeleteItem(ctx context.Context, branchID, id string) error {
 		return apperror.New(http.StatusInternalServerError, "Delete purchase item failed", err.Error())
 	}
 	return nil
+}
+
+func (s Service) ExportExcel(ctx context.Context, branchID, month string) ([]byte, string, error) {
+	items, err := s.Repo.ListPurchases(ctx, branchID, purchase.ListRequest{Page: 1, Limit: 10000})
+	if err != nil {
+		return nil, "", apperror.New(http.StatusInternalServerError, "Export purchases excel failed", err.Error())
+	}
+	f := exportshared.NewExcelFile("Purchases")
+	sheet := "Purchases"
+	f.SetCellValue(sheet, "A1", "DATA PEMBELIAN")
+	headers := []string{"ID", "SUPPLIER", "DATE", "TOTAL", "PAYMENT"}
+	for i, h := range headers {
+		col, _ := exportshared.ExcelColumnName(i + 1)
+		f.SetCellValue(sheet, fmt.Sprintf("%s3", col), h)
+	}
+	for i, item := range items.Items {
+		row := i + 4
+		f.SetCellValue(sheet, fmt.Sprintf("A%d", row), item.ID)
+		f.SetCellValue(sheet, fmt.Sprintf("B%d", row), item.SupplierName)
+		f.SetCellValue(sheet, fmt.Sprintf("C%d", row), item.PurchaseDate.Format("02/01/2006"))
+		f.SetCellValue(sheet, fmt.Sprintf("D%d", row), item.TotalPurchase)
+		f.SetCellValue(sheet, fmt.Sprintf("E%d", row), item.Payment)
+	}
+	bytes, err := exportshared.WriteExcel(f)
+	if err != nil {
+		return nil, "", apperror.New(http.StatusInternalServerError, "Export purchases excel failed", err.Error())
+	}
+	return bytes, fmt.Sprintf("purchases-%s.xlsx", time.Now().Format("2006-01-02-15-04-05")), nil
+}
+
+func (s Service) ExportPDF(ctx context.Context, branchID, month string) ([]byte, string, error) {
+	items, err := s.Repo.ListPurchases(ctx, branchID, purchase.ListRequest{Page: 1, Limit: 10000})
+	if err != nil {
+		return nil, "", apperror.New(http.StatusInternalServerError, "Export purchases pdf failed", err.Error())
+	}
+	pdf := exportshared.NewPDF("PEMBELIAN")
+	pdf.SetFont("Arial", "B", 14)
+	pdf.CellFormat(277, 10, "PEMBELIAN", "", 1, "C", false, 0, "")
+	pdf.SetFont("Arial", "B", 10)
+	widths := []float64{45, 80, 40, 50, 62}
+	headers := []string{"ID", "SUPPLIER", "DATE", "TOTAL", "PAYMENT"}
+	for i, h := range headers {
+		pdf.CellFormat(widths[i], 8, h, "1", 0, "C", false, 0, "")
+	}
+	pdf.Ln(-1)
+	pdf.SetFont("Arial", "", 9)
+	for _, item := range items.Items {
+		values := []string{item.ID, item.SupplierName, item.PurchaseDate.Format("02/01/2006"), fmt.Sprintf("%d", item.TotalPurchase), string(item.Payment)}
+		for i, v := range values {
+			pdf.CellFormat(widths[i], 8, v, "1", 0, "L", false, 0, "")
+		}
+		pdf.Ln(-1)
+	}
+	bytes, err := exportshared.WritePDF(pdf)
+	if err != nil {
+		return nil, "", apperror.New(http.StatusInternalServerError, "Export purchases pdf failed", err.Error())
+	}
+	return bytes, fmt.Sprintf("PEMBELIAN-%s.pdf", time.Now().Format("2006-01-02-15-04-05")), nil
+}
+
+func (s Service) ExportItemsExcel(ctx context.Context, branchID, purchaseID string) ([]byte, string, error) {
+	items, err := s.ListItems(ctx, branchID, purchaseID)
+	if err != nil {
+		return nil, "", err
+	}
+	f := exportshared.NewExcelFile("Purchase Items")
+	sheet := "Purchase Items"
+	f.SetCellValue(sheet, "A1", "DETAIL PEMBELIAN")
+	headers := []string{"ID", "PRODUCT", "UNIT", "PRICE", "QTY", "SUB TOTAL", "EXPIRED DATE"}
+	for i, h := range headers {
+		col, _ := exportshared.ExcelColumnName(i + 1)
+		f.SetCellValue(sheet, fmt.Sprintf("%s3", col), h)
+	}
+	for i, item := range items {
+		row := i + 4
+		f.SetCellValue(sheet, fmt.Sprintf("A%d", row), item.ID)
+		f.SetCellValue(sheet, fmt.Sprintf("B%d", row), item.ProductName)
+		f.SetCellValue(sheet, fmt.Sprintf("C%d", row), item.UnitName)
+		f.SetCellValue(sheet, fmt.Sprintf("D%d", row), item.Price)
+		f.SetCellValue(sheet, fmt.Sprintf("E%d", row), item.Qty)
+		f.SetCellValue(sheet, fmt.Sprintf("F%d", row), item.SubTotal)
+		f.SetCellValue(sheet, fmt.Sprintf("G%d", row), item.ExpiredDate.Format("02/01/2006"))
+	}
+	bytes, err := exportshared.WriteExcel(f)
+	if err != nil {
+		return nil, "", apperror.New(http.StatusInternalServerError, "Export purchase items excel failed", err.Error())
+	}
+	return bytes, fmt.Sprintf("DETAIL-PEMBELIAN-%s-%s.xlsx", purchaseID, time.Now().Format("20060102150405")), nil
+}
+
+func (s Service) ExportItemsPDF(ctx context.Context, branchID, purchaseID string) ([]byte, string, error) {
+	items, err := s.ListItems(ctx, branchID, purchaseID)
+	if err != nil {
+		return nil, "", err
+	}
+	pdf := exportshared.NewPDF("DETAIL PEMBELIAN")
+	pdf.SetFont("Arial", "B", 14)
+	pdf.CellFormat(277, 10, "DETAIL PEMBELIAN", "", 1, "C", false, 0, "")
+	pdf.SetFont("Arial", "B", 9)
+	widths := []float64{25, 70, 30, 30, 20, 35, 67}
+	headers := []string{"ID", "PRODUCT", "UNIT", "PRICE", "QTY", "SUB TOTAL", "EXPIRED DATE"}
+	for i, h := range headers {
+		pdf.CellFormat(widths[i], 8, h, "1", 0, "C", false, 0, "")
+	}
+	pdf.Ln(-1)
+	pdf.SetFont("Arial", "", 8)
+	for _, item := range items {
+		values := []string{item.ID, item.ProductName, item.UnitName, fmt.Sprintf("%d", item.Price), fmt.Sprintf("%d", item.Qty), fmt.Sprintf("%d", item.SubTotal), item.ExpiredDate.Format("02/01/2006")}
+		for i, v := range values {
+			pdf.CellFormat(widths[i], 8, v, "1", 0, "L", false, 0, "")
+		}
+		pdf.Ln(-1)
+	}
+	bytes, err := exportshared.WritePDF(pdf)
+	if err != nil {
+		return nil, "", apperror.New(http.StatusInternalServerError, "Export purchase items pdf failed", err.Error())
+	}
+	return bytes, fmt.Sprintf("DETAIL-PEMBELIAN-%s.pdf", purchaseID), nil
 }
 
 func (s Service) CreateTransaction(ctx context.Context, branchID, userID string, req purchase.CreatePurchaseRequest) (purchase.Purchase, []purchase.Item, error) {

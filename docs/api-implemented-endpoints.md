@@ -129,20 +129,28 @@ Api Apotek (Implemented)
 ├── Transactions/
 │   ├── Purchases/
 │   │   ├── Get - /api/purchases
+│   │   ├── Get - /api/purchases/excel
+│   │   ├── Get - /api/purchases/pdf
 │   │   ├── Get - /api/purchases/:id
 │   │   ├── Post - /api/purchases
 │   │   ├── Put - /api/purchases/:id
 │   │   ├── Delete - /api/purchases/:id
+│   │   ├── Get - /api/purchase-items/excel
+│   │   ├── Get - /api/purchase-items/pdf
 │   │   ├── Get - /api/purchase-items/all/:id
 │   │   ├── Post - /api/purchase-items
 │   │   ├── Put - /api/purchase-items/:id
 │   │   └── Delete - /api/purchase-items/:id
 │   └── Sales/
 │       ├── Get - /api/sales
+│       ├── Get - /api/sales/excel
+│       ├── Get - /api/sales/pdf
 │       ├── Get - /api/sales/:id
 │       ├── Post - /api/sales
 │       ├── Put - /api/sales/:id
 │       ├── Delete - /api/sales/:id
+│       ├── Get - /api/sale-items/excel
+│       ├── Get - /api/sale-items/pdf
 │       ├── Get - /api/sale-items/all/:id
 │       ├── Post - /api/sale-items
 │       ├── Put - /api/sale-items/:id
@@ -1230,6 +1238,34 @@ Authorization: Bearer <TOKEN_2>
 
 ---
 
+### GET `/api/purchases/excel`
+**Header:**
+```http
+Authorization: Bearer <TOKEN_2>
+```
+
+**Query:**
+- `month` (opsional, format `YYYY-MM`)
+
+**Catatan:**
+- download data purchase header dalam format Excel
+
+---
+
+### GET `/api/purchases/pdf`
+**Header:**
+```http
+Authorization: Bearer <TOKEN_2>
+```
+
+**Query:**
+- `month` (opsional, format `YYYY-MM`)
+
+**Catatan:**
+- download data purchase header dalam format PDF
+
+---
+
 ### GET `/api/purchases/:id`
 **Header:**
 ```http
@@ -1296,6 +1332,34 @@ Authorization: Bearer <TOKEN_2>
 
 **Path param:**
 - `id` = ID purchase
+
+---
+
+### GET `/api/purchase-items/excel`
+**Header:**
+```http
+Authorization: Bearer <TOKEN_2>
+```
+
+**Query:**
+- `purchase_id` (wajib)
+
+**Catatan:**
+- download detail item purchase dalam format Excel
+
+---
+
+### GET `/api/purchase-items/pdf`
+**Header:**
+```http
+Authorization: Bearer <TOKEN_2>
+```
+
+**Query:**
+- `purchase_id` (wajib)
+
+**Catatan:**
+- download detail item purchase dalam format PDF
 
 ---
 
@@ -1377,6 +1441,34 @@ Authorization: Bearer <TOKEN_2>
 
 ---
 
+### GET `/api/sales/excel`
+**Header:**
+```http
+Authorization: Bearer <TOKEN_2>
+```
+
+**Query:**
+- `month` (opsional, format `YYYY-MM`)
+
+**Catatan:**
+- download data sales header dalam format Excel
+
+---
+
+### GET `/api/sales/pdf`
+**Header:**
+```http
+Authorization: Bearer <TOKEN_2>
+```
+
+**Query:**
+- `month` (opsional, format `YYYY-MM`)
+
+**Catatan:**
+- download data sales header dalam format PDF
+
+---
+
 ### GET `/api/sales/:id`
 **Header:**
 ```http
@@ -1443,6 +1535,34 @@ Authorization: Bearer <TOKEN_2>
 
 **Path param:**
 - `id` = ID sale
+
+---
+
+### GET `/api/sale-items/excel`
+**Header:**
+```http
+Authorization: Bearer <TOKEN_2>
+```
+
+**Query:**
+- `sale_id` (wajib)
+
+**Catatan:**
+- download detail item sale dalam format Excel
+
+---
+
+### GET `/api/sale-items/pdf`
+**Header:**
+```http
+Authorization: Bearer <TOKEN_2>
+```
+
+**Query:**
+- `sale_id` (wajib)
+
+**Catatan:**
+- download detail item sale dalam format PDF
 
 ---
 

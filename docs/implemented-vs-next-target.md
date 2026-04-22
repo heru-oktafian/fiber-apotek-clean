@@ -185,26 +185,34 @@ Tujuannya sederhana:
 ### Purchases
 **Implemented:**
 - `GET /api/purchases`
+- `GET /api/purchases/excel`
+- `GET /api/purchases/pdf`
 - `GET /api/purchases/:id`
 - `POST /api/purchases`
 - `PUT /api/purchases/:id`
 - `DELETE /api/purchases/:id`
+- `GET /api/purchase-items/excel`
+- `GET /api/purchase-items/pdf`
 - `GET /api/purchase-items/all/:id`
 - `POST /api/purchase-items`
 - `PUT /api/purchase-items/:id`
 - `DELETE /api/purchase-items/:id`
 
 **Next target:**
-- export/print
+- refine visual export bila ingin makin mirip legacy
 - validasi runtime end-to-end purchase flow
 
 ### Sales
 **Implemented:**
 - `GET /api/sales`
+- `GET /api/sales/excel`
+- `GET /api/sales/pdf`
 - `GET /api/sales/:id`
 - `POST /api/sales`
 - `PUT /api/sales/:id`
 - `DELETE /api/sales/:id`
+- `GET /api/sale-items/excel`
+- `GET /api/sale-items/pdf`
 - `GET /api/sale-items/all/:id`
 - `POST /api/sale-items`
 - `PUT /api/sale-items/:id`
@@ -216,7 +224,8 @@ Tujuannya sederhana:
 
 **Next target:**
 - sales detail summary endpoint parity bila masih diperlukan
-- export/print
+- refine visual export bila ingin makin mirip legacy
+- validasi runtime end-to-end sales flow
 
 ### Duplicate Receipts / Buy Returns / Sale Returns / Expenses / Another Incomes
 **Implemented:**
@@ -268,10 +277,6 @@ Tujuannya sederhana:
 
 ---
 
-## Rekomendasi urutan kerja berikutnya
-
-Urutan yang paling sehat saat ini:
-
 ### Member Categories
 **Implemented:**
 - `GET /api/member-categories`
@@ -297,9 +302,8 @@ Urutan yang paling sehat saat ini:
 
 Urutan yang paling sehat saat ini:
 
-1. **Transactions export: purchases / purchase items / sales / sale items**
-2. **Returns / Another Incomes / Expenses**
-3. **First Stocks / Reports / Export lanjutan**
+1. **Returns / Another Incomes / Expenses**
+2. **First Stocks / Reports / Export lanjutan**
 
 ---
 
