@@ -17,6 +17,23 @@ type SaleReturnHandler struct {
 	Service salereturnusecase.Service
 }
 
+func (h SaleReturnHandler) SaleSources(c *fiber.Ctx) error {
+	claims := c.Locals("claims").(auth.Claims)
+	items, err := h.Service.ListSaleSources(c.Context(), claims.BranchID, c.Query("search"), c.Query("month"))
+	if err != nil {
+		return presenter.Handle(c, err)
+	}
+	return sharedresponse.JSON(c, fiber.StatusOK, "Data penjualan berhasil diambil", items)
+}
+
+func (h SaleReturnHandler) ReturnableItems(c *fiber.Ctx) error {
+	items, err := h.Service.ListReturnableItems(c.Context(), c.Query("sale_id"))
+	if err != nil {
+		return presenter.Handle(c, err)
+	}
+	return sharedresponse.JSON(c, fiber.StatusOK, "Data item retur ditemukan", items)
+}
+
 func (h SaleReturnHandler) List(c *fiber.Ctx) error {
 	claims := c.Locals("claims").(auth.Claims)
 	result, err := h.Service.List(c.Context(), claims.BranchID, salereturn.ListRequest{

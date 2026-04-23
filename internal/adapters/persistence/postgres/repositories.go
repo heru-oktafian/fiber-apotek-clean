@@ -1097,6 +1097,56 @@ func (r Repositories) CreateBuyReturnItems(ctx context.Context, items []buyretur
 	return r.DB.WithContext(ctx).Create(&models).Error
 }
 
+func (r Repositories) ListPurchaseReturnSources(ctx context.Context, branchID, search, month string) ([]buyreturn.PurchaseComboItem, error) {
+	query := r.DB.WithContext(ctx).Table("purchases").Select("purchases.id, purchases.purchase_date, suppliers.name AS supplier_name, purchases.total_purchase").Joins("LEFT JOIN suppliers ON suppliers.id = purchases.supplier_id").Where("purchases.branch_id = ?", branchID)
+	if month != "" {
+		if parsed, err := time.Parse("2006-01", month); err == nil {
+			query = query.Where("purchase_date >= ? AND purchase_date < ?", parsed, parsed.AddDate(0, 1, 0))
+		}
+	}
+	if search != "" {
+		like := "%" + strings.TrimSpace(strings.ToLower(search)) + "%"
+		query = query.Where("LOWER(purchases.id) LIKE ?", like)
+	}
+	var items []buyreturn.PurchaseComboItem
+	if err := query.Order("purchases.purchase_date DESC").Scan(&items).Error; err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+func (r Repositories) ListPurchaseReturnableItems(ctx context.Context, purchaseID string) ([]buyreturn.ReturnableItem, error) {
+	var items []buyreturn.ReturnableItem
+	err := r.DB.WithContext(ctx).Raw(`
+		SELECT 
+			A.product_id AS pro_id,
+			B.name AS pro_name,
+			A.qty AS stock,
+			B.unit_id,
+			C.name AS unit_name,
+			A.price
+		FROM purchase_items A
+		LEFT JOIN products B ON B.id = A.product_id
+		LEFT JOIN units C ON C.id = B.unit_id
+		LEFT JOIN (
+			SELECT 
+				bri.product_id,
+				SUM(bri.qty) AS total_returned
+			FROM buy_return_items bri
+			INNER JOIN buy_returns br ON bri.buy_return_id = br.id
+			WHERE br.purchase_id = ?
+			GROUP BY bri.product_id
+		) R ON R.product_id = A.product_id
+		WHERE A.purchase_id = ?
+		AND COALESCE(R.total_returned, 0) < A.qty
+		ORDER BY B.name ASC
+	`, purchaseID, purchaseID).Scan(&items).Error
+	if err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 func (r Repositories) WithinTransaction(ctx context.Context, fn func(repo ports.PurchaseTxRepository) error) error {
 	return r.DB.WithContext(ctx).Transaction(func(tx *gorm.DB) error { return fn(txRepo{tx: tx}) })
 }
@@ -1283,6 +1333,56 @@ func (r Repositories) CreateSaleReturnItems(ctx context.Context, items []saleret
 		models = append(models, SaleReturnItemModel{ID: item.ID, SaleReturnID: item.SaleReturnID, ProductID: item.ProductID, Price: item.Price, Qty: item.Qty, SubTotal: item.SubTotal, ExpiredDate: item.ExpiredDate})
 	}
 	return r.DB.WithContext(ctx).Create(&models).Error
+}
+
+func (r Repositories) ListSaleReturnSources(ctx context.Context, branchID, search, month string) ([]salereturn.SaleComboItem, error) {
+	query := r.DB.WithContext(ctx).Table("sales").Select("id, sale_date, total_sale, member_id").Where("branch_id = ?", branchID)
+	if month != "" {
+		if parsed, err := time.Parse("2006-01", month); err == nil {
+			query = query.Where("sale_date >= ? AND sale_date < ?", parsed, parsed.AddDate(0, 1, 0))
+		}
+	}
+	if search != "" {
+		like := "%" + strings.TrimSpace(strings.ToLower(search)) + "%"
+		query = query.Where("LOWER(id) LIKE ?", like)
+	}
+	var items []salereturn.SaleComboItem
+	if err := query.Order("sale_date DESC").Scan(&items).Error; err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+func (r Repositories) ListSaleReturnableItems(ctx context.Context, saleID string) ([]salereturn.ReturnableItem, error) {
+	var items []salereturn.ReturnableItem
+	err := r.DB.WithContext(ctx).Raw(`
+		SELECT 
+			A.product_id AS pro_id,
+			B.name AS pro_name,
+			A.qty AS stock,
+			B.unit_id,
+			C.name AS unit_name,
+			A.price
+		FROM sale_items A
+		LEFT JOIN products B ON B.id = A.product_id
+		LEFT JOIN units C ON C.id = B.unit_id
+		LEFT JOIN (
+			SELECT 
+				sri.product_id,
+				SUM(sri.qty) AS total_returned
+			FROM sale_return_items sri
+			INNER JOIN sale_returns sr ON sri.sale_return_id = sr.id
+			WHERE sr.sale_id = ?
+			GROUP BY sri.product_id
+		) R ON R.product_id = A.product_id
+		WHERE A.sale_id = ?
+		AND COALESCE(R.total_returned, 0) < A.qty
+		ORDER BY B.name ASC
+	`, saleID, saleID).Scan(&items).Error
+	if err != nil {
+		return nil, err
+	}
+	return items, nil
 }
 
 func (r Repositories) CreateTransactionReport(ctx context.Context, id string, txType string, userID string, branchID string, total int, payment string, createdAt time.Time) error {

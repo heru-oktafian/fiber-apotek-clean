@@ -17,6 +17,23 @@ type BuyReturnHandler struct {
 	Service buyreturnusecase.Service
 }
 
+func (h BuyReturnHandler) PurchaseSources(c *fiber.Ctx) error {
+	claims := c.Locals("claims").(auth.Claims)
+	items, err := h.Service.ListPurchaseSources(c.Context(), claims.BranchID, c.Query("search"), c.Query("month"))
+	if err != nil {
+		return presenter.Handle(c, err)
+	}
+	return sharedresponse.JSON(c, fiber.StatusOK, "Data pembelian berhasil diambil", items)
+}
+
+func (h BuyReturnHandler) ReturnableItems(c *fiber.Ctx) error {
+	items, err := h.Service.ListReturnableItems(c.Context(), c.Query("purchase_id"))
+	if err != nil {
+		return presenter.Handle(c, err)
+	}
+	return sharedresponse.JSON(c, fiber.StatusOK, "Data item retur ditemukan", items)
+}
+
 func (h BuyReturnHandler) List(c *fiber.Ctx) error {
 	claims := c.Locals("claims").(auth.Claims)
 	result, err := h.Service.List(c.Context(), claims.BranchID, buyreturn.ListRequest{

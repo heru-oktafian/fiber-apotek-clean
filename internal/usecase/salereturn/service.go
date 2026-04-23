@@ -54,6 +54,17 @@ func (s Service) GetByID(ctx context.Context, branchID, id string) (domain.Detai
 	return domain.Detail{ID: header.ID, SaleID: header.SaleID, ReturnDate: header.ReturnDate.Format("2006-01-02"), TotalReturn: header.TotalReturn, Payment: header.Payment, Items: formatted}, nil
 }
 
+func (s Service) ListSaleSources(ctx context.Context, branchID, search, month string) ([]domain.SaleComboItem, error) {
+	return s.Repo.ListSaleReturnSources(ctx, branchID, search, month)
+}
+
+func (s Service) ListReturnableItems(ctx context.Context, saleID string) ([]domain.ReturnableItem, error) {
+	if strings.TrimSpace(saleID) == "" {
+		return nil, apperror.New(http.StatusBadRequest, "Get sale return items failed", "sale_id is required")
+	}
+	return s.Repo.ListSaleReturnableItems(ctx, saleID)
+}
+
 func (s Service) Create(ctx context.Context, branchID, userID string, req domain.CreateRequest) (domain.Detail, error) {
 	saleID := strings.TrimSpace(req.SaleReturn.SaleID)
 	if saleID == "" {

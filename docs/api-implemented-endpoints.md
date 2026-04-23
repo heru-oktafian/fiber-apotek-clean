@@ -103,11 +103,15 @@ Api Apotek (Implemented)
 │   ├── Buy Returns/
 │   │   ├── Get - /api/buy-returns
 │   │   ├── Post - /api/buy-returns
-│   │   └── Get - /api/buy-returns/:id
+│   │   ├── Get - /api/buy-returns/:id
+│   │   ├── Get - /api/cmb-purchases
+│   │   └── Get - /api/cmb-prod-buy-returns
 │   ├── Sale Returns/
 │   │   ├── Get - /api/sale-returns
 │   │   ├── Post - /api/sale-returns
-│   │   └── Get - /api/sale-returns/:id
+│   │   ├── Get - /api/sale-returns/:id
+│   │   ├── Get - /api/cmb-sales
+│   │   └── Get - /api/cmb-prod-sale-returns
 │   ├── Purchases/
 │   │   ├── Get - /api/purchases
 │   │   ├── Get - /api/purchases/excel
@@ -1390,6 +1394,52 @@ Content-Type: application/json
 ```http
 Authorization: Bearer <TOKEN_2>
 ```
+
+---
+
+### GET `/api/cmb-purchases`
+**Header:**
+```http
+Authorization: Bearer <TOKEN_2>
+```
+
+**Query:**
+- `search` (opsional)
+- `month` (opsional, format `YYYY-MM`)
+
+---
+
+### GET `/api/cmb-prod-buy-returns`
+**Header:**
+```http
+Authorization: Bearer <TOKEN_2>
+```
+
+**Query:**
+- `purchase_id` (wajib)
+
+---
+
+### GET `/api/cmb-sales`
+**Header:**
+```http
+Authorization: Bearer <TOKEN_2>
+```
+
+**Query:**
+- `search` (opsional)
+- `month` (opsional, format `YYYY-MM`)
+
+---
+
+### GET `/api/cmb-prod-sale-returns`
+**Header:**
+```http
+Authorization: Bearer <TOKEN_2>
+```
+
+**Query:**
+- `sale_id` (wajib)
 
 ---
 

@@ -275,10 +275,15 @@ Tujuannya sederhana:
 - harga retur diambil dari item transaksi asal, bukan dari request client
 - guard qty retur terhadap histori retur sebelumnya sudah ditanam
 
+**Implemented tambahan:**
+- `GET /api/cmb-purchases`
+- `GET /api/cmb-prod-buy-returns`
+- `GET /api/cmb-sales`
+- `GET /api/cmb-prod-sale-returns`
+
 **Next target:**
-- combo sumber transaksi (`GET /api/cmb-purchases`, `GET /api/cmb-sales`)
-- combo item retur (`GET /api/cmb-prod-buy-returns`, `GET /api/cmb-prod-sale-returns`)
 - export returns bila memang tersedia di legacy
+- validasi runtime end-to-end returns flow
 
 ### Duplicate Receipts
 **Implemented:**
@@ -370,7 +375,7 @@ Tujuannya sederhana:
 
 Urutan yang paling sehat saat ini:
 
-1. **Returns combo endpoints**
+1. **Audit export returns / runtime validation returns**
 2. **Duplicate Receipts**
 3. **Reports / Export lanjutan**
 4. **Refinement styling export parity**

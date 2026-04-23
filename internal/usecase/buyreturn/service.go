@@ -54,6 +54,17 @@ func (s Service) GetByID(ctx context.Context, branchID, id string) (domain.Detai
 	return domain.Detail{ID: header.ID, PurchaseID: header.PurchaseID, ReturnDate: header.ReturnDate.Format("2006-01-02"), TotalReturn: header.TotalReturn, Payment: header.Payment, Items: formatted}, nil
 }
 
+func (s Service) ListPurchaseSources(ctx context.Context, branchID, search, month string) ([]domain.PurchaseComboItem, error) {
+	return s.Repo.ListPurchaseReturnSources(ctx, branchID, search, month)
+}
+
+func (s Service) ListReturnableItems(ctx context.Context, purchaseID string) ([]domain.ReturnableItem, error) {
+	if strings.TrimSpace(purchaseID) == "" {
+		return nil, apperror.New(http.StatusBadRequest, "Get buy return items failed", "purchase_id is required")
+	}
+	return s.Repo.ListPurchaseReturnableItems(ctx, purchaseID)
+}
+
 func (s Service) Create(ctx context.Context, branchID, userID string, req domain.CreateRequest) (domain.Detail, error) {
 	purchaseID := strings.TrimSpace(req.BuyReturn.PurchaseID)
 	if purchaseID == "" {

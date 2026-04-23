@@ -203,6 +203,8 @@ type BuyReturnRepository interface {
 	FindBuyReturnItems(ctx context.Context, buyReturnID string) ([]buyreturn.Item, error)
 	CreateBuyReturn(ctx context.Context, item buyreturn.BuyReturn) error
 	CreateBuyReturnItems(ctx context.Context, items []buyreturn.Item) error
+	ListPurchaseReturnSources(ctx context.Context, branchID, search, month string) ([]buyreturn.PurchaseComboItem, error)
+	ListPurchaseReturnableItems(ctx context.Context, purchaseID string) ([]buyreturn.ReturnableItem, error)
 	FindPurchaseByID(ctx context.Context, branchID, id string) (purchase.Purchase, error)
 	FindPurchaseItemByPurchaseAndProduct(ctx context.Context, purchaseID, productID string) (purchase.Item, error)
 	SumBuyReturnedQty(ctx context.Context, purchaseID, productID string) (int, error)
@@ -219,6 +221,8 @@ type SaleReturnRepository interface {
 	FindSaleReturnItems(ctx context.Context, saleReturnID string) ([]salereturn.Item, error)
 	CreateSaleReturn(ctx context.Context, item salereturn.SaleReturn) error
 	CreateSaleReturnItems(ctx context.Context, items []salereturn.Item) error
+	ListSaleReturnSources(ctx context.Context, branchID, search, month string) ([]salereturn.SaleComboItem, error)
+	ListSaleReturnableItems(ctx context.Context, saleID string) ([]salereturn.ReturnableItem, error)
 	FindSaleByID(ctx context.Context, branchID, id string) (sale.Sale, error)
 	FindSaleItemBySaleAndProduct(ctx context.Context, saleID, productID string) (sale.Item, error)
 	SumSaleReturnedQty(ctx context.Context, saleID, productID string) (int, error)
