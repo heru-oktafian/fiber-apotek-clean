@@ -62,6 +62,19 @@ type ListResult struct {
 	Meta  ListMeta
 }
 
+type DetailSummaryItem struct {
+	ID                    string `json:"id"`
+	DuplicateReceiptDate  string `json:"duplicate_receipt_date"`
+	Description           string `json:"description"`
+	Payment               string `json:"payment"`
+	TotalDuplicateReceipt int    `json:"total_duplicate_receipt"`
+}
+
+type DetailSummaryResult struct {
+	Items []DetailSummaryItem
+	Meta  ListMeta
+}
+
 type Detail struct {
 	ID                    string `json:"id"`
 	MemberID              string `json:"member_id"`

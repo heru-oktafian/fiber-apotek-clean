@@ -118,6 +118,7 @@ type Dependencies struct {
 	DuplicateReceipt interface {
 		List(*fiber.Ctx) error
 		GetByID(*fiber.Ctx) error
+		ListDetailSummaries(*fiber.Ctx) error
 		Create(*fiber.Ctx) error
 		Update(*fiber.Ctx) error
 		Delete(*fiber.Ctx) error
@@ -293,6 +294,7 @@ func Register(app *fiber.App, deps Dependencies) {
 	app.Get("/api/cmb-sales", deps.AuthMiddleware, deps.SaleReturn.SaleSources)
 	app.Get("/api/cmb-prod-sale-returns", deps.AuthMiddleware, deps.SaleReturn.ReturnableItems)
 	app.Get("/api/duplicate-receipts", deps.AuthMiddleware, deps.DuplicateReceipt.List)
+	app.Get("/api/duplicate-receipts-details", deps.AuthMiddleware, deps.DuplicateReceipt.ListDetailSummaries)
 	app.Get("/api/duplicate-receipts/excel", deps.AuthMiddleware, deps.Export.DuplicateReceiptsExcel)
 	app.Get("/api/duplicate-receipts/pdf", deps.AuthMiddleware, deps.Export.DuplicateReceiptsPDF)
 	app.Post("/api/duplicate-receipts", deps.AuthMiddleware, deps.DuplicateReceipt.Create)

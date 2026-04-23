@@ -31,6 +31,15 @@ func (h DuplicateReceiptHandler) GetByID(c *fiber.Ctx) error {
 	return response.JSON(c, fiber.StatusOK, "Duplicate receipt retrieved successfully", item)
 }
 
+func (h DuplicateReceiptHandler) ListDetailSummaries(c *fiber.Ctx) error {
+	claims := c.Locals("claims").(auth.Claims)
+	result, err := h.Service.ListDetailSummaries(c.Context(), claims.BranchID, duplicatereceipt.ListRequest{Search: c.Query("search"), Month: c.Query("month"), Page: c.QueryInt("page", 1), Limit: c.QueryInt("limit", 10)})
+	if err != nil {
+		return presenter.Handle(c, err)
+	}
+	return response.JSONWithMeta(c, fiber.StatusOK, "Duplicate receipt detail summaries retrieved successfully", result.Items, result.Meta)
+}
+
 func (h DuplicateReceiptHandler) Create(c *fiber.Ctx) error {
 	claims := c.Locals("claims").(auth.Claims)
 	var req duplicatereceipt.CreateRequest

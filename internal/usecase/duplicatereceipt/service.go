@@ -43,6 +43,45 @@ func (s Service) GetByID(ctx context.Context, branchID, id string) (domain.Detai
 	return domain.Detail{ID: item.ID, MemberID: item.MemberID, MemberName: item.MemberName, Description: item.Description, DuplicateReceiptDate: item.DuplicateReceiptDate.Format("2006-01-02"), TotalDuplicateReceipt: item.TotalDuplicateReceipt, ProfitEstimate: item.ProfitEstimate, Payment: string(item.Payment)}, nil
 }
 
+func (s Service) ListDetailSummaries(ctx context.Context, branchID string, req domain.ListRequest) (domain.DetailSummaryResult, error) {
+	result, err := s.List(ctx, branchID, req)
+	if err != nil {
+		return domain.DetailSummaryResult{}, err
+	}
+	summaries := make([]domain.DetailSummaryItem, 0, len(result.Items))
+	for _, item := range result.Items {
+		receipt, err := s.Repo.FindDuplicateReceiptByID(ctx, branchID, item.ID)
+		if err != nil {
+			return domain.DetailSummaryResult{}, apperror.New(http.StatusInternalServerError, "Get duplicate receipt detail summaries failed", err.Error())
+		}
+		lines, err := s.Repo.FindDuplicateReceiptItems(ctx, item.ID)
+		if err != nil {
+			return domain.DetailSummaryResult{}, apperror.New(http.StatusInternalServerError, "Get duplicate receipt detail summaries failed", err.Error())
+		}
+		itemNames := make([]string, 0, len(lines))
+		for _, line := range lines {
+			if strings.TrimSpace(line.ProductName) != "" {
+				itemNames = append(itemNames, line.ProductName)
+			}
+		}
+		description := strings.TrimSpace(receipt.Description)
+		joinedNames := strings.Join(itemNames, ", ")
+		formattedUpdatedAt := receipt.UpdatedAt.Add(7 * time.Hour).Format("02-01-2006 15:04")
+		switch {
+		case description != "" && joinedNames != "":
+			description = fmt.Sprintf("%s ; %s ; %s", description, joinedNames, formattedUpdatedAt)
+		case joinedNames != "":
+			description = fmt.Sprintf("%s ; %s", joinedNames, formattedUpdatedAt)
+		case description != "":
+			description = fmt.Sprintf("%s ; %s", description, formattedUpdatedAt)
+		default:
+			description = formattedUpdatedAt
+		}
+		summaries = append(summaries, domain.DetailSummaryItem{ID: receipt.ID, DuplicateReceiptDate: receipt.DuplicateReceiptDate.Format("02 January 2006"), Description: description, Payment: string(receipt.Payment), TotalDuplicateReceipt: receipt.TotalDuplicateReceipt})
+	}
+	return domain.DetailSummaryResult{Items: summaries, Meta: result.Meta}, nil
+}
+
 func (s Service) Create(ctx context.Context, branchID, userID, defaultMember string, req domain.CreateRequest) (domain.Detail, error) {
 	date, err := time.Parse("2006-01-02", req.DuplicateReceipt.DuplicateReceiptDate)
 	if err != nil {

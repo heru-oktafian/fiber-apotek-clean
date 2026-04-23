@@ -299,6 +299,7 @@ Api Apotek (Implemented)
 │   │   └── Delete - /api/sale-items/:id
 │   └── Duplicate Receipts/
 │       ├── Get - /api/duplicate-receipts
+│       ├── Get - /api/duplicate-receipts-details
 │       ├── Get - /api/duplicate-receipts/excel
 │       ├── Get - /api/duplicate-receipts/pdf
 │       ├── Post - /api/duplicate-receipts
@@ -358,6 +359,7 @@ Beberapa milestone parity yang sudah lebih matang di repo ini sekarang mencakup:
 - `first stocks` berikut header/item flow dan export baseline
 - `duplicate receipts` sebagai **sale-like transaction** berbasis resep dokter / kopi resep, dengan implementasi saat ini mencakup header CRUD + item CRUD + export baseline:
   - `GET /api/duplicate-receipts`
+  - `GET /api/duplicate-receipts-details`
   - `GET /api/duplicate-receipts/excel`
   - `GET /api/duplicate-receipts/pdf`
   - `POST /api/duplicate-receipts`

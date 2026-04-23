@@ -150,6 +150,7 @@ Api Apotek (Implemented)
 │   │   └── Delete - /api/sale-items/:id
 │   └── Duplicate Receipts/
 │       ├── Get - /api/duplicate-receipts
+│       ├── Get - /api/duplicate-receipts-details
 │       ├── Get - /api/duplicate-receipts/excel
 │       ├── Get - /api/duplicate-receipts/pdf
 │       ├── Post - /api/duplicate-receipts
@@ -2550,6 +2551,7 @@ Authorization: Bearer <TOKEN_2>
 - `PUT /api/sale-items/:id`
 - `DELETE /api/sale-items/:id`
 - `GET /api/duplicate-receipts`
+- `GET /api/duplicate-receipts-details`
 - `GET /api/duplicate-receipts/excel`
 - `GET /api/duplicate-receipts/pdf`
 - `POST /api/duplicate-receipts`

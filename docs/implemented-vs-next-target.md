@@ -296,6 +296,7 @@ Tujuannya sederhana:
 ### Duplicate Receipts
 **Implemented:**
 - `GET /api/duplicate-receipts`
+- `GET /api/duplicate-receipts-details`
 - `GET /api/duplicate-receipts/excel`
 - `GET /api/duplicate-receipts/pdf`
 - `POST /api/duplicate-receipts`
@@ -318,9 +319,9 @@ Tujuannya sederhana:
 - export Batch 3 sudah tersedia untuk header dan item dalam format excel/pdf, baseline clean
 
 **Next target:**
-- evaluasi endpoint detail/report-ish (`/api/duplicate-receipts-details`)
 - validasi runtime end-to-end duplicate receipt flow
 - refine styling export bila mau didekatkan lagi ke legacy
+- optimasi query `duplicate-receipts-details` bila nanti perlu volume data lebih besar
 
 ---
 
