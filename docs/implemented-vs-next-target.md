@@ -174,6 +174,8 @@ Tujuannya sederhana:
 ### Unit Conversions
 **Implemented:**
 - `GET /api/unit-conversions`
+- `GET /api/unit-conversions/excel`
+- `GET /api/unit-conversions/pdf`
 - `GET /api/unit-conversions/:id`
 - `POST /api/unit-conversions`
 - `PUT /api/unit-conversions/:id`
@@ -181,13 +183,14 @@ Tujuannya sederhana:
 
 **Catatan:**
 - Batch 1 menutup core master CRUD untuk conversion per product
+- Batch 2 menambahkan export baseline Excel/PDF
 - validasi dasar sudah dijaga: `product_id`, `init_id`, `final_id` wajib ada, `value_conv > 0`, dan `init_id` tidak boleh sama dengan `final_id`
 - duplicate guard create memakai pasangan `product_id + init_id + final_id + branch_id`
 
 **Next target:**
-- export `unit-conversions` excel/pdf
 - evaluasi kebutuhan combo produk khusus (`CmbProdConv`) versus reuse combo produk yang sudah ada
 - validasi runtime end-to-end untuk flow purchase/first-stock/returns yang mengandalkan conversion
+- refinement visual export agar makin dekat ke legacy
 
 ---
 

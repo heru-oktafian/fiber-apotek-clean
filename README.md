@@ -242,6 +242,8 @@ Api Apotek (Implemented)
 │   │   └── Get - /api/cmb-units
 │   ├── Unit Conversions/
 │   │   ├── Get - /api/unit-conversions
+│   │   ├── Get - /api/unit-conversions/excel
+│   │   ├── Get - /api/unit-conversions/pdf
 │   │   ├── Get - /api/unit-conversions/:id
 │   │   ├── Post - /api/unit-conversions
 │   │   ├── Put - /api/unit-conversions/:id

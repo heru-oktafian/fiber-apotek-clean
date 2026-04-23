@@ -185,6 +185,8 @@ type Dependencies struct {
 		MemberCategoriesPDF(*fiber.Ctx) error
 		MembersExcel(*fiber.Ctx) error
 		MembersPDF(*fiber.Ctx) error
+		UnitConversionsExcel(*fiber.Ctx) error
+		UnitConversionsPDF(*fiber.Ctx) error
 		PurchasesExcel(*fiber.Ctx) error
 		PurchasesPDF(*fiber.Ctx) error
 		PurchaseItemsExcel(*fiber.Ctx) error
@@ -263,6 +265,8 @@ func Register(app *fiber.App, deps Dependencies) {
 	app.Delete("/api/units/:id", deps.AuthMiddleware, deps.Unit.Delete)
 	app.Get("/api/cmb-units", deps.AuthMiddleware, deps.Unit.Combo)
 	app.Get("/api/unit-conversions", deps.AuthMiddleware, deps.UnitConversion.List)
+	app.Get("/api/unit-conversions/excel", deps.AuthMiddleware, deps.Export.UnitConversionsExcel)
+	app.Get("/api/unit-conversions/pdf", deps.AuthMiddleware, deps.Export.UnitConversionsPDF)
 	app.Get("/api/unit-conversions/:id", deps.AuthMiddleware, deps.UnitConversion.GetByID)
 	app.Post("/api/unit-conversions", deps.AuthMiddleware, deps.UnitConversion.Create)
 	app.Put("/api/unit-conversions/:id", deps.AuthMiddleware, deps.UnitConversion.Update)
