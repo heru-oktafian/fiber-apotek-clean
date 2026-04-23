@@ -289,6 +289,33 @@ type SaleReturnItemModel struct {
 
 func (SaleReturnItemModel) TableName() string { return "sale_return_items" }
 
+type DuplicateReceiptModel struct {
+	ID                    string    `gorm:"column:id;primaryKey"`
+	MemberID              string    `gorm:"column:member_id"`
+	Description           string    `gorm:"column:description"`
+	DuplicateReceiptDate  time.Time `gorm:"column:duplicate_receipt_date"`
+	TotalDuplicateReceipt int       `gorm:"column:total_duplicate_receipt"`
+	ProfitEstimate        int       `gorm:"column:profit_estimate"`
+	Payment               string    `gorm:"column:payment"`
+	BranchID              string    `gorm:"column:branch_id"`
+	UserID                string    `gorm:"column:user_id"`
+	CreatedAt             time.Time `gorm:"column:created_at"`
+	UpdatedAt             time.Time `gorm:"column:updated_at"`
+}
+
+func (DuplicateReceiptModel) TableName() string { return "duplicate_receipts" }
+
+type DuplicateReceiptItemModel struct {
+	ID                 string `gorm:"column:id;primaryKey"`
+	DuplicateReceiptID string `gorm:"column:duplicate_receipt_id"`
+	ProductID          string `gorm:"column:product_id"`
+	Price              int    `gorm:"column:price"`
+	Qty                int    `gorm:"column:qty"`
+	SubTotal           int    `gorm:"column:sub_total"`
+}
+
+func (DuplicateReceiptItemModel) TableName() string { return "duplicate_receipt_items" }
+
 type DailyProfitReportModel struct {
 	ID             string    `gorm:"column:id;primaryKey"`
 	ReportDate     time.Time `gorm:"column:report_date"`

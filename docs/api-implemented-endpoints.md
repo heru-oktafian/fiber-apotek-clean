@@ -71,34 +71,34 @@ Api Apotek (Implemented)
 │   │   ├── Put - /api/units/:id
 │   │   ├── Delete - /api/units/:id
 │   │   └── Get - /api/cmb-units
-│   ├── Categories/
-│   │   ├── Product Categories/
-│   │   │   ├── Get - /api/product-categories
-│   │   │   ├── Get - /api/product-categories/excel
-│   │   │   ├── Get - /api/product-categories/pdf
-│   │   │   ├── Post - /api/product-categories
-│   │   │   ├── Get - /api/product-categories/:id
-│   │   │   ├── Put - /api/product-categories/:id
-│   │   │   ├── Delete - /api/product-categories/:id
-│   │   │   └── Get - /api/product-categories-combo
-│   │   ├── Supplier Categories/
-│   │   │   ├── Get - /api/supplier-categories
-│   │   │   ├── Get - /api/supplier-categories/excel
-│   │   │   ├── Get - /api/supplier-categories/pdf
-│   │   │   ├── Post - /api/supplier-categories
-│   │   │   ├── Get - /api/supplier-categories/:id
-│   │   │   ├── Put - /api/supplier-categories/:id
-│   │   │   ├── Delete - /api/supplier-categories/:id
-│   │   │   └── Get - /api/supplier-categories-combo
-│   │   └── Member Categories/
-│   │       ├── Get - /api/member-categories
-│   │       ├── Get - /api/member-categories/excel
-│   │       ├── Get - /api/member-categories/pdf
-│   │       ├── Get - /api/member-categories/:id
-│   │       ├── Post - /api/member-categories
-│   │       ├── Put - /api/member-categories/:id
-│   │       ├── Delete - /api/member-categories/:id
-│   │       └── Get - /api/member-categories-combo
+│   └── Categories/
+│       ├── Product Categories/
+│       │   ├── Get - /api/product-categories
+│       │   ├── Get - /api/product-categories/excel
+│       │   ├── Get - /api/product-categories/pdf
+│       │   ├── Post - /api/product-categories
+│       │   ├── Get - /api/product-categories/:id
+│       │   ├── Put - /api/product-categories/:id
+│       │   ├── Delete - /api/product-categories/:id
+│       │   └── Get - /api/product-categories-combo
+│       ├── Supplier Categories/
+│       │   ├── Get - /api/supplier-categories
+│       │   ├── Get - /api/supplier-categories/excel
+│       │   ├── Get - /api/supplier-categories/pdf
+│       │   ├── Post - /api/supplier-categories
+│       │   ├── Get - /api/supplier-categories/:id
+│       │   ├── Put - /api/supplier-categories/:id
+│       │   ├── Delete - /api/supplier-categories/:id
+│       │   └── Get - /api/supplier-categories-combo
+│       └── Member Categories/
+│           ├── Get - /api/member-categories
+│           ├── Get - /api/member-categories/excel
+│           ├── Get - /api/member-categories/pdf
+│           ├── Get - /api/member-categories/:id
+│           ├── Post - /api/member-categories
+│           ├── Put - /api/member-categories/:id
+│           ├── Delete - /api/member-categories/:id
+│           └── Get - /api/member-categories-combo
 ├── Transactions/
 │   ├── Buy Returns/
 │   │   ├── Get - /api/buy-returns
@@ -134,20 +134,26 @@ Api Apotek (Implemented)
 │   │   ├── Post - /api/purchase-items
 │   │   ├── Put - /api/purchase-items/:id
 │   │   └── Delete - /api/purchase-items/:id
-│   └── Sales/
-│       ├── Get - /api/sales
-│       ├── Get - /api/sales/excel
-│       ├── Get - /api/sales/pdf
-│       ├── Get - /api/sales/:id
-│       ├── Post - /api/sales
-│       ├── Put - /api/sales/:id
-│       ├── Delete - /api/sales/:id
-│       ├── Get - /api/sale-items/excel
-│       ├── Get - /api/sale-items/pdf
-│       ├── Get - /api/sale-items/all/:id
-│       ├── Post - /api/sale-items
-│       ├── Put - /api/sale-items/:id
-│       └── Delete - /api/sale-items/:id
+│   ├── Sales/
+│   │   ├── Get - /api/sales
+│   │   ├── Get - /api/sales/excel
+│   │   ├── Get - /api/sales/pdf
+│   │   ├── Get - /api/sales/:id
+│   │   ├── Post - /api/sales
+│   │   ├── Put - /api/sales/:id
+│   │   ├── Delete - /api/sales/:id
+│   │   ├── Get - /api/sale-items/excel
+│   │   ├── Get - /api/sale-items/pdf
+│   │   ├── Get - /api/sale-items/all/:id
+│   │   ├── Post - /api/sale-items
+│   │   ├── Put - /api/sale-items/:id
+│   │   └── Delete - /api/sale-items/:id
+│   └── Duplicate Receipts/
+│       ├── Get - /api/duplicate-receipts
+│       ├── Post - /api/duplicate-receipts
+│       ├── Get - /api/duplicate-receipts/:id
+│       ├── Put - /api/duplicate-receipts/:id
+│       └── Delete - /api/duplicate-receipts/:id
 ├── Audits/
 │   ├── First Stocks/
 │   │   ├── Get - /api/first-stocks
@@ -2198,7 +2204,109 @@ Authorization: Bearer <TOKEN_2>
 
 ---
 
-## 14. Opnames
+## 14. Duplicate Receipts
+
+### GET `/api/duplicate-receipts`
+**Header:**
+```http
+Authorization: Bearer <TOKEN_2>
+```
+
+**Query param opsional:**
+- `search`
+- `page`
+- `limit`
+- `month`
+
+**Catatan:**
+- duplicate receipt diperlakukan sebagai sale-like transaction berbasis resep dokter
+- list menampilkan header duplicate receipt aktif di branch berjalan
+
+---
+
+### POST `/api/duplicate-receipts`
+**Header:**
+```http
+Content-Type: application/json
+Authorization: Bearer <TOKEN_2>
+```
+
+**Body contoh:**
+```json
+{
+  "duplicate_receipt": {
+    "member_id": "MBR250423000001",
+    "description": "Copy resep dokter umum",
+    "duplicate_receipt_date": "2026-04-23",
+    "payment": "cash"
+  },
+  "items": [
+    {
+      "product_id": "PRD25050451578",
+      "qty": 1
+    }
+  ]
+}
+```
+
+**Catatan:**
+- harga item dihitung server-side dari `products.sales_price`
+- create header, item, stock movement, transaction report, dan daily profit sudah dibungkus transaction
+- bila `member_id` kosong, service bisa fallback ke default member
+
+---
+
+### GET `/api/duplicate-receipts/:id`
+**Header:**
+```http
+Authorization: Bearer <TOKEN_2>
+```
+
+**Path param:**
+- `id` = ID duplicate receipt
+
+---
+
+### PUT `/api/duplicate-receipts/:id`
+**Header:**
+```http
+Content-Type: application/json
+Authorization: Bearer <TOKEN_2>
+```
+
+**Path param:**
+- `id` = ID duplicate receipt
+
+**Body contoh:**
+```json
+{
+  "member_id": "MBR250423000001",
+  "description": "Copy resep update",
+  "payment": "cash"
+}
+```
+
+**Catatan:**
+- update saat ini fokus ke field header
+- total dan profit dihitung ulang dari item yang sudah tersimpan
+
+---
+
+### DELETE `/api/duplicate-receipts/:id`
+**Header:**
+```http
+Authorization: Bearer <TOKEN_2>
+```
+
+**Path param:**
+- `id` = ID duplicate receipt
+
+**Catatan:**
+- rollback stok item dan delete header/item/report sudah dibungkus transaction
+
+---
+
+## 15. Opnames
 
 ### POST `/api/opnames`
 **Header:**
@@ -2357,6 +2465,11 @@ Authorization: Bearer <TOKEN_2>
 - `POST /api/sale-items`
 - `PUT /api/sale-items/:id`
 - `DELETE /api/sale-items/:id`
+- `GET /api/duplicate-receipts`
+- `POST /api/duplicate-receipts`
+- `GET /api/duplicate-receipts/:id`
+- `PUT /api/duplicate-receipts/:id`
+- `DELETE /api/duplicate-receipts/:id`
 - `POST /api/opnames`
 - `GET /api/opnames/:id`
 - `POST /api/opname-items`

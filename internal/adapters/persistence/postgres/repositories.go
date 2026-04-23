@@ -13,6 +13,7 @@ import (
 	"github.com/heru-oktafian/fiber-apotek-clean/internal/domain/branch"
 	"github.com/heru-oktafian/fiber-apotek-clean/internal/domain/buyreturn"
 	"github.com/heru-oktafian/fiber-apotek-clean/internal/domain/common"
+	"github.com/heru-oktafian/fiber-apotek-clean/internal/domain/duplicatereceipt"
 	"github.com/heru-oktafian/fiber-apotek-clean/internal/domain/expense"
 	"github.com/heru-oktafian/fiber-apotek-clean/internal/domain/firststock"
 	"github.com/heru-oktafian/fiber-apotek-clean/internal/domain/member"
@@ -826,8 +827,16 @@ func (r Repositories) FindCategoryByID(ctx context.Context, id string) (member.M
 	return member.MemberCategory{ID: fmt.Sprintf("%d", m.ID), PointsConversionRate: m.PointsConversionRate}, nil
 }
 
+func (r Repositories) FindMemberCategory(ctx context.Context, categoryID string) (member.MemberCategory, error) {
+	return r.FindCategoryByID(ctx, categoryID)
+}
+
 func (r Repositories) UpdatePoints(ctx context.Context, memberID string, points int) error {
 	return r.DB.WithContext(ctx).Model(&MemberModel{}).Where("id = ?", memberID).Update("points", points).Error
+}
+
+func (r Repositories) UpdateMemberPoints(ctx context.Context, memberID string, points int) error {
+	return r.UpdatePoints(ctx, memberID, points)
 }
 
 func (r Repositories) CreateOpname(ctx context.Context, item opname.Opname) error {
@@ -1335,6 +1344,120 @@ func (r Repositories) CreateSaleReturnItems(ctx context.Context, items []saleret
 	return r.DB.WithContext(ctx).Create(&models).Error
 }
 
+func (r Repositories) ListDuplicateReceipts(ctx context.Context, branchID string, req duplicatereceipt.ListRequest) (duplicatereceipt.ListResult, error) {
+	query := r.DB.WithContext(ctx).
+		Table("duplicate_receipts dr").
+		Select("dr.id, dr.member_id, mbr.name AS member_name, dr.duplicate_receipt_date, dr.total_duplicate_receipt, dr.profit_estimate, dr.payment").
+		Joins("LEFT JOIN members mbr ON mbr.id = dr.member_id").
+		Where("dr.branch_id = ? AND dr.total_duplicate_receipt > 0", branchID)
+	if req.Search != "" {
+		like := "%" + strings.TrimSpace(req.Search) + "%"
+		query = query.Where("mbr.name ILIKE ?", like)
+	}
+	if req.Month != "" {
+		if parsed, err := time.Parse("2006-01", req.Month); err == nil {
+			query = query.Where("dr.duplicate_receipt_date >= ? AND dr.duplicate_receipt_date < ?", parsed, parsed.AddDate(0, 1, 0))
+		}
+	}
+	var total int64
+	if err := query.Count(&total).Error; err != nil {
+		return duplicatereceipt.ListResult{}, err
+	}
+	var rows []struct {
+		ID                    string
+		MemberID              string
+		MemberName            string
+		DuplicateReceiptDate  time.Time
+		TotalDuplicateReceipt int
+		ProfitEstimate        int
+		Payment               string
+	}
+	offset := (req.Page - 1) * req.Limit
+	if err := query.Order("dr.created_at DESC").Offset(offset).Limit(req.Limit).Scan(&rows).Error; err != nil {
+		return duplicatereceipt.ListResult{}, err
+	}
+	items := make([]duplicatereceipt.ListItem, 0, len(rows))
+	for _, row := range rows {
+		items = append(items, duplicatereceipt.ListItem{ID: row.ID, MemberID: row.MemberID, MemberName: row.MemberName, DuplicateReceiptDate: row.DuplicateReceiptDate.Format("02 January 2006"), TotalDuplicateReceipt: row.TotalDuplicateReceipt, ProfitEstimate: row.ProfitEstimate, Payment: row.Payment})
+	}
+	lastPage := 1
+	if req.Limit > 0 {
+		lastPage = int((total + int64(req.Limit) - 1) / int64(req.Limit))
+		if lastPage == 0 {
+			lastPage = 1
+		}
+	}
+	return duplicatereceipt.ListResult{Items: items, Meta: duplicatereceipt.ListMeta{Page: req.Page, Limit: req.Limit, Search: req.Search, Month: req.Month, TotalData: int(total), LastPage: lastPage}}, nil
+}
+
+func (r Repositories) FindDuplicateReceiptByID(ctx context.Context, branchID, id string) (duplicatereceipt.DuplicateReceipt, error) {
+	var row struct {
+		ID                    string
+		MemberID              string
+		MemberName            string
+		Description           string
+		DuplicateReceiptDate  time.Time
+		TotalDuplicateReceipt int
+		ProfitEstimate        int
+		Payment               string
+		BranchID              string
+		UserID                string
+		CreatedAt             time.Time
+		UpdatedAt             time.Time
+	}
+	if err := r.DB.WithContext(ctx).
+		Table("duplicate_receipts dr").
+		Select("dr.id, dr.member_id, mbr.name AS member_name, dr.description, dr.duplicate_receipt_date, dr.total_duplicate_receipt, dr.profit_estimate, dr.payment, dr.branch_id, dr.user_id, dr.created_at, dr.updated_at").
+		Joins("LEFT JOIN members mbr ON mbr.id = dr.member_id").
+		Where("dr.id = ? AND dr.branch_id = ?", id, branchID).
+		Scan(&row).Error; err != nil {
+		return duplicatereceipt.DuplicateReceipt{}, err
+	}
+	if row.ID == "" {
+		return duplicatereceipt.DuplicateReceipt{}, gorm.ErrRecordNotFound
+	}
+	return duplicatereceipt.DuplicateReceipt{ID: row.ID, MemberID: row.MemberID, MemberName: row.MemberName, Description: row.Description, DuplicateReceiptDate: row.DuplicateReceiptDate, TotalDuplicateReceipt: row.TotalDuplicateReceipt, ProfitEstimate: row.ProfitEstimate, Payment: common.PaymentStatus(row.Payment), BranchID: row.BranchID, UserID: row.UserID, CreatedAt: row.CreatedAt, UpdatedAt: row.UpdatedAt}, nil
+}
+
+func (r Repositories) CreateDuplicateReceipt(ctx context.Context, item duplicatereceipt.DuplicateReceipt) error {
+	return r.DB.WithContext(ctx).Create(&DuplicateReceiptModel{ID: item.ID, MemberID: item.MemberID, Description: item.Description, DuplicateReceiptDate: item.DuplicateReceiptDate, TotalDuplicateReceipt: item.TotalDuplicateReceipt, ProfitEstimate: item.ProfitEstimate, Payment: string(item.Payment), BranchID: item.BranchID, UserID: item.UserID, CreatedAt: item.CreatedAt, UpdatedAt: item.UpdatedAt}).Error
+}
+
+func (r Repositories) CreateDuplicateReceiptItems(ctx context.Context, items []duplicatereceipt.Item) error {
+	models := make([]DuplicateReceiptItemModel, 0, len(items))
+	for _, item := range items {
+		models = append(models, DuplicateReceiptItemModel{ID: item.ID, DuplicateReceiptID: item.DuplicateReceiptID, ProductID: item.ProductID, Price: item.Price, Qty: item.Qty, SubTotal: item.SubTotal})
+	}
+	return r.DB.WithContext(ctx).Create(&models).Error
+}
+
+func (r Repositories) UpdateDuplicateReceipt(ctx context.Context, item duplicatereceipt.DuplicateReceipt) error {
+	return r.DB.WithContext(ctx).Model(&DuplicateReceiptModel{}).Where("id = ? AND branch_id = ?", item.ID, item.BranchID).Updates(map[string]any{"member_id": item.MemberID, "description": item.Description, "payment": string(item.Payment), "total_duplicate_receipt": item.TotalDuplicateReceipt, "profit_estimate": item.ProfitEstimate, "updated_at": item.UpdatedAt}).Error
+}
+
+func (r Repositories) DeleteDuplicateReceipt(ctx context.Context, branchID, id string) error {
+	return r.DB.WithContext(ctx).Where("id = ? AND branch_id = ?", id, branchID).Delete(&DuplicateReceiptModel{}).Error
+}
+
+func (r Repositories) DeleteDuplicateReceiptItems(ctx context.Context, duplicateReceiptID string) error {
+	return r.DB.WithContext(ctx).Where("duplicate_receipt_id = ?", duplicateReceiptID).Delete(&DuplicateReceiptItemModel{}).Error
+}
+
+func (r Repositories) FindDuplicateReceiptItems(ctx context.Context, duplicateReceiptID string) ([]duplicatereceipt.Item, error) {
+	var items []duplicatereceipt.Item
+	if err := r.DB.WithContext(ctx).
+		Table("duplicate_receipt_items dri").
+		Select("dri.id, dri.duplicate_receipt_id, dri.product_id, pro.name AS product_name, unt.name AS unit_name, dri.price, dri.qty, dri.sub_total").
+		Joins("LEFT JOIN products pro ON pro.id = dri.product_id").
+		Joins("LEFT JOIN units unt ON unt.id = pro.unit_id").
+		Where("dri.duplicate_receipt_id = ?", duplicateReceiptID).
+		Order("pro.name ASC").
+		Scan(&items).Error; err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 func (r Repositories) ListSaleReturnSources(ctx context.Context, branchID, search, month string) ([]salereturn.SaleComboItem, error) {
 	query := r.DB.WithContext(ctx).Table("sales").Select("id, sale_date, total_sale, member_id").Where("branch_id = ?", branchID)
 	if month != "" {
@@ -1696,6 +1819,10 @@ func (r Repositories) WithinTransactionSale(ctx context.Context, fn func(repo po
 	return r.DB.WithContext(ctx).Transaction(func(tx *gorm.DB) error { return fn(txRepo{tx: tx}) })
 }
 
+func (r Repositories) WithinTransactionDuplicateReceipt(ctx context.Context, fn func(repo ports.DuplicateReceiptTxRepository) error) error {
+	return r.DB.WithContext(ctx).Transaction(func(tx *gorm.DB) error { return fn(txRepo{tx: tx}) })
+}
+
 type txRepo struct{ tx *gorm.DB }
 
 func (t txRepo) FindProduct(ctx context.Context, id string) (product.Product, error) {
@@ -1788,6 +1915,25 @@ func (t txRepo) CreateSaleItems(ctx context.Context, items []sale.Item) error {
 		models = append(models, SaleItemModel{ID: item.ID, SaleID: item.SaleID, ProductID: item.ProductID, Price: item.Price, Qty: item.Qty, SubTotal: item.SubTotal})
 	}
 	return t.tx.WithContext(ctx).Create(&models).Error
+}
+func (t txRepo) CreateDuplicateReceipt(ctx context.Context, item duplicatereceipt.DuplicateReceipt) error {
+	return t.tx.WithContext(ctx).Create(&DuplicateReceiptModel{ID: item.ID, MemberID: item.MemberID, Description: item.Description, DuplicateReceiptDate: item.DuplicateReceiptDate, TotalDuplicateReceipt: item.TotalDuplicateReceipt, ProfitEstimate: item.ProfitEstimate, Payment: string(item.Payment), BranchID: item.BranchID, UserID: item.UserID, CreatedAt: item.CreatedAt, UpdatedAt: item.UpdatedAt}).Error
+}
+func (t txRepo) CreateDuplicateReceiptItems(ctx context.Context, items []duplicatereceipt.Item) error {
+	models := make([]DuplicateReceiptItemModel, 0, len(items))
+	for _, item := range items {
+		models = append(models, DuplicateReceiptItemModel{ID: item.ID, DuplicateReceiptID: item.DuplicateReceiptID, ProductID: item.ProductID, Price: item.Price, Qty: item.Qty, SubTotal: item.SubTotal})
+	}
+	return t.tx.WithContext(ctx).Create(&models).Error
+}
+func (t txRepo) DeleteDuplicateReceipt(ctx context.Context, branchID, id string) error {
+	return t.tx.WithContext(ctx).Where("id = ? AND branch_id = ?", id, branchID).Delete(&DuplicateReceiptModel{}).Error
+}
+func (t txRepo) DeleteDuplicateReceiptItems(ctx context.Context, duplicateReceiptID string) error {
+	return t.tx.WithContext(ctx).Where("duplicate_receipt_id = ?", duplicateReceiptID).Delete(&DuplicateReceiptItemModel{}).Error
+}
+func (t txRepo) DeleteTransactionReport(ctx context.Context, id string, txType string) error {
+	return t.tx.WithContext(ctx).Where("id = ? AND transaction_type = ?", id, txType).Delete(&TransactionReportModel{}).Error
 }
 func (t txRepo) UpsertDailyProfit(ctx context.Context, reportDate time.Time, userID string, branchID string, totalSales int, profitEstimate int, now time.Time) error {
 	var report DailyProfitReportModel

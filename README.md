@@ -283,20 +283,26 @@ Api Apotek (Implemented)
 │   │   ├── Post - /api/purchase-items
 │   │   ├── Put - /api/purchase-items/:id
 │   │   └── Delete - /api/purchase-items/:id
-│   └── Sales/
-│       ├── Get - /api/sales
-│       ├── Get - /api/sales/excel
-│       ├── Get - /api/sales/pdf
-│       ├── Get - /api/sales/:id
-│       ├── Post - /api/sales
-│       ├── Put - /api/sales/:id
-│       ├── Delete - /api/sales/:id
-│       ├── Get - /api/sale-items/excel
-│       ├── Get - /api/sale-items/pdf
-│       ├── Get - /api/sale-items/all/:id
-│       ├── Post - /api/sale-items
-│       ├── Put - /api/sale-items/:id
-│       └── Delete - /api/sale-items/:id
+│   ├── Sales/
+│   │   ├── Get - /api/sales
+│   │   ├── Get - /api/sales/excel
+│   │   ├── Get - /api/sales/pdf
+│   │   ├── Get - /api/sales/:id
+│   │   ├── Post - /api/sales
+│   │   ├── Put - /api/sales/:id
+│   │   ├── Delete - /api/sales/:id
+│   │   ├── Get - /api/sale-items/excel
+│   │   ├── Get - /api/sale-items/pdf
+│   │   ├── Get - /api/sale-items/all/:id
+│   │   ├── Post - /api/sale-items
+│   │   ├── Put - /api/sale-items/:id
+│   │   └── Delete - /api/sale-items/:id
+│   └── Duplicate Receipts/
+│       ├── Get - /api/duplicate-receipts
+│       ├── Post - /api/duplicate-receipts
+│       ├── Get - /api/duplicate-receipts/:id
+│       ├── Put - /api/duplicate-receipts/:id
+│       └── Delete - /api/duplicate-receipts/:id
 ├── Audits/
 │   ├── First Stocks/
 │   │   ├── Get - /api/first-stocks
@@ -333,6 +339,23 @@ Api Apotek (Implemented)
         ├── Put - /api/expenses/:id
         └── Delete - /api/expenses/:id
 ```
+
+---
+
+### Catatan implementasi terbaru
+
+Beberapa milestone parity yang sudah lebih matang di repo ini sekarang mencakup:
+- transaksi `purchases` dan `sales` berikut item CRUD dan export baseline
+- `buy returns` dan `sale returns` berikut combo sumber transaksi dan export baseline
+- `first stocks` berikut header/item flow dan export baseline
+- `duplicate receipts` Batch 1 sebagai **sale-like transaction** berbasis resep dokter / kopi resep, dengan endpoint header CRUD:
+  - `GET /api/duplicate-receipts`
+  - `POST /api/duplicate-receipts`
+  - `GET /api/duplicate-receipts/:id`
+  - `PUT /api/duplicate-receipts/:id`
+  - `DELETE /api/duplicate-receipts/:id`
+
+Untuk detail request/response dan status next batch, lihat `docs/api-implemented-endpoints.md` dan `docs/implemented-vs-next-target.md`.
 
 ---
 

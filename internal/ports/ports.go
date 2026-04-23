@@ -8,6 +8,7 @@ import (
 	"github.com/heru-oktafian/fiber-apotek-clean/internal/domain/auth"
 	"github.com/heru-oktafian/fiber-apotek-clean/internal/domain/branch"
 	"github.com/heru-oktafian/fiber-apotek-clean/internal/domain/buyreturn"
+	"github.com/heru-oktafian/fiber-apotek-clean/internal/domain/duplicatereceipt"
 	"github.com/heru-oktafian/fiber-apotek-clean/internal/domain/expense"
 	"github.com/heru-oktafian/fiber-apotek-clean/internal/domain/firststock"
 	"github.com/heru-oktafian/fiber-apotek-clean/internal/domain/member"
@@ -229,6 +230,35 @@ type SaleReturnRepository interface {
 	FindProductByID(ctx context.Context, id string) (product.Product, error)
 	UpdateProduct(ctx context.Context, item product.Product) error
 	CreateTransactionReport(ctx context.Context, id string, txType string, userID string, branchID string, total int, payment string, createdAt time.Time) error
+}
+
+type DuplicateReceiptRepository interface {
+	WithinTransactionDuplicateReceipt(ctx context.Context, fn func(repo DuplicateReceiptTxRepository) error) error
+	ListDuplicateReceipts(ctx context.Context, branchID string, req duplicatereceipt.ListRequest) (duplicatereceipt.ListResult, error)
+	FindDuplicateReceiptByID(ctx context.Context, branchID, id string) (duplicatereceipt.DuplicateReceipt, error)
+	UpdateDuplicateReceipt(ctx context.Context, item duplicatereceipt.DuplicateReceipt) error
+	FindDuplicateReceiptItems(ctx context.Context, duplicateReceiptID string) ([]duplicatereceipt.Item, error)
+	FindProductByID(ctx context.Context, id string) (product.Product, error)
+	UpdateProduct(ctx context.Context, item product.Product) error
+	UpdateTransactionReport(ctx context.Context, id string, total int, payment string, updatedAt time.Time) error
+	DeleteTransactionReport(ctx context.Context, id string, txType string) error
+	AdjustDailyProfit(ctx context.Context, reportDate time.Time, userID string, branchID string, totalDelta int, profitDelta int, now time.Time) error
+	FindMemberByID(ctx context.Context, id string) (member.Member, error)
+}
+
+type DuplicateReceiptTxRepository interface {
+	FindProduct(ctx context.Context, id string) (product.Product, error)
+	UpdateProduct(ctx context.Context, item product.Product) error
+	CreateDuplicateReceipt(ctx context.Context, item duplicatereceipt.DuplicateReceipt) error
+	CreateDuplicateReceiptItems(ctx context.Context, items []duplicatereceipt.Item) error
+	CreateTransactionReport(ctx context.Context, id string, txType string, userID string, branchID string, total int, payment string, createdAt time.Time) error
+	UpsertDailyProfit(ctx context.Context, reportDate time.Time, userID string, branchID string, totalSales int, profitEstimate int, now time.Time) error
+	FindMember(ctx context.Context, memberID string) (member.Member, error)
+	FindMemberCategory(ctx context.Context, categoryID string) (member.MemberCategory, error)
+	UpdateMemberPoints(ctx context.Context, memberID string, points int) error
+	DeleteDuplicateReceipt(ctx context.Context, branchID, id string) error
+	DeleteDuplicateReceiptItems(ctx context.Context, duplicateReceiptID string) error
+	DeleteTransactionReport(ctx context.Context, id string, txType string) error
 }
 
 type AnotherIncomeRepository interface {
