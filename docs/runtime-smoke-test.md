@@ -244,7 +244,118 @@ echo "$OPNAME_ID"
 
 ---
 
-## 10. Opname item
+## 10. Duplicate Receipts Batch 1
+
+### Variabel bantu tambahan
+
+```bash
+PRODUCT_ID="PRD25050451578"
+TEST_DATE="2026-04-23"
+```
+
+### Opsi cepat: pakai script siap jalan
+
+```bash
+cd ~/Projects/Go/fiber-apotek-clean
+chmod +x scripts/duplicate_receipt_smoke_test.sh
+USERNAME="$USERNAME" PASSWORD="$PASSWORD" BRANCH_ID="$BRANCH_ID" PRODUCT_ID="$PRODUCT_ID" ./scripts/duplicate_receipt_smoke_test.sh
+```
+
+Script di atas akan menjalankan urutan:
+- health
+- login
+- set branch
+- cek stock produk awal
+- create duplicate receipt
+- list duplicate receipts
+- get detail duplicate receipt
+- update header duplicate receipt
+- delete duplicate receipt
+- cek stock produk setelah delete
+- logout
+
+### Opsi manual: create duplicate receipt
+
+```bash
+DUPLICATE_RECEIPT_JSON=$(curl -s -X POST "$BASE_URL/api/duplicate-receipts" \
+  -H 'Content-Type: application/json' \
+  -H "Authorization: Bearer $TOKEN" \
+  -d "{
+    \"duplicate_receipt\": {
+      \"member_id\": \"\",
+      \"description\": \"Copy resep dokter smoke test\",
+      \"duplicate_receipt_date\": \"$TEST_DATE\",
+      \"payment\": \"cash\"
+    },
+    \"items\": [
+      {
+        \"product_id\": \"$PRODUCT_ID\",
+        \"qty\": 1
+      }
+    ]
+  }")
+
+echo "$DUPLICATE_RECEIPT_JSON" | jq
+```
+
+Ambil ID duplicate receipt:
+
+```bash
+DUPLICATE_RECEIPT_ID=$(echo "$DUPLICATE_RECEIPT_JSON" | jq -r '.data.id')
+echo "$DUPLICATE_RECEIPT_ID"
+```
+
+Expected:
+- HTTP 200
+- header duplicate receipt terbentuk
+- stock produk turun
+- total memakai harga server-side, bukan harga client
+
+### List duplicate receipts
+
+```bash
+curl -s "$BASE_URL/api/duplicate-receipts?page=1&limit=10" \
+  -H "Authorization: Bearer $TOKEN" | jq
+```
+
+### Get duplicate receipt detail
+
+```bash
+curl -s "$BASE_URL/api/duplicate-receipts/$DUPLICATE_RECEIPT_ID" \
+  -H "Authorization: Bearer $TOKEN" | jq
+```
+
+### Update header duplicate receipt
+
+```bash
+curl -s -X PUT "$BASE_URL/api/duplicate-receipts/$DUPLICATE_RECEIPT_ID" \
+  -H 'Content-Type: application/json' \
+  -H "Authorization: Bearer $TOKEN" \
+  -d '{
+    "member_id": "",
+    "description": "Copy resep dokter smoke test update",
+    "payment": "cash"
+  }' | jq
+```
+
+Expected:
+- HTTP 200
+- field header berubah
+- total/profit tetap konsisten dari item tersimpan
+
+### Delete duplicate receipt
+
+```bash
+curl -s -X DELETE "$BASE_URL/api/duplicate-receipts/$DUPLICATE_RECEIPT_ID" \
+  -H "Authorization: Bearer $TOKEN" | jq
+```
+
+Expected:
+- HTTP 200
+- header duplicate receipt terhapus
+- stock produk rollback
+
+## 11. Opname item
 
 ```bash
 OPNAME_ITEM_JSON=$(curl -s -X POST "$BASE_URL/api/opname-items" \
