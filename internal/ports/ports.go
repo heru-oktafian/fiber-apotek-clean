@@ -121,6 +121,7 @@ type MemberCategoryRepository interface {
 }
 
 type UnitRepository interface {
+	FindProductByID(ctx context.Context, id string) (product.Product, error)
 	FindUnitByID(ctx context.Context, id string) (unit.Unit, error)
 	FindConversion(ctx context.Context, productID, initID, finalID, branchID string) (unit.Conversion, error)
 	ListMasterUnits(ctx context.Context, branchID string, req unit.MasterUnitListRequest) (unit.MasterUnitListResult, error)
@@ -129,6 +130,11 @@ type UnitRepository interface {
 	UpdateMasterUnit(ctx context.Context, item unit.MasterUnit) error
 	DeleteMasterUnit(ctx context.Context, id, branchID string) error
 	GetMasterUnitCombo(ctx context.Context, branchID, search string) ([]unit.MasterUnitComboItem, error)
+	ListConversions(ctx context.Context, branchID string, req unit.ConversionListRequest) (unit.ConversionListResult, error)
+	FindConversionByID(ctx context.Context, id, branchID string) (unit.ConversionMaster, error)
+	CreateConversion(ctx context.Context, item unit.ConversionMaster) error
+	UpdateConversion(ctx context.Context, item unit.ConversionMaster) error
+	DeleteConversion(ctx context.Context, id, branchID string) error
 }
 
 type MemberRepository interface {

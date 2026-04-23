@@ -606,6 +606,67 @@ func (r Repositories) GetMasterUnitCombo(ctx context.Context, branchID, search s
 	return items, query.Order("name ASC").Scan(&items).Error
 }
 
+func (r Repositories) ListConversions(ctx context.Context, branchID string, req unit.ConversionListRequest) (unit.ConversionListResult, error) {
+	query := r.DB.WithContext(ctx).
+		Table("unit_conversions unc").
+		Select("unc.id, unc.product_id, pro.name AS product_name, unc.init_id, uin.name AS init_name, unc.final_id, ufi.name AS final_name, unc.value_conv, unc.branch_id").
+		Joins("INNER JOIN products pro ON pro.id = unc.product_id AND pro.branch_id = ?", branchID).
+		Joins("INNER JOIN units uin ON uin.id = unc.init_id AND uin.branch_id = ?", branchID).
+		Joins("INNER JOIN units ufi ON ufi.id = unc.final_id AND ufi.branch_id = ?", branchID).
+		Where("unc.branch_id = ?", branchID)
+	if req.Search != "" {
+		like := "%" + strings.TrimSpace(req.Search) + "%"
+		query = query.Where("pro.name ILIKE ? OR uin.name ILIKE ? OR ufi.name ILIKE ?", like, like, like)
+	}
+	var total int64
+	if err := query.Count(&total).Error; err != nil {
+		return unit.ConversionListResult{}, err
+	}
+	var rows []unit.ConversionMaster
+	offset := (req.Page - 1) * req.Limit
+	if err := query.Order("pro.name ASC, uin.name ASC, ufi.name ASC").Offset(offset).Limit(req.Limit).Scan(&rows).Error; err != nil {
+		return unit.ConversionListResult{}, err
+	}
+	lastPage := 1
+	if req.Limit > 0 {
+		lastPage = int((total + int64(req.Limit) - 1) / int64(req.Limit))
+		if lastPage == 0 {
+			lastPage = 1
+		}
+	}
+	return unit.ConversionListResult{Items: rows, Meta: unit.ConversionListMeta{Page: req.Page, Limit: req.Limit, Search: req.Search, TotalData: int(total), LastPage: lastPage}}, nil
+}
+
+func (r Repositories) FindConversionByID(ctx context.Context, id, branchID string) (unit.ConversionMaster, error) {
+	var item unit.ConversionMaster
+	if err := r.DB.WithContext(ctx).
+		Table("unit_conversions unc").
+		Select("unc.id, unc.product_id, pro.name AS product_name, unc.init_id, uin.name AS init_name, unc.final_id, ufi.name AS final_name, unc.value_conv, unc.branch_id").
+		Joins("INNER JOIN products pro ON pro.id = unc.product_id AND pro.branch_id = ?", branchID).
+		Joins("INNER JOIN units uin ON uin.id = unc.init_id AND uin.branch_id = ?", branchID).
+		Joins("INNER JOIN units ufi ON ufi.id = unc.final_id AND ufi.branch_id = ?", branchID).
+		Where("unc.id = ? AND unc.branch_id = ?", id, branchID).
+		Scan(&item).Error; err != nil {
+		return unit.ConversionMaster{}, err
+	}
+	if item.ID == "" {
+		return unit.ConversionMaster{}, gorm.ErrRecordNotFound
+	}
+	return item, nil
+}
+
+func (r Repositories) CreateConversion(ctx context.Context, item unit.ConversionMaster) error {
+	return r.DB.WithContext(ctx).Create(&UnitConversionModel{ID: item.ID, ProductID: item.ProductID, InitID: item.InitID, FinalID: item.FinalID, ValueConv: item.ValueConv, BranchID: item.BranchID}).Error
+}
+
+func (r Repositories) UpdateConversion(ctx context.Context, item unit.ConversionMaster) error {
+	return r.DB.WithContext(ctx).Model(&UnitConversionModel{}).Where("id = ? AND branch_id = ?", item.ID, item.BranchID).Updates(map[string]any{"product_id": item.ProductID, "init_id": item.InitID, "final_id": item.FinalID, "value_conv": item.ValueConv}).Error
+}
+
+func (r Repositories) DeleteConversion(ctx context.Context, id, branchID string) error {
+	return r.DB.WithContext(ctx).Where("id = ? AND branch_id = ?", id, branchID).Delete(&UnitConversionModel{}).Error
+}
+
 func (r Repositories) ListProductCategories(ctx context.Context, branchID string, req productcategory.ListRequest) (productcategory.ListResult, error) {
 	query := r.DB.WithContext(ctx).Table("product_categories pc").Select("pc.id AS product_category_id, pc.name AS product_category_name").Where("pc.branch_id = ?", branchID)
 	if req.Search != "" {

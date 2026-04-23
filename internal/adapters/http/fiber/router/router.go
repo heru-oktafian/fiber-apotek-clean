@@ -54,6 +54,13 @@ type Dependencies struct {
 		Delete(*fiber.Ctx) error
 		Combo(*fiber.Ctx) error
 	}
+	UnitConversion interface {
+		List(*fiber.Ctx) error
+		GetByID(*fiber.Ctx) error
+		Create(*fiber.Ctx) error
+		Update(*fiber.Ctx) error
+		Delete(*fiber.Ctx) error
+	}
 	ProductCategory interface {
 		List(*fiber.Ctx) error
 		GetByID(*fiber.Ctx) error
@@ -255,6 +262,11 @@ func Register(app *fiber.App, deps Dependencies) {
 	app.Put("/api/units/:id", deps.AuthMiddleware, deps.Unit.Update)
 	app.Delete("/api/units/:id", deps.AuthMiddleware, deps.Unit.Delete)
 	app.Get("/api/cmb-units", deps.AuthMiddleware, deps.Unit.Combo)
+	app.Get("/api/unit-conversions", deps.AuthMiddleware, deps.UnitConversion.List)
+	app.Get("/api/unit-conversions/:id", deps.AuthMiddleware, deps.UnitConversion.GetByID)
+	app.Post("/api/unit-conversions", deps.AuthMiddleware, deps.UnitConversion.Create)
+	app.Put("/api/unit-conversions/:id", deps.AuthMiddleware, deps.UnitConversion.Update)
+	app.Delete("/api/unit-conversions/:id", deps.AuthMiddleware, deps.UnitConversion.Delete)
 	app.Get("/api/product-categories", deps.AuthMiddleware, deps.ProductCategory.List)
 	app.Get("/api/product-categories/excel", deps.AuthMiddleware, deps.Export.ProductCategoriesExcel)
 	app.Get("/api/product-categories/pdf", deps.AuthMiddleware, deps.Export.ProductCategoriesPDF)

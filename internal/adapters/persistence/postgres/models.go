@@ -107,6 +107,7 @@ type UnitModel struct {
 func (UnitModel) TableName() string { return "units" }
 
 type UnitConversionModel struct {
+	ID        string `gorm:"column:id;primaryKey"`
 	ProductID string `gorm:"column:product_id"`
 	InitID    string `gorm:"column:init_id"`
 	FinalID   string `gorm:"column:final_id"`

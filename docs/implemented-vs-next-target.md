@@ -173,10 +173,21 @@ Tujuannya sederhana:
 
 ### Unit Conversions
 **Implemented:**
-- belum ada
+- `GET /api/unit-conversions`
+- `GET /api/unit-conversions/:id`
+- `POST /api/unit-conversions`
+- `PUT /api/unit-conversions/:id`
+- `DELETE /api/unit-conversions/:id`
+
+**Catatan:**
+- Batch 1 menutup core master CRUD untuk conversion per product
+- validasi dasar sudah dijaga: `product_id`, `init_id`, `final_id` wajib ada, `value_conv > 0`, dan `init_id` tidak boleh sama dengan `final_id`
+- duplicate guard create memakai pasangan `product_id + init_id + final_id + branch_id`
 
 **Next target:**
-- bisa menyusul sebelum products full CRUD kalau frontend benar-benar butuh
+- export `unit-conversions` excel/pdf
+- evaluasi kebutuhan combo produk khusus (`CmbProdConv`) versus reuse combo produk yang sudah ada
+- validasi runtime end-to-end untuk flow purchase/first-stock/returns yang mengandalkan conversion
 
 ---
 

@@ -142,6 +142,7 @@ func New() (*App, error) {
 	productHandler := handlers.ProductHandler{Service: productusecase.Service{Products: repos, IDs: ids}}
 	supplierHandler := handlers.SupplierHandler{Service: supplierusecase.Service{Suppliers: repos, IDs: ids}}
 	unitHandler := handlers.UnitHandler{Service: unitusecase.MasterService{Units: repos, IDs: ids}}
+	unitConversionHandler := handlers.UnitConversionHandler{Service: unitusecase.ConversionService{Units: repos, IDs: ids}}
 	productCategoryHandler := handlers.ProductCategoryHandler{Service: productcategoryusecase.Service{Categories: repos}}
 	supplierCategoryHandler := handlers.SupplierCategoryHandler{Service: suppliercategoryusecase.Service{Categories: repos}}
 	memberCategoryHandler := handlers.MemberCategoryHandler{Service: membercategoryusecase.Service{Categories: repos}}
@@ -165,6 +166,6 @@ func New() (*App, error) {
 	app := fiber.New(fiber.Config{DisableStartupMessage: true, ReadTimeout: 30 * time.Second, WriteTimeout: 30 * time.Second})
 	app.Use(console.RequestLogger())
 	authMw := middleware.RequireAuth(jwtSvc, blacklist)
-	router.Register(app, router.Dependencies{Auth: authHandler, Branch: branchHandler, UserBranch: userBranchHandler, User: userHandler, Product: productHandler, Supplier: supplierHandler, Unit: unitHandler, ProductCategory: productCategoryHandler, SupplierCategory: supplierCategoryHandler, MemberCategory: memberCategoryHandler, Member: memberHandler, AnotherIncome: anotherIncomeHandler, Expense: expenseHandler, FirstStock: firstStockHandler, BuyReturn: buyReturnHandler, SaleReturn: saleReturnHandler, DuplicateReceipt: duplicateReceiptHandler, Purchase: purchaseHandler, Sale: saleHandler, Opname: opnameHandler, Export: exportBundle{base: exportHandler, master: exportMasterHandler, transaction: exportTransactionHandler, finance: exportFinanceHandler, audit: exportAuditHandler, returns: exportReturnHandler}, AuthMiddleware: authMw})
+	router.Register(app, router.Dependencies{Auth: authHandler, Branch: branchHandler, UserBranch: userBranchHandler, User: userHandler, Product: productHandler, Supplier: supplierHandler, Unit: unitHandler, UnitConversion: unitConversionHandler, ProductCategory: productCategoryHandler, SupplierCategory: supplierCategoryHandler, MemberCategory: memberCategoryHandler, Member: memberHandler, AnotherIncome: anotherIncomeHandler, Expense: expenseHandler, FirstStock: firstStockHandler, BuyReturn: buyReturnHandler, SaleReturn: saleReturnHandler, DuplicateReceipt: duplicateReceiptHandler, Purchase: purchaseHandler, Sale: saleHandler, Opname: opnameHandler, Export: exportBundle{base: exportHandler, master: exportMasterHandler, transaction: exportTransactionHandler, finance: exportFinanceHandler, audit: exportAuditHandler, returns: exportReturnHandler}, AuthMiddleware: authMw})
 	return &App{Fiber: app, Config: cfg}, nil
 }

@@ -240,6 +240,12 @@ Api Apotek (Implemented)
 │   │   ├── Put - /api/units/:id
 │   │   ├── Delete - /api/units/:id
 │   │   └── Get - /api/cmb-units
+│   ├── Unit Conversions/
+│   │   ├── Get - /api/unit-conversions
+│   │   ├── Get - /api/unit-conversions/:id
+│   │   ├── Post - /api/unit-conversions
+│   │   ├── Put - /api/unit-conversions/:id
+│   │   └── Delete - /api/unit-conversions/:id
 │   └── Categories/
 │       ├── Product Categories/
 │       │   ├── Get - /api/product-categories
