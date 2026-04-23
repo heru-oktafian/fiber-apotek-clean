@@ -175,6 +175,10 @@ type Dependencies struct {
 		SalesPDF(*fiber.Ctx) error
 		SaleItemsExcel(*fiber.Ctx) error
 		SaleItemsPDF(*fiber.Ctx) error
+		DuplicateReceiptsExcel(*fiber.Ctx) error
+		DuplicateReceiptsPDF(*fiber.Ctx) error
+		DuplicateReceiptItemsExcel(*fiber.Ctx) error
+		DuplicateReceiptItemsPDF(*fiber.Ctx) error
 		AnotherIncomesExcel(*fiber.Ctx) error
 		AnotherIncomesPDF(*fiber.Ctx) error
 		ExpensesExcel(*fiber.Ctx) error
@@ -289,11 +293,15 @@ func Register(app *fiber.App, deps Dependencies) {
 	app.Get("/api/cmb-sales", deps.AuthMiddleware, deps.SaleReturn.SaleSources)
 	app.Get("/api/cmb-prod-sale-returns", deps.AuthMiddleware, deps.SaleReturn.ReturnableItems)
 	app.Get("/api/duplicate-receipts", deps.AuthMiddleware, deps.DuplicateReceipt.List)
+	app.Get("/api/duplicate-receipts/excel", deps.AuthMiddleware, deps.Export.DuplicateReceiptsExcel)
+	app.Get("/api/duplicate-receipts/pdf", deps.AuthMiddleware, deps.Export.DuplicateReceiptsPDF)
 	app.Post("/api/duplicate-receipts", deps.AuthMiddleware, deps.DuplicateReceipt.Create)
 	app.Get("/api/duplicate-receipts/:id", deps.AuthMiddleware, deps.DuplicateReceipt.GetByID)
 	app.Put("/api/duplicate-receipts/:id", deps.AuthMiddleware, deps.DuplicateReceipt.Update)
 	app.Delete("/api/duplicate-receipts/:id", deps.AuthMiddleware, deps.DuplicateReceipt.Delete)
 	app.Get("/api/duplicate-receipts-items/all/:id", deps.AuthMiddleware, deps.DuplicateReceipt.ListItems)
+	app.Get("/api/duplicate-receipts-items/excel", deps.AuthMiddleware, deps.Export.DuplicateReceiptItemsExcel)
+	app.Get("/api/duplicate-receipts-items/pdf", deps.AuthMiddleware, deps.Export.DuplicateReceiptItemsPDF)
 	app.Post("/api/duplicate-receipts-items", deps.AuthMiddleware, deps.DuplicateReceipt.CreateItem)
 	app.Put("/api/duplicate-receipts-items/:id", deps.AuthMiddleware, deps.DuplicateReceipt.UpdateItem)
 	app.Delete("/api/duplicate-receipts-items/:id", deps.AuthMiddleware, deps.DuplicateReceipt.DeleteItem)

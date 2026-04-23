@@ -278,6 +278,11 @@ Script di atas akan menjalankan urutan:
 - cek stock produk setelah delete
 - logout
 
+Catatan Batch 3:
+- export header: `GET /api/duplicate-receipts/excel` dan `GET /api/duplicate-receipts/pdf`
+- export item: `GET /api/duplicate-receipts-items/excel?duplicate_receipt_id=...` dan `GET /api/duplicate-receipts-items/pdf?duplicate_receipt_id=...`
+- validasi runtime export tetap disarankan via Terminal GUI setelah API hidup di port `1113`
+
 ### Opsi manual: create duplicate receipt
 
 ```bash

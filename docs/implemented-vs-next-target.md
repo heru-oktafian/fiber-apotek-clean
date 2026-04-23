@@ -296,11 +296,15 @@ Tujuannya sederhana:
 ### Duplicate Receipts
 **Implemented:**
 - `GET /api/duplicate-receipts`
+- `GET /api/duplicate-receipts/excel`
+- `GET /api/duplicate-receipts/pdf`
 - `POST /api/duplicate-receipts`
 - `GET /api/duplicate-receipts/:id`
 - `PUT /api/duplicate-receipts/:id`
 - `DELETE /api/duplicate-receipts/:id`
 - `GET /api/duplicate-receipts-items/all/:id`
+- `GET /api/duplicate-receipts-items/excel`
+- `GET /api/duplicate-receipts-items/pdf`
 - `POST /api/duplicate-receipts-items`
 - `PUT /api/duplicate-receipts-items/:id`
 - `DELETE /api/duplicate-receipts-items/:id`
@@ -311,12 +315,12 @@ Tujuannya sederhana:
 - create/delete header sudah memakai transaction boundary untuk menjaga stock/report tetap atomik
 - item create/update/delete sekarang juga sudah ikut menjaga stock, total/profit header, transaction report, dan daily profit
 - item flow Batch 2 sudah dibungkus transaction safety
+- export Batch 3 sudah tersedia untuk header dan item dalam format excel/pdf, baseline clean
 
 **Next target:**
 - evaluasi endpoint detail/report-ish (`/api/duplicate-receipts-details`)
-- export excel/pdf header dan item
 - validasi runtime end-to-end duplicate receipt flow
-- smoke test khusus Batch 2 item flow
+- refine styling export bila mau didekatkan lagi ke legacy
 
 ---
 

@@ -299,11 +299,15 @@ Api Apotek (Implemented)
 │   │   └── Delete - /api/sale-items/:id
 │   └── Duplicate Receipts/
 │       ├── Get - /api/duplicate-receipts
+│       ├── Get - /api/duplicate-receipts/excel
+│       ├── Get - /api/duplicate-receipts/pdf
 │       ├── Post - /api/duplicate-receipts
 │       ├── Get - /api/duplicate-receipts/:id
 │       ├── Put - /api/duplicate-receipts/:id
 │       ├── Delete - /api/duplicate-receipts/:id
 │       ├── Get - /api/duplicate-receipts-items/all/:id
+│       ├── Get - /api/duplicate-receipts-items/excel
+│       ├── Get - /api/duplicate-receipts-items/pdf
 │       ├── Post - /api/duplicate-receipts-items
 │       ├── Put - /api/duplicate-receipts-items/:id
 │       └── Delete - /api/duplicate-receipts-items/:id
@@ -352,13 +356,17 @@ Beberapa milestone parity yang sudah lebih matang di repo ini sekarang mencakup:
 - transaksi `purchases` dan `sales` berikut item CRUD dan export baseline
 - `buy returns` dan `sale returns` berikut combo sumber transaksi dan export baseline
 - `first stocks` berikut header/item flow dan export baseline
-- `duplicate receipts` sebagai **sale-like transaction** berbasis resep dokter / kopi resep, dengan implementasi saat ini mencakup header CRUD + item CRUD:
+- `duplicate receipts` sebagai **sale-like transaction** berbasis resep dokter / kopi resep, dengan implementasi saat ini mencakup header CRUD + item CRUD + export baseline:
   - `GET /api/duplicate-receipts`
+  - `GET /api/duplicate-receipts/excel`
+  - `GET /api/duplicate-receipts/pdf`
   - `POST /api/duplicate-receipts`
   - `GET /api/duplicate-receipts/:id`
   - `PUT /api/duplicate-receipts/:id`
   - `DELETE /api/duplicate-receipts/:id`
   - `GET /api/duplicate-receipts-items/all/:id`
+  - `GET /api/duplicate-receipts-items/excel`
+  - `GET /api/duplicate-receipts-items/pdf`
   - `POST /api/duplicate-receipts-items`
   - `PUT /api/duplicate-receipts-items/:id`
   - `DELETE /api/duplicate-receipts-items/:id`

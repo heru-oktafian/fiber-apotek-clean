@@ -4,12 +4,14 @@ import (
 	"context"
 	"fmt"
 	"net/http"
+	"strings"
 	"time"
 
 	"github.com/heru-oktafian/fiber-apotek-clean/internal/domain/common"
 	domain "github.com/heru-oktafian/fiber-apotek-clean/internal/domain/duplicatereceipt"
 	"github.com/heru-oktafian/fiber-apotek-clean/internal/ports"
 	"github.com/heru-oktafian/fiber-apotek-clean/internal/shared/apperror"
+	exportshared "github.com/heru-oktafian/fiber-apotek-clean/internal/shared/export"
 	"gorm.io/gorm"
 )
 
@@ -411,4 +413,168 @@ func (s Service) DeleteItem(ctx context.Context, branchID, id string) error {
 		return apperror.New(http.StatusInternalServerError, "Delete duplicate receipt item failed", err.Error())
 	}
 	return nil
+}
+
+func (s Service) ExportExcel(ctx context.Context, branchID, month string) ([]byte, string, error) {
+	result, err := s.List(ctx, branchID, domain.ListRequest{Month: month, Page: 1, Limit: 10000})
+	if err != nil {
+		return nil, "", err
+	}
+	f := exportshared.NewExcelFile("Duplicate Receipts")
+	sheet := "Duplicate Receipts"
+	f.SetCellValue(sheet, "A1", fmt.Sprintf("DUPLICATE RECEIPTS %s", month))
+	headers := []string{"ID", "MEMBER", "TANGGAL", "PEMBAYARAN", "TOTAL", "PROFIT"}
+	for i, h := range headers {
+		col, _ := exportshared.ExcelColumnName(i + 1)
+		f.SetCellValue(sheet, fmt.Sprintf("%s3", col), h)
+	}
+	grandTotal := 0
+	grandProfit := 0
+	for i, item := range result.Items {
+		row := i + 4
+		f.SetCellValue(sheet, fmt.Sprintf("A%d", row), item.ID)
+		f.SetCellValue(sheet, fmt.Sprintf("B%d", row), item.MemberName)
+		f.SetCellValue(sheet, fmt.Sprintf("C%d", row), item.DuplicateReceiptDate)
+		f.SetCellValue(sheet, fmt.Sprintf("D%d", row), item.Payment)
+		f.SetCellValue(sheet, fmt.Sprintf("E%d", row), item.TotalDuplicateReceipt)
+		f.SetCellValue(sheet, fmt.Sprintf("F%d", row), item.ProfitEstimate)
+		grandTotal += item.TotalDuplicateReceipt
+		grandProfit += item.ProfitEstimate
+	}
+	totalRow := len(result.Items) + 4
+	f.SetCellValue(sheet, fmt.Sprintf("A%d", totalRow), "GRAND TOTAL")
+	f.SetCellValue(sheet, fmt.Sprintf("E%d", totalRow), grandTotal)
+	f.SetCellValue(sheet, fmt.Sprintf("F%d", totalRow), grandProfit)
+	bytes, err := exportshared.WriteExcel(f)
+	if err != nil {
+		return nil, "", apperror.New(http.StatusInternalServerError, "Export duplicate receipts excel failed", err.Error())
+	}
+	return bytes, fmt.Sprintf("duplicate-receipts-%s.xlsx", time.Now().Format("2006-01-02-15-04-05")), nil
+}
+
+func (s Service) ExportPDF(ctx context.Context, branchID, month string) ([]byte, string, error) {
+	result, err := s.List(ctx, branchID, domain.ListRequest{Month: month, Page: 1, Limit: 10000})
+	if err != nil {
+		return nil, "", err
+	}
+	pdf := exportshared.NewPDF("DUPLICATE RECEIPTS")
+	pdf.SetFont("Arial", "B", 14)
+	pdf.CellFormat(277, 10, fmt.Sprintf("DUPLICATE RECEIPTS %s", month), "", 1, "C", false, 0, "")
+	pdf.SetFont("Arial", "B", 10)
+	widths := []float64{45, 75, 45, 40, 36, 36}
+	headers := []string{"ID", "MEMBER", "TANGGAL", "PEMBAYARAN", "TOTAL", "PROFIT"}
+	for i, h := range headers {
+		pdf.CellFormat(widths[i], 8, h, "1", 0, "C", false, 0, "")
+	}
+	pdf.Ln(-1)
+	pdf.SetFont("Arial", "", 9)
+	grandTotal := 0
+	grandProfit := 0
+	for _, item := range result.Items {
+		values := []string{item.ID, item.MemberName, item.DuplicateReceiptDate, item.Payment, fmt.Sprintf("%d", item.TotalDuplicateReceipt), fmt.Sprintf("%d", item.ProfitEstimate)}
+		for i, v := range values {
+			pdf.CellFormat(widths[i], 8, v, "1", 0, "L", false, 0, "")
+		}
+		pdf.Ln(-1)
+		grandTotal += item.TotalDuplicateReceipt
+		grandProfit += item.ProfitEstimate
+	}
+	pdf.SetFont("Arial", "B", 10)
+	pdf.CellFormat(205, 8, "TOTAL", "1", 0, "C", false, 0, "")
+	pdf.CellFormat(36, 8, fmt.Sprintf("%d", grandTotal), "1", 0, "R", false, 0, "")
+	pdf.CellFormat(36, 8, fmt.Sprintf("%d", grandProfit), "1", 1, "R", false, 0, "")
+	bytes, err := exportshared.WritePDF(pdf)
+	if err != nil {
+		return nil, "", apperror.New(http.StatusInternalServerError, "Export duplicate receipts pdf failed", err.Error())
+	}
+	return bytes, fmt.Sprintf("DUPLICATE-RECEIPTS-%s.pdf", time.Now().Format("2006-01-02-15:04:05")), nil
+}
+
+func (s Service) ExportItemsExcel(ctx context.Context, branchID, duplicateReceiptID string) ([]byte, string, error) {
+	if strings.TrimSpace(duplicateReceiptID) == "" {
+		return nil, "", apperror.New(http.StatusBadRequest, "Export duplicate receipt items excel failed", "duplicate_receipt_id is required")
+	}
+	detail, err := s.GetByID(ctx, branchID, duplicateReceiptID)
+	if err != nil {
+		return nil, "", err
+	}
+	items, err := s.ListItems(ctx, branchID, duplicateReceiptID)
+	if err != nil {
+		return nil, "", err
+	}
+	f := exportshared.NewExcelFile("Detail Duplicate Receipt")
+	sheet := "Detail Duplicate Receipt"
+	f.SetCellValue(sheet, "A1", "LAPORAN DETAIL DUPLICATE RECEIPT")
+	f.SetCellValue(sheet, "A2", "ID DUPLICATE RECEIPT")
+	f.SetCellValue(sheet, "B2", ": "+detail.ID)
+	f.SetCellValue(sheet, "A3", "TANGGAL")
+	f.SetCellValue(sheet, "B3", ": "+detail.DuplicateReceiptDate)
+	f.SetCellValue(sheet, "A4", "MEMBER")
+	f.SetCellValue(sheet, "B4", ": "+detail.MemberName)
+	f.SetCellValue(sheet, "A5", "METODE PEMBAYARAN")
+	f.SetCellValue(sheet, "B5", ": "+detail.Payment)
+	headers := []string{"PRODUK", "UNIT", "QTY", "HARGA", "SUB TOTAL"}
+	for i, h := range headers {
+		col, _ := exportshared.ExcelColumnName(i + 1)
+		f.SetCellValue(sheet, fmt.Sprintf("%s7", col), h)
+	}
+	for i, item := range items {
+		row := i + 8
+		f.SetCellValue(sheet, fmt.Sprintf("A%d", row), item.ProductName)
+		f.SetCellValue(sheet, fmt.Sprintf("B%d", row), item.UnitName)
+		f.SetCellValue(sheet, fmt.Sprintf("C%d", row), item.Qty)
+		f.SetCellValue(sheet, fmt.Sprintf("D%d", row), item.Price)
+		f.SetCellValue(sheet, fmt.Sprintf("E%d", row), item.SubTotal)
+	}
+	totalRow := len(items) + 8
+	f.SetCellValue(sheet, fmt.Sprintf("A%d", totalRow), "TOTAL")
+	f.SetCellValue(sheet, fmt.Sprintf("E%d", totalRow), detail.TotalDuplicateReceipt)
+	bytes, err := exportshared.WriteExcel(f)
+	if err != nil {
+		return nil, "", apperror.New(http.StatusInternalServerError, "Export duplicate receipt items excel failed", err.Error())
+	}
+	return bytes, fmt.Sprintf("DETAIL-DUPLICATE-RECEIPT-%s-%s.xlsx", duplicateReceiptID, time.Now().Format("20060102150405")), nil
+}
+
+func (s Service) ExportItemsPDF(ctx context.Context, branchID, duplicateReceiptID string) ([]byte, string, error) {
+	if strings.TrimSpace(duplicateReceiptID) == "" {
+		return nil, "", apperror.New(http.StatusBadRequest, "Export duplicate receipt items pdf failed", "duplicate_receipt_id is required")
+	}
+	detail, err := s.GetByID(ctx, branchID, duplicateReceiptID)
+	if err != nil {
+		return nil, "", err
+	}
+	items, err := s.ListItems(ctx, branchID, duplicateReceiptID)
+	if err != nil {
+		return nil, "", err
+	}
+	pdf := exportshared.NewPDF("DETAIL DUPLICATE RECEIPT")
+	pdf.SetFont("Arial", "B", 14)
+	pdf.CellFormat(277, 10, fmt.Sprintf("ID DUPLICATE RECEIPT : %s", detail.ID), "", 1, "C", false, 0, "")
+	pdf.SetFont("Arial", "", 10)
+	pdf.CellFormat(277, 8, fmt.Sprintf("TANGGAL : %s", detail.DuplicateReceiptDate), "", 1, "C", false, 0, "")
+	pdf.CellFormat(277, 8, fmt.Sprintf("MEMBER : %s | PEMBAYARAN : %s", detail.MemberName, detail.Payment), "", 1, "C", false, 0, "")
+	pdf.SetFont("Arial", "B", 10)
+	widths := []float64{115, 45, 25, 45, 47}
+	headers := []string{"PRODUK", "UNIT", "QTY", "HARGA", "SUB TOTAL"}
+	for i, h := range headers {
+		pdf.CellFormat(widths[i], 8, h, "1", 0, "C", false, 0, "")
+	}
+	pdf.Ln(-1)
+	pdf.SetFont("Arial", "", 9)
+	for _, item := range items {
+		values := []string{item.ProductName, item.UnitName, fmt.Sprintf("%d", item.Qty), fmt.Sprintf("%d", item.Price), fmt.Sprintf("%d", item.SubTotal)}
+		for i, v := range values {
+			pdf.CellFormat(widths[i], 8, v, "1", 0, "L", false, 0, "")
+		}
+		pdf.Ln(-1)
+	}
+	pdf.SetFont("Arial", "B", 10)
+	pdf.CellFormat(230, 8, "TOTAL", "1", 0, "C", false, 0, "")
+	pdf.CellFormat(47, 8, fmt.Sprintf("%d", detail.TotalDuplicateReceipt), "1", 1, "R", false, 0, "")
+	bytes, err := exportshared.WritePDF(pdf)
+	if err != nil {
+		return nil, "", apperror.New(http.StatusInternalServerError, "Export duplicate receipt items pdf failed", err.Error())
+	}
+	return bytes, fmt.Sprintf("DETAIL-DUPLICATE-RECEIPT-%s.pdf", time.Now().Format("2006-01-02-15:04:05")), nil
 }
