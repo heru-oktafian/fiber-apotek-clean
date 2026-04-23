@@ -399,6 +399,25 @@ Tujuannya sederhana:
 - refine visual export bila ingin makin mirip legacy
 - validasi runtime export end-to-end
 
+### Members
+**Implemented:**
+- `GET /api/members`
+- `GET /api/members/:id`
+- `POST /api/members`
+- `PUT /api/members/:id`
+- `DELETE /api/members/:id`
+- `GET /api/members-combo`
+
+**Catatan:**
+- baseline Batch 1 sudah menutup master CRUD + combo
+- entity member sekarang tidak lagi cuma cukup untuk points flow transaksi, tapi sudah dinaikkan jadi master domain yang layak dipakai frontend
+- `member_category_id` tetap dijaga eksplisit sebagai field bisnis inti
+
+**Next target:**
+- export `members` excel/pdf
+- validasi runtime end-to-end members flow
+- guard bisnis tambahan bila nanti perlu mencegah delete member yang masih dipakai histori transaksi
+
 ---
 
 ## Rekomendasi urutan kerja berikutnya

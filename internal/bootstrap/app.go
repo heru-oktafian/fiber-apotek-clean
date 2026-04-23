@@ -41,6 +41,7 @@ import (
 	suppliercategoryusecase "github.com/heru-oktafian/fiber-apotek-clean/internal/usecase/suppliercategory"
 	unitusecase "github.com/heru-oktafian/fiber-apotek-clean/internal/usecase/unit"
 	userbranchusecase "github.com/heru-oktafian/fiber-apotek-clean/internal/usecase/userbranch"
+	memberusecase "github.com/heru-oktafian/fiber-apotek-clean/internal/usecase/member"
 	userusecase "github.com/heru-oktafian/fiber-apotek-clean/internal/usecase/user"
 )
 
@@ -142,6 +143,7 @@ func New() (*App, error) {
 	productCategoryHandler := handlers.ProductCategoryHandler{Service: productcategoryusecase.Service{Categories: repos}}
 	supplierCategoryHandler := handlers.SupplierCategoryHandler{Service: suppliercategoryusecase.Service{Categories: repos}}
 	memberCategoryHandler := handlers.MemberCategoryHandler{Service: membercategoryusecase.Service{Categories: repos}}
+	memberHandler := handlers.MemberHandler{Service: memberusecase.Service{Members: repos, IDs: ids}}
 	anotherIncomeHandler := handlers.AnotherIncomeHandler{Service: anotherincomeusecase.Service{Repo: repos, IDs: ids, Clock: clk}}
 	expenseHandler := handlers.ExpenseHandler{Service: expenseusecase.Service{Repo: repos, IDs: ids, Clock: clk}}
 	firstStockHandler := handlers.FirstStockHandler{Service: firststockusecase.Service{Repo: repos, IDs: ids, Clock: clk}}
@@ -161,6 +163,6 @@ func New() (*App, error) {
 	app := fiber.New(fiber.Config{DisableStartupMessage: true, ReadTimeout: 30 * time.Second, WriteTimeout: 30 * time.Second})
 	app.Use(console.RequestLogger())
 	authMw := middleware.RequireAuth(jwtSvc, blacklist)
-	router.Register(app, router.Dependencies{Auth: authHandler, Branch: branchHandler, UserBranch: userBranchHandler, User: userHandler, Product: productHandler, Supplier: supplierHandler, Unit: unitHandler, ProductCategory: productCategoryHandler, SupplierCategory: supplierCategoryHandler, MemberCategory: memberCategoryHandler, AnotherIncome: anotherIncomeHandler, Expense: expenseHandler, FirstStock: firstStockHandler, BuyReturn: buyReturnHandler, SaleReturn: saleReturnHandler, DuplicateReceipt: duplicateReceiptHandler, Purchase: purchaseHandler, Sale: saleHandler, Opname: opnameHandler, Export: exportBundle{base: exportHandler, master: exportMasterHandler, transaction: exportTransactionHandler, finance: exportFinanceHandler, audit: exportAuditHandler, returns: exportReturnHandler}, AuthMiddleware: authMw})
+	router.Register(app, router.Dependencies{Auth: authHandler, Branch: branchHandler, UserBranch: userBranchHandler, User: userHandler, Product: productHandler, Supplier: supplierHandler, Unit: unitHandler, ProductCategory: productCategoryHandler, SupplierCategory: supplierCategoryHandler, MemberCategory: memberCategoryHandler, Member: memberHandler, AnotherIncome: anotherIncomeHandler, Expense: expenseHandler, FirstStock: firstStockHandler, BuyReturn: buyReturnHandler, SaleReturn: saleReturnHandler, DuplicateReceipt: duplicateReceiptHandler, Purchase: purchaseHandler, Sale: saleHandler, Opname: opnameHandler, Export: exportBundle{base: exportHandler, master: exportMasterHandler, transaction: exportTransactionHandler, finance: exportFinanceHandler, audit: exportAuditHandler, returns: exportReturnHandler}, AuthMiddleware: authMw})
 	return &App{Fiber: app, Config: cfg}, nil
 }

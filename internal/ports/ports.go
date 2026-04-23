@@ -132,6 +132,12 @@ type UnitRepository interface {
 }
 
 type MemberRepository interface {
+	ListMembers(ctx context.Context, branchID string, req member.ListRequest) (member.ListResult, error)
+	FindMemberDetailByID(ctx context.Context, id, branchID string) (member.Member, error)
+	CreateMember(ctx context.Context, item member.Member) error
+	UpdateMember(ctx context.Context, item member.Member) error
+	DeleteMember(ctx context.Context, id, branchID string) error
+	GetMemberCombo(ctx context.Context, branchID, search string) ([]member.ComboItem, error)
 	FindMemberByID(ctx context.Context, id string) (member.Member, error)
 	FindCategoryByID(ctx context.Context, id string) (member.MemberCategory, error)
 	UpdatePoints(ctx context.Context, memberID string, points int) error

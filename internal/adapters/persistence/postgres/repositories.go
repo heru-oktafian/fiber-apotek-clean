@@ -811,12 +811,101 @@ func (r Repositories) FindUnit(ctx context.Context, id string) (unit.Unit, error
 	return unit.Unit{ID: m.ID, Name: m.Name}, nil
 }
 
+func (r Repositories) ListMembers(ctx context.Context, branchID string, req member.ListRequest) (member.ListResult, error) {
+	query := r.DB.WithContext(ctx).
+		Table("members m").
+		Select("m.id, m.name, m.phone, m.address, m.member_category_id, mc.name AS member_category, m.points, m.branch_id").
+		Joins("LEFT JOIN member_categories mc ON mc.id = m.member_category_id").
+		Where("m.branch_id = ?", branchID)
+	if req.Search != "" {
+		like := "%" + strings.TrimSpace(req.Search) + "%"
+		query = query.Where("m.name ILIKE ? OR m.phone ILIKE ? OR m.address ILIKE ? OR mc.name ILIKE ?", like, like, like, like)
+	}
+	var total int64
+	if err := query.Count(&total).Error; err != nil {
+		return member.ListResult{}, err
+	}
+	var rows []struct {
+		ID               string
+		Name             string
+		Phone            string
+		Address          string
+		MemberCategoryID string
+		MemberCategory   string
+		Points           int
+		BranchID         string
+	}
+	offset := (req.Page - 1) * req.Limit
+	if err := query.Order("m.name ASC").Offset(offset).Limit(req.Limit).Scan(&rows).Error; err != nil {
+		return member.ListResult{}, err
+	}
+	items := make([]member.Member, 0, len(rows))
+	for _, row := range rows {
+		items = append(items, member.Member{ID: row.ID, Name: row.Name, Phone: row.Phone, Address: row.Address, MemberCategoryID: row.MemberCategoryID, MemberCategory: row.MemberCategory, Points: row.Points, BranchID: row.BranchID})
+	}
+	lastPage := 1
+	if req.Limit > 0 {
+		lastPage = int((total + int64(req.Limit) - 1) / int64(req.Limit))
+		if lastPage == 0 {
+			lastPage = 1
+		}
+	}
+	return member.ListResult{Items: items, Meta: member.ListMeta{Page: req.Page, Limit: req.Limit, Search: req.Search, TotalData: int(total), LastPage: lastPage}}, nil
+}
+
+func (r Repositories) FindMemberDetailByID(ctx context.Context, id, branchID string) (member.Member, error) {
+	var row struct {
+		ID               string
+		Name             string
+		Phone            string
+		Address          string
+		MemberCategoryID string
+		MemberCategory   string
+		Points           int
+		BranchID         string
+	}
+	if err := r.DB.WithContext(ctx).
+		Table("members m").
+		Select("m.id, m.name, m.phone, m.address, m.member_category_id, mc.name AS member_category, m.points, m.branch_id").
+		Joins("LEFT JOIN member_categories mc ON mc.id = m.member_category_id").
+		Where("m.id = ? AND m.branch_id = ?", id, branchID).
+		Scan(&row).Error; err != nil {
+		return member.Member{}, err
+	}
+	if row.ID == "" {
+		return member.Member{}, gorm.ErrRecordNotFound
+	}
+	return member.Member{ID: row.ID, Name: row.Name, Phone: row.Phone, Address: row.Address, MemberCategoryID: row.MemberCategoryID, MemberCategory: row.MemberCategory, Points: row.Points, BranchID: row.BranchID}, nil
+}
+
+func (r Repositories) CreateMember(ctx context.Context, item member.Member) error {
+	return r.DB.WithContext(ctx).Create(&MemberModel{ID: item.ID, Name: item.Name, Phone: item.Phone, Address: item.Address, MemberCategoryID: item.MemberCategoryID, Points: item.Points, BranchID: item.BranchID}).Error
+}
+
+func (r Repositories) UpdateMember(ctx context.Context, item member.Member) error {
+	return r.DB.WithContext(ctx).Model(&MemberModel{}).Where("id = ? AND branch_id = ?", item.ID, item.BranchID).Updates(map[string]any{"name": item.Name, "phone": item.Phone, "address": item.Address, "member_category_id": item.MemberCategoryID, "points": item.Points}).Error
+}
+
+func (r Repositories) DeleteMember(ctx context.Context, id, branchID string) error {
+	return r.DB.WithContext(ctx).Where("id = ? AND branch_id = ?", id, branchID).Delete(&MemberModel{}).Error
+}
+
+func (r Repositories) GetMemberCombo(ctx context.Context, branchID, search string) ([]member.ComboItem, error) {
+	search = strings.TrimSpace(strings.ToLower(search))
+	var items []member.ComboItem
+	query := r.DB.WithContext(ctx).Table("members").Select("id AS member_id, name AS member_name").Where("branch_id = ?", branchID)
+	if search != "" {
+		query = query.Where("LOWER(members.name) ILIKE ?", "%"+search+"%")
+	}
+	return items, query.Order("name ASC").Scan(&items).Error
+}
+
 func (r Repositories) FindMemberByID(ctx context.Context, id string) (member.Member, error) {
 	var m MemberModel
 	if err := r.DB.WithContext(ctx).Where("id = ?", id).First(&m).Error; err != nil {
 		return member.Member{}, err
 	}
-	return member.Member{ID: m.ID, MemberCategoryID: m.MemberCategoryID, Points: m.Points}, nil
+	return member.Member{ID: m.ID, Name: m.Name, Phone: m.Phone, Address: m.Address, MemberCategoryID: m.MemberCategoryID, Points: m.Points, BranchID: m.BranchID}, nil
 }
 
 func (r Repositories) FindCategoryByID(ctx context.Context, id string) (member.MemberCategory, error) {

@@ -360,8 +360,12 @@ func (OpnameItemModel) TableName() string { return "opname_items" }
 
 type MemberModel struct {
 	ID               string `gorm:"column:id;primaryKey"`
+	Name             string `gorm:"column:name"`
+	Phone            string `gorm:"column:phone"`
+	Address          string `gorm:"column:address"`
 	MemberCategoryID string `gorm:"column:member_category_id"`
 	Points           int    `gorm:"column:points"`
+	BranchID         string `gorm:"column:branch_id"`
 }
 
 func (MemberModel) TableName() string { return "members" }

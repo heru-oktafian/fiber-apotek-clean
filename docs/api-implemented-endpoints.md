@@ -90,15 +90,22 @@ Api Apotek (Implemented)
 │       │   ├── Put - /api/supplier-categories/:id
 │       │   ├── Delete - /api/supplier-categories/:id
 │       │   └── Get - /api/supplier-categories-combo
-│       └── Member Categories/
-│           ├── Get - /api/member-categories
-│           ├── Get - /api/member-categories/excel
-│           ├── Get - /api/member-categories/pdf
-│           ├── Get - /api/member-categories/:id
-│           ├── Post - /api/member-categories
-│           ├── Put - /api/member-categories/:id
-│           ├── Delete - /api/member-categories/:id
-│           └── Get - /api/member-categories-combo
+│       ├── Member Categories/
+│       │   ├── Get - /api/member-categories
+│       │   ├── Get - /api/member-categories/excel
+│       │   ├── Get - /api/member-categories/pdf
+│       │   ├── Get - /api/member-categories/:id
+│       │   ├── Post - /api/member-categories
+│       │   ├── Put - /api/member-categories/:id
+│       │   ├── Delete - /api/member-categories/:id
+│       │   └── Get - /api/member-categories-combo
+│       └── Members/
+│           ├── Get - /api/members
+│           ├── Get - /api/members/:id
+│           ├── Post - /api/members
+│           ├── Put - /api/members/:id
+│           ├── Delete - /api/members/:id
+│           └── Get - /api/members-combo
 ├── Transactions/
 │   ├── Buy Returns/
 │   │   ├── Get - /api/buy-returns

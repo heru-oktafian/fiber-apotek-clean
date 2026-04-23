@@ -78,6 +78,14 @@ type Dependencies struct {
 		Delete(*fiber.Ctx) error
 		Combo(*fiber.Ctx) error
 	}
+	Member interface {
+		List(*fiber.Ctx) error
+		GetByID(*fiber.Ctx) error
+		Create(*fiber.Ctx) error
+		Update(*fiber.Ctx) error
+		Delete(*fiber.Ctx) error
+		Combo(*fiber.Ctx) error
+	}
 	AnotherIncome interface {
 		List(*fiber.Ctx) error
 		Create(*fiber.Ctx) error
@@ -262,6 +270,12 @@ func Register(app *fiber.App, deps Dependencies) {
 	app.Delete("/api/supplier-categories/:id", deps.AuthMiddleware, deps.SupplierCategory.Delete)
 	app.Get("/api/supplier-categories-combo", deps.AuthMiddleware, deps.SupplierCategory.Combo)
 	app.Get("/api/member-categories", deps.AuthMiddleware, deps.MemberCategory.List)
+	app.Get("/api/members", deps.AuthMiddleware, deps.Member.List)
+	app.Get("/api/members/:id", deps.AuthMiddleware, deps.Member.GetByID)
+	app.Post("/api/members", deps.AuthMiddleware, deps.Member.Create)
+	app.Put("/api/members/:id", deps.AuthMiddleware, deps.Member.Update)
+	app.Delete("/api/members/:id", deps.AuthMiddleware, deps.Member.Delete)
+	app.Get("/api/members-combo", deps.AuthMiddleware, deps.Member.Combo)
 	app.Get("/api/another-incomes", deps.AuthMiddleware, deps.AnotherIncome.List)
 	app.Get("/api/another-incomes/excel", deps.AuthMiddleware, deps.Export.AnotherIncomesExcel)
 	app.Get("/api/another-incomes/pdf", deps.AuthMiddleware, deps.Export.AnotherIncomesPDF)
