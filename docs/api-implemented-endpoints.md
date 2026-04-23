@@ -102,14 +102,22 @@ Api Apotek (Implemented)
 ├── Transactions/
 │   ├── Buy Returns/
 │   │   ├── Get - /api/buy-returns
+│   │   ├── Get - /api/buy-returns/excel
+│   │   ├── Get - /api/buy-returns/pdf
 │   │   ├── Post - /api/buy-returns
 │   │   ├── Get - /api/buy-returns/:id
+│   │   ├── Get - /api/buy-return-items/excel
+│   │   ├── Get - /api/buy-return-items/pdf
 │   │   ├── Get - /api/cmb-purchases
 │   │   └── Get - /api/cmb-prod-buy-returns
 │   ├── Sale Returns/
 │   │   ├── Get - /api/sale-returns
+│   │   ├── Get - /api/sale-returns/excel
+│   │   ├── Get - /api/sale-returns/pdf
 │   │   ├── Post - /api/sale-returns
 │   │   ├── Get - /api/sale-returns/:id
+│   │   ├── Get - /api/sale-return-items/excel
+│   │   ├── Get - /api/sale-return-items/pdf
 │   │   ├── Get - /api/cmb-sales
 │   │   └── Get - /api/cmb-prod-sale-returns
 │   ├── Purchases/
@@ -1440,6 +1448,94 @@ Authorization: Bearer <TOKEN_2>
 
 **Query:**
 - `sale_id` (wajib)
+
+---
+
+### GET `/api/buy-returns/excel`
+**Header:**
+```http
+Authorization: Bearer <TOKEN_2>
+```
+
+**Query:**
+- `month` (opsional, format `YYYY-MM`)
+
+---
+
+### GET `/api/buy-returns/pdf`
+**Header:**
+```http
+Authorization: Bearer <TOKEN_2>
+```
+
+**Query:**
+- `month` (opsional, format `YYYY-MM`)
+
+---
+
+### GET `/api/buy-return-items/excel`
+**Header:**
+```http
+Authorization: Bearer <TOKEN_2>
+```
+
+**Query:**
+- `buy_return_id` (wajib)
+
+---
+
+### GET `/api/buy-return-items/pdf`
+**Header:**
+```http
+Authorization: Bearer <TOKEN_2>
+```
+
+**Query:**
+- `buy_return_id` (wajib)
+
+---
+
+### GET `/api/sale-returns/excel`
+**Header:**
+```http
+Authorization: Bearer <TOKEN_2>
+```
+
+**Query:**
+- `month` (opsional, format `YYYY-MM`)
+
+---
+
+### GET `/api/sale-returns/pdf`
+**Header:**
+```http
+Authorization: Bearer <TOKEN_2>
+```
+
+**Query:**
+- `month` (opsional, format `YYYY-MM`)
+
+---
+
+### GET `/api/sale-return-items/excel`
+**Header:**
+```http
+Authorization: Bearer <TOKEN_2>
+```
+
+**Query:**
+- `sale_return_id` (wajib)
+
+---
+
+### GET `/api/sale-return-items/pdf`
+**Header:**
+```http
+Authorization: Bearer <TOKEN_2>
+```
+
+**Query:**
+- `sale_return_id` (wajib)
 
 ---
 

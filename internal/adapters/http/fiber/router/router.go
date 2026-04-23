@@ -172,6 +172,14 @@ type Dependencies struct {
 		FirstStocksPDF(*fiber.Ctx) error
 		FirstStockItemsExcel(*fiber.Ctx) error
 		FirstStockItemsPDF(*fiber.Ctx) error
+		BuyReturnsExcel(*fiber.Ctx) error
+		BuyReturnsPDF(*fiber.Ctx) error
+		BuyReturnItemsExcel(*fiber.Ctx) error
+		BuyReturnItemsPDF(*fiber.Ctx) error
+		SaleReturnsExcel(*fiber.Ctx) error
+		SaleReturnsPDF(*fiber.Ctx) error
+		SaleReturnItemsExcel(*fiber.Ctx) error
+		SaleReturnItemsPDF(*fiber.Ctx) error
 	}
 	AuthMiddleware fiber.Handler
 }
@@ -252,13 +260,21 @@ func Register(app *fiber.App, deps Dependencies) {
 	app.Delete("/api/expenses/:id", deps.AuthMiddleware, deps.Expense.Delete)
 	app.Get("/api/first-stocks", deps.AuthMiddleware, deps.FirstStock.List)
 	app.Get("/api/buy-returns", deps.AuthMiddleware, deps.BuyReturn.List)
+	app.Get("/api/buy-returns/excel", deps.AuthMiddleware, deps.Export.BuyReturnsExcel)
+	app.Get("/api/buy-returns/pdf", deps.AuthMiddleware, deps.Export.BuyReturnsPDF)
 	app.Post("/api/buy-returns", deps.AuthMiddleware, deps.BuyReturn.Create)
 	app.Get("/api/buy-returns/:id", deps.AuthMiddleware, deps.BuyReturn.GetByID)
+	app.Get("/api/buy-return-items/excel", deps.AuthMiddleware, deps.Export.BuyReturnItemsExcel)
+	app.Get("/api/buy-return-items/pdf", deps.AuthMiddleware, deps.Export.BuyReturnItemsPDF)
 	app.Get("/api/cmb-purchases", deps.AuthMiddleware, deps.BuyReturn.PurchaseSources)
 	app.Get("/api/cmb-prod-buy-returns", deps.AuthMiddleware, deps.BuyReturn.ReturnableItems)
 	app.Get("/api/sale-returns", deps.AuthMiddleware, deps.SaleReturn.List)
+	app.Get("/api/sale-returns/excel", deps.AuthMiddleware, deps.Export.SaleReturnsExcel)
+	app.Get("/api/sale-returns/pdf", deps.AuthMiddleware, deps.Export.SaleReturnsPDF)
 	app.Post("/api/sale-returns", deps.AuthMiddleware, deps.SaleReturn.Create)
 	app.Get("/api/sale-returns/:id", deps.AuthMiddleware, deps.SaleReturn.GetByID)
+	app.Get("/api/sale-return-items/excel", deps.AuthMiddleware, deps.Export.SaleReturnItemsExcel)
+	app.Get("/api/sale-return-items/pdf", deps.AuthMiddleware, deps.Export.SaleReturnItemsPDF)
 	app.Get("/api/cmb-sales", deps.AuthMiddleware, deps.SaleReturn.SaleSources)
 	app.Get("/api/cmb-prod-sale-returns", deps.AuthMiddleware, deps.SaleReturn.ReturnableItems)
 	app.Get("/api/first-stocks/excel", deps.AuthMiddleware, deps.Export.FirstStocksExcel)

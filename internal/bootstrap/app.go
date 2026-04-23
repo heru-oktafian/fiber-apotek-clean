@@ -58,6 +58,7 @@ type exportBundle struct {
 	transaction handlers.ExportTransactionHandler
 	finance     handlers.ExportFinanceHandler
 	audit       handlers.ExportAuditHandler
+	returns     handlers.ExportReturnHandler
 }
 
 func (e exportBundle) ProductsExcel(c *fiber.Ctx) error            { return e.base.ProductsExcel(c) }
@@ -88,6 +89,14 @@ func (e exportBundle) FirstStocksExcel(c *fiber.Ctx) error         { return e.au
 func (e exportBundle) FirstStocksPDF(c *fiber.Ctx) error           { return e.audit.FirstStocksPDF(c) }
 func (e exportBundle) FirstStockItemsExcel(c *fiber.Ctx) error     { return e.audit.FirstStockItemsExcel(c) }
 func (e exportBundle) FirstStockItemsPDF(c *fiber.Ctx) error       { return e.audit.FirstStockItemsPDF(c) }
+func (e exportBundle) BuyReturnsExcel(c *fiber.Ctx) error          { return e.returns.BuyReturnsExcel(c) }
+func (e exportBundle) BuyReturnsPDF(c *fiber.Ctx) error            { return e.returns.BuyReturnsPDF(c) }
+func (e exportBundle) BuyReturnItemsExcel(c *fiber.Ctx) error      { return e.returns.BuyReturnItemsExcel(c) }
+func (e exportBundle) BuyReturnItemsPDF(c *fiber.Ctx) error        { return e.returns.BuyReturnItemsPDF(c) }
+func (e exportBundle) SaleReturnsExcel(c *fiber.Ctx) error         { return e.returns.SaleReturnsExcel(c) }
+func (e exportBundle) SaleReturnsPDF(c *fiber.Ctx) error           { return e.returns.SaleReturnsPDF(c) }
+func (e exportBundle) SaleReturnItemsExcel(c *fiber.Ctx) error     { return e.returns.SaleReturnItemsExcel(c) }
+func (e exportBundle) SaleReturnItemsPDF(c *fiber.Ctx) error       { return e.returns.SaleReturnItemsPDF(c) }
 
 func (bcryptComparer) Compare(hashed string, plain string) error {
 	return bcrypt.CompareHashAndPassword([]byte(hashed), []byte(plain))
@@ -141,10 +150,11 @@ func New() (*App, error) {
 	exportTransactionHandler := handlers.ExportTransactionHandler{Purchases: purchaseusecase.Service{Repo: repos, IDs: ids, Clock: clk}, Sales: saleusecase.Service{Repo: repos, IDs: ids, Clock: clk}}
 	exportFinanceHandler := handlers.ExportFinanceHandler{AnotherIncomes: anotherincomeusecase.Service{Repo: repos, IDs: ids, Clock: clk}, Expenses: expenseusecase.Service{Repo: repos, IDs: ids, Clock: clk}}
 	exportAuditHandler := handlers.ExportAuditHandler{FirstStocks: firststockusecase.Service{Repo: repos, IDs: ids, Clock: clk}}
+	exportReturnHandler := handlers.ExportReturnHandler{BuyReturns: buyreturnusecase.Service{Repo: repos, IDs: ids, Clock: clk}, SaleReturns: salereturnusecase.Service{Repo: repos, IDs: ids, Clock: clk}}
 
 	app := fiber.New(fiber.Config{DisableStartupMessage: true, ReadTimeout: 30 * time.Second, WriteTimeout: 30 * time.Second})
 	app.Use(console.RequestLogger())
 	authMw := middleware.RequireAuth(jwtSvc, blacklist)
-	router.Register(app, router.Dependencies{Auth: authHandler, Branch: branchHandler, UserBranch: userBranchHandler, User: userHandler, Product: productHandler, Supplier: supplierHandler, Unit: unitHandler, ProductCategory: productCategoryHandler, SupplierCategory: supplierCategoryHandler, MemberCategory: memberCategoryHandler, AnotherIncome: anotherIncomeHandler, Expense: expenseHandler, FirstStock: firstStockHandler, BuyReturn: buyReturnHandler, SaleReturn: saleReturnHandler, Purchase: purchaseHandler, Sale: saleHandler, Opname: opnameHandler, Export: exportBundle{base: exportHandler, master: exportMasterHandler, transaction: exportTransactionHandler, finance: exportFinanceHandler, audit: exportAuditHandler}, AuthMiddleware: authMw})
+	router.Register(app, router.Dependencies{Auth: authHandler, Branch: branchHandler, UserBranch: userBranchHandler, User: userHandler, Product: productHandler, Supplier: supplierHandler, Unit: unitHandler, ProductCategory: productCategoryHandler, SupplierCategory: supplierCategoryHandler, MemberCategory: memberCategoryHandler, AnotherIncome: anotherIncomeHandler, Expense: expenseHandler, FirstStock: firstStockHandler, BuyReturn: buyReturnHandler, SaleReturn: saleReturnHandler, Purchase: purchaseHandler, Sale: saleHandler, Opname: opnameHandler, Export: exportBundle{base: exportHandler, master: exportMasterHandler, transaction: exportTransactionHandler, finance: exportFinanceHandler, audit: exportAuditHandler, returns: exportReturnHandler}, AuthMiddleware: authMw})
 	return &App{Fiber: app, Config: cfg}, nil
 }

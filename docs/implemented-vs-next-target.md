@@ -280,10 +280,18 @@ Tujuannya sederhana:
 - `GET /api/cmb-prod-buy-returns`
 - `GET /api/cmb-sales`
 - `GET /api/cmb-prod-sale-returns`
+- `GET /api/buy-returns/excel`
+- `GET /api/buy-returns/pdf`
+- `GET /api/buy-return-items/excel`
+- `GET /api/buy-return-items/pdf`
+- `GET /api/sale-returns/excel`
+- `GET /api/sale-returns/pdf`
+- `GET /api/sale-return-items/excel`
+- `GET /api/sale-return-items/pdf`
 
 **Next target:**
-- export returns bila memang tersedia di legacy
 - validasi runtime end-to-end returns flow
+- refinement styling export returns agar makin dekat ke legacy
 
 ### Duplicate Receipts
 **Implemented:**
@@ -375,8 +383,8 @@ Tujuannya sederhana:
 
 Urutan yang paling sehat saat ini:
 
-1. **Audit export returns / runtime validation returns**
-2. **Duplicate Receipts**
+1. **Duplicate Receipts**
+2. **Runtime validation returns**
 3. **Reports / Export lanjutan**
 4. **Refinement styling export parity**
 
