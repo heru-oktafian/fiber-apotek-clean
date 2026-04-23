@@ -402,6 +402,8 @@ Tujuannya sederhana:
 ### Members
 **Implemented:**
 - `GET /api/members`
+- `GET /api/members/excel`
+- `GET /api/members/pdf`
 - `GET /api/members/:id`
 - `POST /api/members`
 - `PUT /api/members/:id`
@@ -414,9 +416,9 @@ Tujuannya sederhana:
 - `member_category_id` tetap dijaga eksplisit sebagai field bisnis inti
 
 **Next target:**
-- export `members` excel/pdf
 - validasi runtime end-to-end members flow
 - guard bisnis tambahan bila nanti perlu mencegah delete member yang masih dipakai histori transaksi
+- refine visual export bila ingin makin dekat ke legacy
 
 ---
 

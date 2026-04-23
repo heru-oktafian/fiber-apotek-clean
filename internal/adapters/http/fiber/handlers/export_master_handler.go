@@ -6,6 +6,7 @@ import (
 	"github.com/gofiber/fiber/v2"
 	"github.com/heru-oktafian/fiber-apotek-clean/internal/adapters/http/fiber/presenter"
 	"github.com/heru-oktafian/fiber-apotek-clean/internal/domain/auth"
+	memberusecase "github.com/heru-oktafian/fiber-apotek-clean/internal/usecase/member"
 	membercategoryusecase "github.com/heru-oktafian/fiber-apotek-clean/internal/usecase/membercategory"
 	productcategoryusecase "github.com/heru-oktafian/fiber-apotek-clean/internal/usecase/productcategory"
 	supplierusecase "github.com/heru-oktafian/fiber-apotek-clean/internal/usecase/supplier"
@@ -17,6 +18,7 @@ type ExportMasterHandler struct {
 	Suppliers          supplierusecase.Service
 	SupplierCategories suppliercategoryusecase.Service
 	MemberCategories   membercategoryusecase.Service
+	Members            memberusecase.Service
 }
 
 func (h ExportMasterHandler) ProductCategoriesExcel(c *fiber.Ctx) error { return h.send(c, func(branchID string) ([]byte, string, error) { return h.ProductCategories.ExportExcel(c.Context(), branchID) }, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet") }
@@ -34,6 +36,12 @@ func (h ExportMasterHandler) MemberCategoriesExcel(c *fiber.Ctx) error {
 }
 func (h ExportMasterHandler) MemberCategoriesPDF(c *fiber.Ctx) error {
 	return h.send(c, func(branchID string) ([]byte, string, error) { return h.MemberCategories.ExportPDF(c.Context(), branchID) }, "application/pdf")
+}
+func (h ExportMasterHandler) MembersExcel(c *fiber.Ctx) error {
+	return h.send(c, func(branchID string) ([]byte, string, error) { return h.Members.ExportExcel(c.Context(), branchID) }, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
+}
+func (h ExportMasterHandler) MembersPDF(c *fiber.Ctx) error {
+	return h.send(c, func(branchID string) ([]byte, string, error) { return h.Members.ExportPDF(c.Context(), branchID) }, "application/pdf")
 }
 
 func (h ExportMasterHandler) send(c *fiber.Ctx, fn func(branchID string) ([]byte, string, error), contentType string) error {

@@ -101,6 +101,8 @@ Api Apotek (Implemented)
 │       │   └── Get - /api/member-categories-combo
 │       └── Members/
 │           ├── Get - /api/members
+│           ├── Get - /api/members/excel
+│           ├── Get - /api/members/pdf
 │           ├── Get - /api/members/:id
 │           ├── Post - /api/members
 │           ├── Put - /api/members/:id

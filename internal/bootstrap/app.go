@@ -75,6 +75,8 @@ func (e exportBundle) SupplierCategoriesExcel(c *fiber.Ctx) error  { return e.ma
 func (e exportBundle) SupplierCategoriesPDF(c *fiber.Ctx) error    { return e.master.SupplierCategoriesPDF(c) }
 func (e exportBundle) MemberCategoriesExcel(c *fiber.Ctx) error    { return e.master.MemberCategoriesExcel(c) }
 func (e exportBundle) MemberCategoriesPDF(c *fiber.Ctx) error      { return e.master.MemberCategoriesPDF(c) }
+func (e exportBundle) MembersExcel(c *fiber.Ctx) error             { return e.master.MembersExcel(c) }
+func (e exportBundle) MembersPDF(c *fiber.Ctx) error               { return e.master.MembersPDF(c) }
 func (e exportBundle) PurchasesExcel(c *fiber.Ctx) error             { return e.transaction.PurchasesExcel(c) }
 func (e exportBundle) PurchasesPDF(c *fiber.Ctx) error               { return e.transaction.PurchasesPDF(c) }
 func (e exportBundle) PurchaseItemsExcel(c *fiber.Ctx) error         { return e.transaction.PurchaseItemsExcel(c) }
@@ -154,7 +156,7 @@ func New() (*App, error) {
 	saleHandler := handlers.SaleHandler{Service: saleusecase.Service{Repo: repos, IDs: ids, Clock: clk}}
 	opnameHandler := handlers.OpnameHandler{Service: opnameusecase.Service{Repo: repos, IDs: ids, Clock: clk}}
 	exportHandler := handlers.ExportHandler{Products: productusecase.Service{Products: repos, IDs: ids}, Units: unitusecase.MasterService{Units: repos, IDs: ids}}
-	exportMasterHandler := handlers.ExportMasterHandler{ProductCategories: productcategoryusecase.Service{Categories: repos}, Suppliers: supplierusecase.Service{Suppliers: repos, IDs: ids}, SupplierCategories: suppliercategoryusecase.Service{Categories: repos}, MemberCategories: membercategoryusecase.Service{Categories: repos}}
+	exportMasterHandler := handlers.ExportMasterHandler{ProductCategories: productcategoryusecase.Service{Categories: repos}, Suppliers: supplierusecase.Service{Suppliers: repos, IDs: ids}, SupplierCategories: suppliercategoryusecase.Service{Categories: repos}, MemberCategories: membercategoryusecase.Service{Categories: repos}, Members: memberusecase.Service{Members: repos, IDs: ids}}
 	exportTransactionHandler := handlers.ExportTransactionHandler{Purchases: purchaseusecase.Service{Repo: repos, IDs: ids, Clock: clk}, Sales: saleusecase.Service{Repo: repos, IDs: ids, Clock: clk}, DuplicateReceipts: duplicatereceiptusecase.Service{Repo: repos, IDs: ids, Clock: clk}}
 	exportFinanceHandler := handlers.ExportFinanceHandler{AnotherIncomes: anotherincomeusecase.Service{Repo: repos, IDs: ids, Clock: clk}, Expenses: expenseusecase.Service{Repo: repos, IDs: ids, Clock: clk}}
 	exportAuditHandler := handlers.ExportAuditHandler{FirstStocks: firststockusecase.Service{Repo: repos, IDs: ids, Clock: clk}}

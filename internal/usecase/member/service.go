@@ -2,13 +2,16 @@ package member
 
 import (
 	"context"
+	"fmt"
 	"net/http"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/heru-oktafian/fiber-apotek-clean/internal/domain/member"
 	"github.com/heru-oktafian/fiber-apotek-clean/internal/ports"
 	"github.com/heru-oktafian/fiber-apotek-clean/internal/shared/apperror"
+	exportshared "github.com/heru-oktafian/fiber-apotek-clean/internal/shared/export"
 )
 
 type Service struct {
@@ -95,4 +98,63 @@ func (s Service) Combo(ctx context.Context, branchID, search string) ([]member.C
 		return nil, apperror.New(http.StatusInternalServerError, "Get member combo failed", err.Error())
 	}
 	return items, nil
+}
+
+func (s Service) ExportExcel(ctx context.Context, branchID string) ([]byte, string, error) {
+	items, err := s.Members.ListMembers(ctx, branchID, member.ListRequest{Page: 1, Limit: 10000})
+	if err != nil {
+		return nil, "", apperror.New(http.StatusInternalServerError, "Export members excel failed", err.Error())
+	}
+	f := exportshared.NewExcelFile("Members")
+	sheet := "Members"
+	f.SetCellValue(sheet, "A1", "DATA MEMBERS")
+	headers := []string{"ID", "NAME", "PHONE", "ADDRESS", "MEMBER CATEGORY", "POINTS"}
+	for i, h := range headers {
+		col, _ := exportshared.ExcelColumnName(i + 1)
+		f.SetCellValue(sheet, fmt.Sprintf("%s3", col), h)
+	}
+	for i, item := range items.Items {
+		row := i + 4
+		f.SetCellValue(sheet, fmt.Sprintf("A%d", row), item.ID)
+		f.SetCellValue(sheet, fmt.Sprintf("B%d", row), item.Name)
+		f.SetCellValue(sheet, fmt.Sprintf("C%d", row), item.Phone)
+		f.SetCellValue(sheet, fmt.Sprintf("D%d", row), item.Address)
+		f.SetCellValue(sheet, fmt.Sprintf("E%d", row), item.MemberCategory)
+		f.SetCellValue(sheet, fmt.Sprintf("F%d", row), item.Points)
+	}
+	bytes, err := exportshared.WriteExcel(f)
+	if err != nil {
+		return nil, "", apperror.New(http.StatusInternalServerError, "Export members excel failed", err.Error())
+	}
+	return bytes, fmt.Sprintf("members-%s.xlsx", time.Now().Format("2006-01-02-15-04-05")), nil
+}
+
+func (s Service) ExportPDF(ctx context.Context, branchID string) ([]byte, string, error) {
+	items, err := s.Members.ListMembers(ctx, branchID, member.ListRequest{Page: 1, Limit: 10000})
+	if err != nil {
+		return nil, "", apperror.New(http.StatusInternalServerError, "Export members pdf failed", err.Error())
+	}
+	pdf := exportshared.NewPDF("MASTER MEMBERS")
+	pdf.SetFont("Arial", "B", 14)
+	pdf.CellFormat(277, 10, "MASTER MEMBERS", "", 1, "C", false, 0, "")
+	pdf.SetFont("Arial", "B", 9)
+	headers := []string{"ID", "NAME", "PHONE", "ADDRESS", "CATEGORY", "POINTS"}
+	widths := []float64{35, 50, 35, 80, 45, 32}
+	for i, h := range headers {
+		pdf.CellFormat(widths[i], 8, h, "1", 0, "C", false, 0, "")
+	}
+	pdf.Ln(-1)
+	pdf.SetFont("Arial", "", 8)
+	for _, item := range items.Items {
+		values := []string{item.ID, item.Name, item.Phone, item.Address, item.MemberCategory, fmt.Sprintf("%d", item.Points)}
+		for i, v := range values {
+			pdf.CellFormat(widths[i], 8, v, "1", 0, "L", false, 0, "")
+		}
+		pdf.Ln(-1)
+	}
+	bytes, err := exportshared.WritePDF(pdf)
+	if err != nil {
+		return nil, "", apperror.New(http.StatusInternalServerError, "Export members pdf failed", err.Error())
+	}
+	return bytes, fmt.Sprintf("members-%s.pdf", time.Now().Format("2006-01-02-15-04-05")), nil
 }

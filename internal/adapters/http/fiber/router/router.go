@@ -176,6 +176,8 @@ type Dependencies struct {
 		SupplierCategoriesPDF(*fiber.Ctx) error
 		MemberCategoriesExcel(*fiber.Ctx) error
 		MemberCategoriesPDF(*fiber.Ctx) error
+		MembersExcel(*fiber.Ctx) error
+		MembersPDF(*fiber.Ctx) error
 		PurchasesExcel(*fiber.Ctx) error
 		PurchasesPDF(*fiber.Ctx) error
 		PurchaseItemsExcel(*fiber.Ctx) error
@@ -271,6 +273,8 @@ func Register(app *fiber.App, deps Dependencies) {
 	app.Get("/api/supplier-categories-combo", deps.AuthMiddleware, deps.SupplierCategory.Combo)
 	app.Get("/api/member-categories", deps.AuthMiddleware, deps.MemberCategory.List)
 	app.Get("/api/members", deps.AuthMiddleware, deps.Member.List)
+	app.Get("/api/members/excel", deps.AuthMiddleware, deps.Export.MembersExcel)
+	app.Get("/api/members/pdf", deps.AuthMiddleware, deps.Export.MembersPDF)
 	app.Get("/api/members/:id", deps.AuthMiddleware, deps.Member.GetByID)
 	app.Post("/api/members", deps.AuthMiddleware, deps.Member.Create)
 	app.Put("/api/members/:id", deps.AuthMiddleware, deps.Member.Update)
