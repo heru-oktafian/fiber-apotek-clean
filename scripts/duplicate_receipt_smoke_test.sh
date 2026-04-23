@@ -139,6 +139,32 @@ assert_http_200
 print_body
 STOCK_AFTER_CREATE="$(echo "$BODY" | jq -r '.data.stock // empty')"
 
+step "List duplicate receipt items"
+api_json GET "$BASE_URL/api/duplicate-receipts-items/all/$DUPLICATE_RECEIPT_ID" "$TOKEN"
+assert_http_200
+print_body
+ITEM_ID="$(echo "$BODY" | jq -r '.data[0].id // .data.id // empty')"
+
+step "Create duplicate receipt item"
+CREATE_ITEM_PAYLOAD=$(jq -nc \
+  --arg duplicate_receipt_id "$DUPLICATE_RECEIPT_ID" \
+  --arg product_id "$PRODUCT_ID" \
+  --argjson qty 1 \
+  '{duplicate_receipt_id:$duplicate_receipt_id,product_id:$product_id,qty:$qty}')
+api_json POST "$BASE_URL/api/duplicate-receipts-items" "$TOKEN" "$CREATE_ITEM_PAYLOAD"
+assert_http_200
+print_body
+ITEM_ID="$(echo "$BODY" | jq -r '.data.id // empty')"
+
+step "Update duplicate receipt item"
+UPDATE_ITEM_PAYLOAD=$(jq -nc \
+  --arg product_id "$PRODUCT_ID" \
+  --argjson qty 2 \
+  '{product_id:$product_id,qty:$qty}')
+api_json PUT "$BASE_URL/api/duplicate-receipts-items/$ITEM_ID" "$TOKEN" "$UPDATE_ITEM_PAYLOAD"
+assert_http_200
+print_body
+
 step "Update duplicate receipt header"
 UPDATE_PAYLOAD=$(jq -nc \
   --arg member_id "$MEMBER_ID" \
@@ -146,6 +172,11 @@ UPDATE_PAYLOAD=$(jq -nc \
   --arg payment "$PAYMENT" \
   '{member_id:$member_id,description:$description,payment:$payment}')
 api_json PUT "$BASE_URL/api/duplicate-receipts/$DUPLICATE_RECEIPT_ID" "$TOKEN" "$UPDATE_PAYLOAD"
+assert_http_200
+print_body
+
+step "Delete duplicate receipt item"
+api_json DELETE "$BASE_URL/api/duplicate-receipts-items/$ITEM_ID" "$TOKEN"
 assert_http_200
 print_body
 

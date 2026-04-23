@@ -205,3 +205,210 @@ func (s Service) Delete(ctx context.Context, branchID, id string) error {
 	}
 	return nil
 }
+
+func (s Service) ListItems(ctx context.Context, branchID, duplicateReceiptID string) ([]domain.Item, error) {
+	if _, err := s.Repo.FindDuplicateReceiptByID(ctx, branchID, duplicateReceiptID); err != nil {
+		return nil, apperror.New(http.StatusNotFound, "Get duplicate receipt items failed", "duplicate receipt not found")
+	}
+	items, err := s.Repo.FindDuplicateReceiptItems(ctx, duplicateReceiptID)
+	if err != nil {
+		return nil, apperror.New(http.StatusInternalServerError, "Get duplicate receipt items failed", err.Error())
+	}
+	return items, nil
+}
+
+func (s Service) CreateItem(ctx context.Context, branchID string, req domain.CreateItemRequest) (domain.Item, error) {
+	header, err := s.Repo.FindDuplicateReceiptByID(ctx, branchID, req.DuplicateReceiptID)
+	if err != nil {
+		return domain.Item{}, apperror.New(http.StatusNotFound, "Create duplicate receipt item failed", "duplicate receipt not found")
+	}
+	items, err := s.Repo.FindDuplicateReceiptItems(ctx, req.DuplicateReceiptID)
+	if err != nil {
+		return domain.Item{}, apperror.New(http.StatusInternalServerError, "Create duplicate receipt item failed", err.Error())
+	}
+	oldTotal := header.TotalDuplicateReceipt
+	oldProfit := header.ProfitEstimate
+	var resultID string
+	if err := s.Repo.WithinTransactionDuplicateReceipt(ctx, func(repo ports.DuplicateReceiptTxRepository) error {
+		prod, err := repo.FindProduct(ctx, req.ProductID)
+		if err != nil {
+			return apperror.New(http.StatusNotFound, "Create duplicate receipt item failed", "product not found")
+		}
+		if prod.Stock < req.Qty {
+			return apperror.New(http.StatusBadRequest, "Create duplicate receipt item failed", fmt.Sprintf("Insufficient stock for product %s. Available: %d, Requested: %d", prod.Name, prod.Stock, req.Qty))
+		}
+		for _, existing := range items {
+			if existing.ProductID == req.ProductID {
+				existing.Qty += req.Qty
+				existing.Price = prod.SalesPrice
+				existing.SubTotal = existing.Qty * existing.Price
+				if err := repo.UpdateDuplicateReceiptItem(ctx, existing); err != nil {
+					return apperror.New(http.StatusInternalServerError, "Create duplicate receipt item failed", err.Error())
+				}
+				prod.Stock -= req.Qty
+				if err := repo.UpdateProduct(ctx, prod); err != nil {
+					return apperror.New(http.StatusInternalServerError, "Create duplicate receipt item failed", err.Error())
+				}
+				header.TotalDuplicateReceipt += prod.SalesPrice * req.Qty
+				header.ProfitEstimate += (prod.SalesPrice - prod.PurchasePrice) * req.Qty
+				header.UpdatedAt = s.Clock.Now()
+				if err := s.Repo.UpdateDuplicateReceipt(ctx, header); err != nil {
+					return apperror.New(http.StatusInternalServerError, "Create duplicate receipt item failed", err.Error())
+				}
+				if err := s.Repo.UpdateTransactionReport(ctx, header.ID, header.TotalDuplicateReceipt, string(header.Payment), header.UpdatedAt); err != nil {
+					return apperror.New(http.StatusInternalServerError, "Create duplicate receipt item failed", err.Error())
+				}
+				resultID = existing.ID
+				return nil
+			}
+		}
+		item := domain.Item{ID: s.IDs.New("DRI"), DuplicateReceiptID: req.DuplicateReceiptID, ProductID: req.ProductID, Price: prod.SalesPrice, Qty: req.Qty, SubTotal: prod.SalesPrice * req.Qty}
+		if err := repo.CreateDuplicateReceiptItem(ctx, item); err != nil {
+			return apperror.New(http.StatusInternalServerError, "Create duplicate receipt item failed", err.Error())
+		}
+		prod.Stock -= req.Qty
+		if err := repo.UpdateProduct(ctx, prod); err != nil {
+			return apperror.New(http.StatusInternalServerError, "Create duplicate receipt item failed", err.Error())
+		}
+		header.TotalDuplicateReceipt += item.SubTotal
+		header.ProfitEstimate += (item.Price - prod.PurchasePrice) * item.Qty
+		header.UpdatedAt = s.Clock.Now()
+		if err := s.Repo.UpdateDuplicateReceipt(ctx, header); err != nil {
+			return apperror.New(http.StatusInternalServerError, "Create duplicate receipt item failed", err.Error())
+		}
+		if err := s.Repo.UpdateTransactionReport(ctx, header.ID, header.TotalDuplicateReceipt, string(header.Payment), header.UpdatedAt); err != nil {
+			return apperror.New(http.StatusInternalServerError, "Create duplicate receipt item failed", err.Error())
+		}
+		resultID = item.ID
+		return nil
+	}); err != nil {
+		return domain.Item{}, err
+	}
+	if err := s.Repo.AdjustDailyProfit(ctx, header.DuplicateReceiptDate, header.UserID, header.BranchID, header.TotalDuplicateReceipt-oldTotal, header.ProfitEstimate-oldProfit, header.UpdatedAt); err != nil {
+		return domain.Item{}, apperror.New(http.StatusInternalServerError, "Create duplicate receipt item failed", err.Error())
+	}
+	return s.Repo.FindDuplicateReceiptItemByID(ctx, resultID)
+}
+
+func (s Service) UpdateItem(ctx context.Context, branchID, id string, req domain.UpdateItemRequest) (domain.Item, error) {
+	item, err := s.Repo.FindDuplicateReceiptItemByID(ctx, id)
+	if err != nil {
+		return domain.Item{}, apperror.New(http.StatusNotFound, "Update duplicate receipt item failed", "item not found")
+	}
+	header, err := s.Repo.FindDuplicateReceiptByID(ctx, branchID, item.DuplicateReceiptID)
+	if err != nil {
+		return domain.Item{}, apperror.New(http.StatusNotFound, "Update duplicate receipt item failed", "duplicate receipt not found")
+	}
+	oldTotal := header.TotalDuplicateReceipt
+	oldProfit := header.ProfitEstimate
+	if err := s.Repo.WithinTransactionDuplicateReceipt(ctx, func(repo ports.DuplicateReceiptTxRepository) error {
+		oldProduct, err := repo.FindProduct(ctx, item.ProductID)
+		if err != nil {
+			return apperror.New(http.StatusInternalServerError, "Update duplicate receipt item failed", err.Error())
+		}
+		oldProduct.Stock += item.Qty
+		if err := repo.UpdateProduct(ctx, oldProduct); err != nil {
+			return apperror.New(http.StatusInternalServerError, "Update duplicate receipt item failed", err.Error())
+		}
+		newProduct, err := repo.FindProduct(ctx, req.ProductID)
+		if err != nil {
+			return apperror.New(http.StatusNotFound, "Update duplicate receipt item failed", "product not found")
+		}
+		if newProduct.Stock < req.Qty {
+			return apperror.New(http.StatusBadRequest, "Update duplicate receipt item failed", fmt.Sprintf("Insufficient stock for product %s. Available: %d, Requested: %d", newProduct.Name, newProduct.Stock, req.Qty))
+		}
+		newProduct.Stock -= req.Qty
+		if err := repo.UpdateProduct(ctx, newProduct); err != nil {
+			return apperror.New(http.StatusInternalServerError, "Update duplicate receipt item failed", err.Error())
+		}
+		item.ProductID = req.ProductID
+		item.Price = newProduct.SalesPrice
+		item.Qty = req.Qty
+		item.SubTotal = newProduct.SalesPrice * req.Qty
+		if err := repo.UpdateDuplicateReceiptItem(ctx, item); err != nil {
+			return apperror.New(http.StatusInternalServerError, "Update duplicate receipt item failed", err.Error())
+		}
+		items, err := s.Repo.FindDuplicateReceiptItems(ctx, item.DuplicateReceiptID)
+		if err != nil {
+			return apperror.New(http.StatusInternalServerError, "Update duplicate receipt item failed", err.Error())
+		}
+		header.TotalDuplicateReceipt = 0
+		header.ProfitEstimate = 0
+		for _, line := range items {
+			header.TotalDuplicateReceipt += line.SubTotal
+			prod, prodErr := repo.FindProduct(ctx, line.ProductID)
+			if prodErr != nil {
+				return apperror.New(http.StatusInternalServerError, "Update duplicate receipt item failed", prodErr.Error())
+			}
+			header.ProfitEstimate += (line.Price - prod.PurchasePrice) * line.Qty
+		}
+		header.UpdatedAt = s.Clock.Now()
+		if err := s.Repo.UpdateDuplicateReceipt(ctx, header); err != nil {
+			return apperror.New(http.StatusInternalServerError, "Update duplicate receipt item failed", err.Error())
+		}
+		if err := s.Repo.UpdateTransactionReport(ctx, header.ID, header.TotalDuplicateReceipt, string(header.Payment), header.UpdatedAt); err != nil {
+			return apperror.New(http.StatusInternalServerError, "Update duplicate receipt item failed", err.Error())
+		}
+		return nil
+	}); err != nil {
+		return domain.Item{}, err
+	}
+	if err := s.Repo.AdjustDailyProfit(ctx, header.DuplicateReceiptDate, header.UserID, header.BranchID, header.TotalDuplicateReceipt-oldTotal, header.ProfitEstimate-oldProfit, header.UpdatedAt); err != nil {
+		return domain.Item{}, apperror.New(http.StatusInternalServerError, "Update duplicate receipt item failed", err.Error())
+	}
+	return s.Repo.FindDuplicateReceiptItemByID(ctx, id)
+}
+
+func (s Service) DeleteItem(ctx context.Context, branchID, id string) error {
+	item, err := s.Repo.FindDuplicateReceiptItemByID(ctx, id)
+	if err != nil {
+		return apperror.New(http.StatusNotFound, "Delete duplicate receipt item failed", "item not found")
+	}
+	header, err := s.Repo.FindDuplicateReceiptByID(ctx, branchID, item.DuplicateReceiptID)
+	if err != nil {
+		return apperror.New(http.StatusNotFound, "Delete duplicate receipt item failed", "duplicate receipt not found")
+	}
+	oldTotal := header.TotalDuplicateReceipt
+	oldProfit := header.ProfitEstimate
+	if err := s.Repo.WithinTransactionDuplicateReceipt(ctx, func(repo ports.DuplicateReceiptTxRepository) error {
+		prod, err := repo.FindProduct(ctx, item.ProductID)
+		if err != nil {
+			return apperror.New(http.StatusInternalServerError, "Delete duplicate receipt item failed", err.Error())
+		}
+		prod.Stock += item.Qty
+		if err := repo.UpdateProduct(ctx, prod); err != nil {
+			return apperror.New(http.StatusInternalServerError, "Delete duplicate receipt item failed", err.Error())
+		}
+		if err := repo.DeleteDuplicateReceiptItem(ctx, id); err != nil {
+			return apperror.New(http.StatusInternalServerError, "Delete duplicate receipt item failed", err.Error())
+		}
+		items, err := s.Repo.FindDuplicateReceiptItems(ctx, item.DuplicateReceiptID)
+		if err != nil {
+			return apperror.New(http.StatusInternalServerError, "Delete duplicate receipt item failed", err.Error())
+		}
+		header.TotalDuplicateReceipt = 0
+		header.ProfitEstimate = 0
+		for _, line := range items {
+			header.TotalDuplicateReceipt += line.SubTotal
+			lineProduct, lineErr := repo.FindProduct(ctx, line.ProductID)
+			if lineErr != nil {
+				return apperror.New(http.StatusInternalServerError, "Delete duplicate receipt item failed", lineErr.Error())
+			}
+			header.ProfitEstimate += (line.Price - lineProduct.PurchasePrice) * line.Qty
+		}
+		header.UpdatedAt = s.Clock.Now()
+		if err := s.Repo.UpdateDuplicateReceipt(ctx, header); err != nil {
+			return apperror.New(http.StatusInternalServerError, "Delete duplicate receipt item failed", err.Error())
+		}
+		if err := s.Repo.UpdateTransactionReport(ctx, header.ID, header.TotalDuplicateReceipt, string(header.Payment), header.UpdatedAt); err != nil {
+			return apperror.New(http.StatusInternalServerError, "Delete duplicate receipt item failed", err.Error())
+		}
+		return nil
+	}); err != nil {
+		return err
+	}
+	if err := s.Repo.AdjustDailyProfit(ctx, header.DuplicateReceiptDate, header.UserID, header.BranchID, header.TotalDuplicateReceipt-oldTotal, header.ProfitEstimate-oldProfit, header.UpdatedAt); err != nil {
+		return apperror.New(http.StatusInternalServerError, "Delete duplicate receipt item failed", err.Error())
+	}
+	return nil
+}

@@ -236,7 +236,11 @@ type DuplicateReceiptRepository interface {
 	WithinTransactionDuplicateReceipt(ctx context.Context, fn func(repo DuplicateReceiptTxRepository) error) error
 	ListDuplicateReceipts(ctx context.Context, branchID string, req duplicatereceipt.ListRequest) (duplicatereceipt.ListResult, error)
 	FindDuplicateReceiptByID(ctx context.Context, branchID, id string) (duplicatereceipt.DuplicateReceipt, error)
+	FindDuplicateReceiptItemByID(ctx context.Context, id string) (duplicatereceipt.Item, error)
 	UpdateDuplicateReceipt(ctx context.Context, item duplicatereceipt.DuplicateReceipt) error
+	CreateDuplicateReceiptItem(ctx context.Context, item duplicatereceipt.Item) error
+	UpdateDuplicateReceiptItem(ctx context.Context, item duplicatereceipt.Item) error
+	DeleteDuplicateReceiptItem(ctx context.Context, id string) error
 	FindDuplicateReceiptItems(ctx context.Context, duplicateReceiptID string) ([]duplicatereceipt.Item, error)
 	FindProductByID(ctx context.Context, id string) (product.Product, error)
 	UpdateProduct(ctx context.Context, item product.Product) error
@@ -251,6 +255,9 @@ type DuplicateReceiptTxRepository interface {
 	UpdateProduct(ctx context.Context, item product.Product) error
 	CreateDuplicateReceipt(ctx context.Context, item duplicatereceipt.DuplicateReceipt) error
 	CreateDuplicateReceiptItems(ctx context.Context, items []duplicatereceipt.Item) error
+	CreateDuplicateReceiptItem(ctx context.Context, item duplicatereceipt.Item) error
+	UpdateDuplicateReceiptItem(ctx context.Context, item duplicatereceipt.Item) error
+	DeleteDuplicateReceiptItem(ctx context.Context, id string) error
 	CreateTransactionReport(ctx context.Context, id string, txType string, userID string, branchID string, total int, payment string, createdAt time.Time) error
 	UpsertDailyProfit(ctx context.Context, reportDate time.Time, userID string, branchID string, totalSales int, profitEstimate int, now time.Time) error
 	FindMember(ctx context.Context, memberID string) (member.Member, error)

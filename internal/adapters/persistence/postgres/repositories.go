@@ -1435,6 +1435,35 @@ func (r Repositories) UpdateDuplicateReceipt(ctx context.Context, item duplicate
 	return r.DB.WithContext(ctx).Model(&DuplicateReceiptModel{}).Where("id = ? AND branch_id = ?", item.ID, item.BranchID).Updates(map[string]any{"member_id": item.MemberID, "description": item.Description, "payment": string(item.Payment), "total_duplicate_receipt": item.TotalDuplicateReceipt, "profit_estimate": item.ProfitEstimate, "updated_at": item.UpdatedAt}).Error
 }
 
+func (r Repositories) FindDuplicateReceiptItemByID(ctx context.Context, id string) (duplicatereceipt.Item, error) {
+	var item duplicatereceipt.Item
+	if err := r.DB.WithContext(ctx).
+		Table("duplicate_receipt_items dri").
+		Select("dri.id, dri.duplicate_receipt_id, dri.product_id, pro.name AS product_name, unt.name AS unit_name, dri.price, dri.qty, dri.sub_total").
+		Joins("LEFT JOIN products pro ON pro.id = dri.product_id").
+		Joins("LEFT JOIN units unt ON unt.id = pro.unit_id").
+		Where("dri.id = ?", id).
+		Scan(&item).Error; err != nil {
+		return duplicatereceipt.Item{}, err
+	}
+	if item.ID == "" {
+		return duplicatereceipt.Item{}, gorm.ErrRecordNotFound
+	}
+	return item, nil
+}
+
+func (r Repositories) CreateDuplicateReceiptItem(ctx context.Context, item duplicatereceipt.Item) error {
+	return r.DB.WithContext(ctx).Create(&DuplicateReceiptItemModel{ID: item.ID, DuplicateReceiptID: item.DuplicateReceiptID, ProductID: item.ProductID, Price: item.Price, Qty: item.Qty, SubTotal: item.SubTotal}).Error
+}
+
+func (r Repositories) UpdateDuplicateReceiptItem(ctx context.Context, item duplicatereceipt.Item) error {
+	return r.DB.WithContext(ctx).Model(&DuplicateReceiptItemModel{}).Where("id = ?", item.ID).Updates(map[string]any{"product_id": item.ProductID, "price": item.Price, "qty": item.Qty, "sub_total": item.SubTotal}).Error
+}
+
+func (r Repositories) DeleteDuplicateReceiptItem(ctx context.Context, id string) error {
+	return r.DB.WithContext(ctx).Where("id = ?", id).Delete(&DuplicateReceiptItemModel{}).Error
+}
+
 func (r Repositories) DeleteDuplicateReceipt(ctx context.Context, branchID, id string) error {
 	return r.DB.WithContext(ctx).Where("id = ? AND branch_id = ?", id, branchID).Delete(&DuplicateReceiptModel{}).Error
 }
@@ -1925,6 +1954,15 @@ func (t txRepo) CreateDuplicateReceiptItems(ctx context.Context, items []duplica
 		models = append(models, DuplicateReceiptItemModel{ID: item.ID, DuplicateReceiptID: item.DuplicateReceiptID, ProductID: item.ProductID, Price: item.Price, Qty: item.Qty, SubTotal: item.SubTotal})
 	}
 	return t.tx.WithContext(ctx).Create(&models).Error
+}
+func (t txRepo) CreateDuplicateReceiptItem(ctx context.Context, item duplicatereceipt.Item) error {
+	return t.tx.WithContext(ctx).Create(&DuplicateReceiptItemModel{ID: item.ID, DuplicateReceiptID: item.DuplicateReceiptID, ProductID: item.ProductID, Price: item.Price, Qty: item.Qty, SubTotal: item.SubTotal}).Error
+}
+func (t txRepo) UpdateDuplicateReceiptItem(ctx context.Context, item duplicatereceipt.Item) error {
+	return t.tx.WithContext(ctx).Model(&DuplicateReceiptItemModel{}).Where("id = ?", item.ID).Updates(map[string]any{"product_id": item.ProductID, "price": item.Price, "qty": item.Qty, "sub_total": item.SubTotal}).Error
+}
+func (t txRepo) DeleteDuplicateReceiptItem(ctx context.Context, id string) error {
+	return t.tx.WithContext(ctx).Where("id = ?", id).Delete(&DuplicateReceiptItemModel{}).Error
 }
 func (t txRepo) DeleteDuplicateReceipt(ctx context.Context, branchID, id string) error {
 	return t.tx.WithContext(ctx).Where("id = ? AND branch_id = ?", id, branchID).Delete(&DuplicateReceiptModel{}).Error

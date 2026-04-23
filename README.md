@@ -302,7 +302,11 @@ Api Apotek (Implemented)
 │       ├── Post - /api/duplicate-receipts
 │       ├── Get - /api/duplicate-receipts/:id
 │       ├── Put - /api/duplicate-receipts/:id
-│       └── Delete - /api/duplicate-receipts/:id
+│       ├── Delete - /api/duplicate-receipts/:id
+│       ├── Get - /api/duplicate-receipts-items/all/:id
+│       ├── Post - /api/duplicate-receipts-items
+│       ├── Put - /api/duplicate-receipts-items/:id
+│       └── Delete - /api/duplicate-receipts-items/:id
 ├── Audits/
 │   ├── First Stocks/
 │   │   ├── Get - /api/first-stocks
@@ -348,12 +352,16 @@ Beberapa milestone parity yang sudah lebih matang di repo ini sekarang mencakup:
 - transaksi `purchases` dan `sales` berikut item CRUD dan export baseline
 - `buy returns` dan `sale returns` berikut combo sumber transaksi dan export baseline
 - `first stocks` berikut header/item flow dan export baseline
-- `duplicate receipts` Batch 1 sebagai **sale-like transaction** berbasis resep dokter / kopi resep, dengan endpoint header CRUD:
+- `duplicate receipts` sebagai **sale-like transaction** berbasis resep dokter / kopi resep, dengan implementasi saat ini mencakup header CRUD + item CRUD:
   - `GET /api/duplicate-receipts`
   - `POST /api/duplicate-receipts`
   - `GET /api/duplicate-receipts/:id`
   - `PUT /api/duplicate-receipts/:id`
   - `DELETE /api/duplicate-receipts/:id`
+  - `GET /api/duplicate-receipts-items/all/:id`
+  - `POST /api/duplicate-receipts-items`
+  - `PUT /api/duplicate-receipts-items/:id`
+  - `DELETE /api/duplicate-receipts-items/:id`
 
 Untuk detail request/response dan status next batch, lihat `docs/api-implemented-endpoints.md` dan `docs/implemented-vs-next-target.md`.
 

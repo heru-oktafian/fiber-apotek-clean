@@ -93,3 +93,14 @@ type UpdateRequest struct {
 	Description *string `json:"description"`
 	Payment     string  `json:"payment"`
 }
+
+type CreateItemRequest struct {
+	DuplicateReceiptID string `json:"duplicate_receipt_id" validate:"required"`
+	ProductID          string `json:"product_id" validate:"required"`
+	Qty                int    `json:"qty" validate:"required,min=1"`
+}
+
+type UpdateItemRequest struct {
+	ProductID string `json:"product_id" validate:"required"`
+	Qty       int    `json:"qty" validate:"required,min=1"`
+}

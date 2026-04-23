@@ -269,7 +269,11 @@ Script di atas akan menjalankan urutan:
 - create duplicate receipt
 - list duplicate receipts
 - get detail duplicate receipt
+- list duplicate receipt items
+- create item duplicate receipt
+- update item duplicate receipt
 - update header duplicate receipt
+- delete item duplicate receipt
 - delete duplicate receipt
 - cek stock produk setelah delete
 - logout
@@ -325,6 +329,49 @@ curl -s "$BASE_URL/api/duplicate-receipts/$DUPLICATE_RECEIPT_ID" \
   -H "Authorization: Bearer $TOKEN" | jq
 ```
 
+### List duplicate receipt items
+
+```bash
+curl -s "$BASE_URL/api/duplicate-receipts-items/all/$DUPLICATE_RECEIPT_ID" \
+  -H "Authorization: Bearer $TOKEN" | jq
+```
+
+### Create duplicate receipt item
+
+```bash
+curl -s -X POST "$BASE_URL/api/duplicate-receipts-items" \
+  -H 'Content-Type: application/json' \
+  -H "Authorization: Bearer $TOKEN" \
+  -d "{
+    \"duplicate_receipt_id\": \"$DUPLICATE_RECEIPT_ID\",
+    \"product_id\": \"$PRODUCT_ID\",
+    \"qty\": 1
+  }" | jq
+```
+
+Expected:
+- HTTP 200
+- item duplicate receipt bertambah atau merge ke item produk yang sama
+- stock turun
+- total/profit header ikut naik
+
+### Update duplicate receipt item
+
+```bash
+curl -s -X PUT "$BASE_URL/api/duplicate-receipts-items/$ITEM_ID" \
+  -H 'Content-Type: application/json' \
+  -H "Authorization: Bearer $TOKEN" \
+  -d "{
+    \"product_id\": \"$PRODUCT_ID\",
+    \"qty\": 2
+  }" | jq
+```
+
+Expected:
+- HTTP 200
+- qty item berubah
+- delta stock dan recalculation total/profit ikut sinkron
+
 ### Update header duplicate receipt
 
 ```bash
@@ -342,6 +389,19 @@ Expected:
 - HTTP 200
 - field header berubah
 - total/profit tetap konsisten dari item tersimpan
+
+### Delete duplicate receipt item
+
+```bash
+curl -s -X DELETE "$BASE_URL/api/duplicate-receipts-items/$ITEM_ID" \
+  -H "Authorization: Bearer $TOKEN" | jq
+```
+
+Expected:
+- HTTP 200
+- item terhapus
+- stock rollback sesuai qty item
+- total/profit header ikut turun
 
 ### Delete duplicate receipt
 

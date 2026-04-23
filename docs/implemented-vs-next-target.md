@@ -300,19 +300,23 @@ Tujuannya sederhana:
 - `GET /api/duplicate-receipts/:id`
 - `PUT /api/duplicate-receipts/:id`
 - `DELETE /api/duplicate-receipts/:id`
+- `GET /api/duplicate-receipts-items/all/:id`
+- `POST /api/duplicate-receipts-items`
+- `PUT /api/duplicate-receipts-items/:id`
+- `DELETE /api/duplicate-receipts-items/:id`
 
 **Catatan parity penting:**
 - duplicate receipt diperlakukan sebagai sale-like transaction dengan konteks resep dokter / kopi resep
 - harga item diambil server-side dari `products.sales_price`
-- create dan delete header saat ini sudah memakai transaction boundary untuk menjaga stock/report tetap atomik
-- update saat ini masih fokus pada header, belum item CRUD terpisah
+- create/delete header sudah memakai transaction boundary untuk menjaga stock/report tetap atomik
+- item create/update/delete sekarang juga sudah ikut menjaga stock, total/profit header, transaction report, dan daily profit
+- item flow Batch 2 sudah dibungkus transaction safety
 
 **Next target:**
-- item CRUD duplicate receipt
-- endpoint detail/list item parity (`/api/duplicate-receipts-items/all/:id`)
 - evaluasi endpoint detail/report-ish (`/api/duplicate-receipts-details`)
 - export excel/pdf header dan item
 - validasi runtime end-to-end duplicate receipt flow
+- smoke test khusus Batch 2 item flow
 
 ---
 

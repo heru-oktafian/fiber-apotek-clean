@@ -153,7 +153,11 @@ Api Apotek (Implemented)
 │       ├── Post - /api/duplicate-receipts
 │       ├── Get - /api/duplicate-receipts/:id
 │       ├── Put - /api/duplicate-receipts/:id
-│       └── Delete - /api/duplicate-receipts/:id
+│       ├── Delete - /api/duplicate-receipts/:id
+│       ├── Get - /api/duplicate-receipts-items/all/:id
+│       ├── Post - /api/duplicate-receipts-items
+│       ├── Put - /api/duplicate-receipts-items/:id
+│       └── Delete - /api/duplicate-receipts-items/:id
 ├── Audits/
 │   ├── First Stocks/
 │   │   ├── Get - /api/first-stocks
@@ -2306,6 +2310,82 @@ Authorization: Bearer <TOKEN_2>
 
 ---
 
+### GET `/api/duplicate-receipts-items/all/:id`
+**Header:**
+```http
+Authorization: Bearer <TOKEN_2>
+```
+
+**Path param:**
+- `id` = ID duplicate receipt
+
+**Catatan:**
+- mengembalikan item duplicate receipt lengkap dengan nama produk dan unit
+
+---
+
+### POST `/api/duplicate-receipts-items`
+**Header:**
+```http
+Content-Type: application/json
+Authorization: Bearer <TOKEN_2>
+```
+
+**Body contoh:**
+```json
+{
+  "duplicate_receipt_id": "DUR250423000001",
+  "product_id": "PRD25050451578",
+  "qty": 1
+}
+```
+
+**Catatan:**
+- harga dan subtotal item dihitung server-side
+- create item ikut mengubah stok, total header, profit header, transaction report, dan daily profit
+- create item sekarang sudah dibungkus transaction safety
+
+---
+
+### PUT `/api/duplicate-receipts-items/:id`
+**Header:**
+```http
+Content-Type: application/json
+Authorization: Bearer <TOKEN_2>
+```
+
+**Path param:**
+- `id` = ID duplicate receipt item
+
+**Body contoh:**
+```json
+{
+  "product_id": "PRD25050451578",
+  "qty": 2
+}
+```
+
+**Catatan:**
+- update item menghitung ulang delta stok dan recalculation total/profit header
+- update item sekarang sudah dibungkus transaction safety
+
+---
+
+### DELETE `/api/duplicate-receipts-items/:id`
+**Header:**
+```http
+Authorization: Bearer <TOKEN_2>
+```
+
+**Path param:**
+- `id` = ID duplicate receipt item
+
+**Catatan:**
+- delete item melakukan rollback stok lalu sinkronkan ulang total/profit/report
+- delete item sekarang sudah dibungkus transaction safety
+
+---
+
 ## 15. Opnames
 
 ### POST `/api/opnames`
@@ -2470,6 +2550,10 @@ Authorization: Bearer <TOKEN_2>
 - `GET /api/duplicate-receipts/:id`
 - `PUT /api/duplicate-receipts/:id`
 - `DELETE /api/duplicate-receipts/:id`
+- `GET /api/duplicate-receipts-items/all/:id`
+- `POST /api/duplicate-receipts-items`
+- `PUT /api/duplicate-receipts-items/:id`
+- `DELETE /api/duplicate-receipts-items/:id`
 - `POST /api/opnames`
 - `GET /api/opnames/:id`
 - `POST /api/opname-items`

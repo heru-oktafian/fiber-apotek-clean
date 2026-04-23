@@ -121,6 +121,10 @@ type Dependencies struct {
 		Create(*fiber.Ctx) error
 		Update(*fiber.Ctx) error
 		Delete(*fiber.Ctx) error
+		ListItems(*fiber.Ctx) error
+		CreateItem(*fiber.Ctx) error
+		UpdateItem(*fiber.Ctx) error
+		DeleteItem(*fiber.Ctx) error
 	}
 	Purchase interface {
 		List(*fiber.Ctx) error
@@ -289,6 +293,10 @@ func Register(app *fiber.App, deps Dependencies) {
 	app.Get("/api/duplicate-receipts/:id", deps.AuthMiddleware, deps.DuplicateReceipt.GetByID)
 	app.Put("/api/duplicate-receipts/:id", deps.AuthMiddleware, deps.DuplicateReceipt.Update)
 	app.Delete("/api/duplicate-receipts/:id", deps.AuthMiddleware, deps.DuplicateReceipt.Delete)
+	app.Get("/api/duplicate-receipts-items/all/:id", deps.AuthMiddleware, deps.DuplicateReceipt.ListItems)
+	app.Post("/api/duplicate-receipts-items", deps.AuthMiddleware, deps.DuplicateReceipt.CreateItem)
+	app.Put("/api/duplicate-receipts-items/:id", deps.AuthMiddleware, deps.DuplicateReceipt.UpdateItem)
+	app.Delete("/api/duplicate-receipts-items/:id", deps.AuthMiddleware, deps.DuplicateReceipt.DeleteItem)
 	app.Get("/api/first-stocks/excel", deps.AuthMiddleware, deps.Export.FirstStocksExcel)
 	app.Get("/api/first-stocks/pdf", deps.AuthMiddleware, deps.Export.FirstStocksPDF)
 	app.Post("/api/first-stocks", deps.AuthMiddleware, deps.FirstStock.Create)
