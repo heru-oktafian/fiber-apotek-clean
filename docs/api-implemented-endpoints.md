@@ -100,6 +100,14 @@ Api Apotek (Implemented)
 │   │       ├── Delete - /api/member-categories/:id
 │   │       └── Get - /api/member-categories-combo
 ├── Transactions/
+│   ├── Buy Returns/
+│   │   ├── Get - /api/buy-returns
+│   │   ├── Post - /api/buy-returns
+│   │   └── Get - /api/buy-returns/:id
+│   ├── Sale Returns/
+│   │   ├── Get - /api/sale-returns
+│   │   ├── Post - /api/sale-returns
+│   │   └── Get - /api/sale-returns/:id
 │   ├── Purchases/
 │   │   ├── Get - /api/purchases
 │   │   ├── Get - /api/purchases/excel
@@ -1280,6 +1288,104 @@ Content-Type: application/json
 ---
 
 ### DELETE `/api/expenses/:id`
+**Header:**
+```http
+Authorization: Bearer <TOKEN_2>
+```
+
+---
+
+### GET `/api/buy-returns`
+**Header:**
+```http
+Authorization: Bearer <TOKEN_2>
+```
+
+**Query:**
+- `search` (opsional)
+- `month` (opsional, format `YYYY-MM`)
+- `page` (opsional, default `1`)
+- `limit` (opsional, default `10`)
+
+---
+
+### POST `/api/buy-returns`
+**Header:**
+```http
+Authorization: Bearer <TOKEN_2>
+Content-Type: application/json
+```
+
+**Body:**
+```json
+{
+  "buy_return": {
+    "purchase_id": "PURxxxx",
+    "return_date": "2026-04-23",
+    "payment": "paid_by_cash"
+  },
+  "buy_return_items": [
+    {
+      "product_id": "PRDxxxx",
+      "qty": 1,
+      "expired_date": "2026-12-31"
+    }
+  ]
+}
+```
+
+---
+
+### GET `/api/buy-returns/:id`
+**Header:**
+```http
+Authorization: Bearer <TOKEN_2>
+```
+
+---
+
+### GET `/api/sale-returns`
+**Header:**
+```http
+Authorization: Bearer <TOKEN_2>
+```
+
+**Query:**
+- `search` (opsional)
+- `month` (opsional, format `YYYY-MM`)
+- `page` (opsional, default `1`)
+- `limit` (opsional, default `10`)
+
+---
+
+### POST `/api/sale-returns`
+**Header:**
+```http
+Authorization: Bearer <TOKEN_2>
+Content-Type: application/json
+```
+
+**Body:**
+```json
+{
+  "sale_return": {
+    "sale_id": "SALxxxx",
+    "return_date": "2026-04-23",
+    "payment": "paid_by_cash"
+  },
+  "sale_return_items": [
+    {
+      "product_id": "PRDxxxx",
+      "qty": 1,
+      "expired_date": "2026-12-31"
+    }
+  ]
+}
+```
+
+---
+
+### GET `/api/sale-returns/:id`
 **Header:**
 ```http
 Authorization: Bearer <TOKEN_2>

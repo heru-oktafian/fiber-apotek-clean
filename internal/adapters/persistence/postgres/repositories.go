@@ -11,6 +11,7 @@ import (
 	"github.com/heru-oktafian/fiber-apotek-clean/internal/domain/anotherincome"
 	"github.com/heru-oktafian/fiber-apotek-clean/internal/domain/auth"
 	"github.com/heru-oktafian/fiber-apotek-clean/internal/domain/branch"
+	"github.com/heru-oktafian/fiber-apotek-clean/internal/domain/buyreturn"
 	"github.com/heru-oktafian/fiber-apotek-clean/internal/domain/common"
 	"github.com/heru-oktafian/fiber-apotek-clean/internal/domain/expense"
 	"github.com/heru-oktafian/fiber-apotek-clean/internal/domain/firststock"
@@ -21,6 +22,7 @@ import (
 	"github.com/heru-oktafian/fiber-apotek-clean/internal/domain/productcategory"
 	"github.com/heru-oktafian/fiber-apotek-clean/internal/domain/purchase"
 	"github.com/heru-oktafian/fiber-apotek-clean/internal/domain/sale"
+	"github.com/heru-oktafian/fiber-apotek-clean/internal/domain/salereturn"
 	"github.com/heru-oktafian/fiber-apotek-clean/internal/domain/supplier"
 	"github.com/heru-oktafian/fiber-apotek-clean/internal/domain/suppliercategory"
 	"github.com/heru-oktafian/fiber-apotek-clean/internal/domain/unit"
@@ -1003,6 +1005,98 @@ func (r Repositories) DeletePurchaseHeader(ctx context.Context, branchID, id str
 	return r.DB.WithContext(ctx).Where("id = ? AND branch_id = ?", id, branchID).Delete(&PurchaseModel{}).Error
 }
 
+func (r Repositories) FindPurchaseItemByPurchaseAndProduct(ctx context.Context, purchaseID, productID string) (purchase.Item, error) {
+	var m PurchaseItemModel
+	if err := r.DB.WithContext(ctx).Where("purchase_id = ? AND product_id = ?", purchaseID, productID).First(&m).Error; err != nil {
+		return purchase.Item{}, err
+	}
+	return purchase.Item{ID: m.ID, PurchaseID: m.PurchaseID, ProductID: m.ProductID, UnitID: m.UnitID, Price: m.Price, Qty: m.Qty, SubTotal: m.SubTotal, ExpiredDate: m.ExpiredDate}, nil
+}
+
+func (r Repositories) SumBuyReturnedQty(ctx context.Context, purchaseID, productID string) (int, error) {
+	var total int64
+	err := r.DB.WithContext(ctx).Model(&BuyReturnItemModel{}).
+		Select("COALESCE(SUM(qty), 0)").
+		Where("product_id = ? AND buy_return_id IN (SELECT id FROM buy_returns WHERE purchase_id = ?)", productID, purchaseID).
+		Scan(&total).Error
+	return int(total), err
+}
+
+func (r Repositories) ListBuyReturns(ctx context.Context, branchID string, req buyreturn.ListRequest) (buyreturn.ListResult, error) {
+	query := r.DB.WithContext(ctx).Table("buy_returns br").Select("br.id, br.purchase_id, br.return_date, br.total_return, br.payment").Where("br.branch_id = ?", branchID)
+	if req.Search != "" {
+		like := "%" + strings.TrimSpace(strings.ToLower(req.Search)) + "%"
+		query = query.Where("LOWER(br.purchase_id) LIKE ?", like)
+	}
+	if req.Month != "" {
+		if parsed, err := time.Parse("2006-01", req.Month); err == nil {
+			query = query.Where("br.return_date >= ? AND br.return_date < ?", parsed, parsed.AddDate(0, 1, 0))
+		}
+	}
+	var total int64
+	if err := query.Count(&total).Error; err != nil {
+		return buyreturn.ListResult{}, err
+	}
+	var rows []struct {
+		ID          string
+		PurchaseID  string
+		ReturnDate  time.Time
+		TotalReturn int
+		Payment     string
+	}
+	offset := (req.Page - 1) * req.Limit
+	if err := query.Order("br.created_at DESC").Offset(offset).Limit(req.Limit).Scan(&rows).Error; err != nil {
+		return buyreturn.ListResult{}, err
+	}
+	items := make([]buyreturn.ListItem, 0, len(rows))
+	for _, row := range rows {
+		items = append(items, buyreturn.ListItem{ID: row.ID, PurchaseID: row.PurchaseID, ReturnDate: row.ReturnDate.Format("02 January 2006"), TotalReturn: row.TotalReturn, Payment: row.Payment})
+	}
+	lastPage := 1
+	if req.Limit > 0 {
+		lastPage = int((total + int64(req.Limit) - 1) / int64(req.Limit))
+		if lastPage == 0 {
+			lastPage = 1
+		}
+	}
+	return buyreturn.ListResult{Items: items, Meta: buyreturn.ListMeta{Page: req.Page, Limit: req.Limit, Search: req.Search, Month: req.Month, TotalData: int(total), LastPage: lastPage}}, nil
+}
+
+func (r Repositories) FindBuyReturnByID(ctx context.Context, branchID, id string) (buyreturn.BuyReturn, error) {
+	var m BuyReturnModel
+	if err := r.DB.WithContext(ctx).Where("id = ? AND branch_id = ?", id, branchID).First(&m).Error; err != nil {
+		return buyreturn.BuyReturn{}, err
+	}
+	return buyreturn.BuyReturn{ID: m.ID, PurchaseID: m.PurchaseID, ReturnDate: m.ReturnDate, BranchID: m.BranchID, UserID: m.UserID, Payment: m.Payment, TotalReturn: m.TotalReturn, CreatedAt: m.CreatedAt, UpdatedAt: m.UpdatedAt}, nil
+}
+
+func (r Repositories) FindBuyReturnItems(ctx context.Context, buyReturnID string) ([]buyreturn.Item, error) {
+	var items []buyreturn.Item
+	if err := r.DB.WithContext(ctx).
+		Table("buy_return_items bri").
+		Select("bri.id, bri.buy_return_id, bri.product_id, pro.name AS product_name, pro.unit_id AS unit_id, un.name AS unit_name, bri.price, bri.qty, bri.sub_total, bri.expired_date").
+		Joins("LEFT JOIN products pro ON pro.id = bri.product_id").
+		Joins("LEFT JOIN units un ON un.id = pro.unit_id").
+		Where("bri.buy_return_id = ?", buyReturnID).
+		Order("pro.name ASC").
+		Scan(&items).Error; err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+func (r Repositories) CreateBuyReturn(ctx context.Context, item buyreturn.BuyReturn) error {
+	return r.DB.WithContext(ctx).Create(&BuyReturnModel{ID: item.ID, PurchaseID: item.PurchaseID, ReturnDate: item.ReturnDate, BranchID: item.BranchID, TotalReturn: item.TotalReturn, Payment: item.Payment, UserID: item.UserID, CreatedAt: item.CreatedAt, UpdatedAt: item.UpdatedAt}).Error
+}
+
+func (r Repositories) CreateBuyReturnItems(ctx context.Context, items []buyreturn.Item) error {
+	models := make([]BuyReturnItemModel, 0, len(items))
+	for _, item := range items {
+		models = append(models, BuyReturnItemModel{ID: item.ID, BuyReturnID: item.BuyReturnID, ProductID: item.ProductID, Price: item.Price, Qty: item.Qty, SubTotal: item.SubTotal, ExpiredDate: item.ExpiredDate})
+	}
+	return r.DB.WithContext(ctx).Create(&models).Error
+}
+
 func (r Repositories) WithinTransaction(ctx context.Context, fn func(repo ports.PurchaseTxRepository) error) error {
 	return r.DB.WithContext(ctx).Transaction(func(tx *gorm.DB) error { return fn(txRepo{tx: tx}) })
 }
@@ -1097,6 +1191,102 @@ func (r Repositories) FindSaleDetail(ctx context.Context, branchID, id string) (
 		return sale.Detail{}, err
 	}
 	return sale.Detail{ID: header.ID, MemberID: header.MemberID, MemberName: header.MemberName, SaleDate: header.SaleDate.Format("02 January 2006"), TotalSale: header.TotalSale, Discount: header.Discount, ProfitEstimate: header.ProfitEstimate, Payment: header.Payment, Cashier: header.Cashier, Items: items}, nil
+}
+
+func (r Repositories) FindSaleItemBySaleAndProduct(ctx context.Context, saleID, productID string) (sale.Item, error) {
+	var m SaleItemModel
+	if err := r.DB.WithContext(ctx).Where("sale_id = ? AND product_id = ?", saleID, productID).First(&m).Error; err != nil {
+		return sale.Item{}, err
+	}
+	return sale.Item{ID: m.ID, SaleID: m.SaleID, ProductID: m.ProductID, Price: m.Price, Qty: m.Qty, SubTotal: m.SubTotal}, nil
+}
+
+func (r Repositories) SumSaleReturnedQty(ctx context.Context, saleID, productID string) (int, error) {
+	var total int64
+	err := r.DB.WithContext(ctx).Model(&SaleReturnItemModel{}).
+		Select("COALESCE(SUM(qty), 0)").
+		Where("product_id = ? AND sale_return_id IN (SELECT id FROM sale_returns WHERE sale_id = ?)", productID, saleID).
+		Scan(&total).Error
+	return int(total), err
+}
+
+func (r Repositories) ListSaleReturns(ctx context.Context, branchID string, req salereturn.ListRequest) (salereturn.ListResult, error) {
+	query := r.DB.WithContext(ctx).Table("sale_returns sr").Select("sr.id, sr.sale_id, sr.return_date, sr.total_return, sr.payment").Where("sr.branch_id = ?", branchID)
+	if req.Search != "" {
+		like := "%" + strings.TrimSpace(strings.ToLower(req.Search)) + "%"
+		query = query.Where("LOWER(sr.sale_id) LIKE ?", like)
+	}
+	if req.Month != "" {
+		if parsed, err := time.Parse("2006-01", req.Month); err == nil {
+			query = query.Where("sr.return_date >= ? AND sr.return_date < ?", parsed, parsed.AddDate(0, 1, 0))
+		}
+	}
+	var total int64
+	if err := query.Count(&total).Error; err != nil {
+		return salereturn.ListResult{}, err
+	}
+	var rows []struct {
+		ID          string
+		SaleID      string
+		ReturnDate  time.Time
+		TotalReturn int
+		Payment     string
+	}
+	offset := (req.Page - 1) * req.Limit
+	if err := query.Order("sr.created_at DESC").Offset(offset).Limit(req.Limit).Scan(&rows).Error; err != nil {
+		return salereturn.ListResult{}, err
+	}
+	items := make([]salereturn.ListItem, 0, len(rows))
+	for _, row := range rows {
+		items = append(items, salereturn.ListItem{ID: row.ID, SaleID: row.SaleID, ReturnDate: row.ReturnDate.Format("02 January 2006"), TotalReturn: row.TotalReturn, Payment: row.Payment})
+	}
+	lastPage := 1
+	if req.Limit > 0 {
+		lastPage = int((total + int64(req.Limit) - 1) / int64(req.Limit))
+		if lastPage == 0 {
+			lastPage = 1
+		}
+	}
+	return salereturn.ListResult{Items: items, Meta: salereturn.ListMeta{Page: req.Page, Limit: req.Limit, Search: req.Search, Month: req.Month, TotalData: int(total), LastPage: lastPage}}, nil
+}
+
+func (r Repositories) FindSaleReturnByID(ctx context.Context, branchID, id string) (salereturn.SaleReturn, error) {
+	var m SaleReturnModel
+	if err := r.DB.WithContext(ctx).Where("id = ? AND branch_id = ?", id, branchID).First(&m).Error; err != nil {
+		return salereturn.SaleReturn{}, err
+	}
+	return salereturn.SaleReturn{ID: m.ID, SaleID: m.SaleID, ReturnDate: m.ReturnDate, BranchID: m.BranchID, UserID: m.UserID, Payment: m.Payment, TotalReturn: m.TotalReturn, CreatedAt: m.CreatedAt, UpdatedAt: m.UpdatedAt}, nil
+}
+
+func (r Repositories) FindSaleReturnItems(ctx context.Context, saleReturnID string) ([]salereturn.Item, error) {
+	var items []salereturn.Item
+	if err := r.DB.WithContext(ctx).
+		Table("sale_return_items sri").
+		Select("sri.id, sri.sale_return_id, sri.product_id, pro.name AS product_name, pro.unit_id AS unit_id, un.name AS unit_name, sri.price, sri.qty, sri.sub_total, sri.expired_date").
+		Joins("LEFT JOIN products pro ON pro.id = sri.product_id").
+		Joins("LEFT JOIN units un ON un.id = pro.unit_id").
+		Where("sri.sale_return_id = ?", saleReturnID).
+		Order("pro.name ASC").
+		Scan(&items).Error; err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+func (r Repositories) CreateSaleReturn(ctx context.Context, item salereturn.SaleReturn) error {
+	return r.DB.WithContext(ctx).Create(&SaleReturnModel{ID: item.ID, SaleID: item.SaleID, ReturnDate: item.ReturnDate, BranchID: item.BranchID, TotalReturn: item.TotalReturn, Payment: item.Payment, UserID: item.UserID, CreatedAt: item.CreatedAt, UpdatedAt: item.UpdatedAt}).Error
+}
+
+func (r Repositories) CreateSaleReturnItems(ctx context.Context, items []salereturn.Item) error {
+	models := make([]SaleReturnItemModel, 0, len(items))
+	for _, item := range items {
+		models = append(models, SaleReturnItemModel{ID: item.ID, SaleReturnID: item.SaleReturnID, ProductID: item.ProductID, Price: item.Price, Qty: item.Qty, SubTotal: item.SubTotal, ExpiredDate: item.ExpiredDate})
+	}
+	return r.DB.WithContext(ctx).Create(&models).Error
+}
+
+func (r Repositories) CreateTransactionReport(ctx context.Context, id string, txType string, userID string, branchID string, total int, payment string, createdAt time.Time) error {
+	return r.DB.WithContext(ctx).Create(&TransactionReportModel{ID: id, TransactionType: txType, UserID: userID, BranchID: branchID, Total: total, Payment: payment, CreatedAt: createdAt, UpdatedAt: createdAt}).Error
 }
 
 func (r Repositories) CreateSaleItem(ctx context.Context, item sale.Item) error {

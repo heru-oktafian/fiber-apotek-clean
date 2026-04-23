@@ -237,6 +237,58 @@ type FirstStockItemModel struct {
 
 func (FirstStockItemModel) TableName() string { return "first_stock_items" }
 
+type BuyReturnModel struct {
+	ID          string    `gorm:"column:id;primaryKey"`
+	PurchaseID  string    `gorm:"column:purchase_id"`
+	ReturnDate  time.Time `gorm:"column:return_date"`
+	BranchID    string    `gorm:"column:branch_id"`
+	TotalReturn int       `gorm:"column:total_return"`
+	Payment     string    `gorm:"column:payment"`
+	UserID      string    `gorm:"column:user_id"`
+	CreatedAt   time.Time `gorm:"column:created_at"`
+	UpdatedAt   time.Time `gorm:"column:updated_at"`
+}
+
+func (BuyReturnModel) TableName() string { return "buy_returns" }
+
+type BuyReturnItemModel struct {
+	ID          string    `gorm:"column:id;primaryKey"`
+	BuyReturnID string    `gorm:"column:buy_return_id"`
+	ProductID   string    `gorm:"column:product_id"`
+	Price       int       `gorm:"column:price"`
+	Qty         int       `gorm:"column:qty"`
+	SubTotal    int       `gorm:"column:sub_total"`
+	ExpiredDate time.Time `gorm:"column:expired_date"`
+}
+
+func (BuyReturnItemModel) TableName() string { return "buy_return_items" }
+
+type SaleReturnModel struct {
+	ID          string    `gorm:"column:id;primaryKey"`
+	SaleID      string    `gorm:"column:sale_id"`
+	ReturnDate  time.Time `gorm:"column:return_date"`
+	BranchID    string    `gorm:"column:branch_id"`
+	TotalReturn int       `gorm:"column:total_return"`
+	Payment     string    `gorm:"column:payment"`
+	UserID      string    `gorm:"column:user_id"`
+	CreatedAt   time.Time `gorm:"column:created_at"`
+	UpdatedAt   time.Time `gorm:"column:updated_at"`
+}
+
+func (SaleReturnModel) TableName() string { return "sale_returns" }
+
+type SaleReturnItemModel struct {
+	ID           string    `gorm:"column:id;primaryKey"`
+	SaleReturnID string    `gorm:"column:sale_return_id"`
+	ProductID    string    `gorm:"column:product_id"`
+	Price        int       `gorm:"column:price"`
+	Qty          int       `gorm:"column:qty"`
+	SubTotal     int       `gorm:"column:sub_total"`
+	ExpiredDate  time.Time `gorm:"column:expired_date"`
+}
+
+func (SaleReturnItemModel) TableName() string { return "sale_return_items" }
+
 type DailyProfitReportModel struct {
 	ID             string    `gorm:"column:id;primaryKey"`
 	ReportDate     time.Time `gorm:"column:report_date"`

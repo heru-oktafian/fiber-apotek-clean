@@ -26,6 +26,7 @@ import (
 	authusecase "github.com/heru-oktafian/fiber-apotek-clean/internal/usecase/auth"
 	anotherincomeusecase "github.com/heru-oktafian/fiber-apotek-clean/internal/usecase/anotherincome"
 	branchusecase "github.com/heru-oktafian/fiber-apotek-clean/internal/usecase/branch"
+	buyreturnusecase "github.com/heru-oktafian/fiber-apotek-clean/internal/usecase/buyreturn"
 	expenseusecase "github.com/heru-oktafian/fiber-apotek-clean/internal/usecase/expense"
 	firststockusecase "github.com/heru-oktafian/fiber-apotek-clean/internal/usecase/firststock"
 	opnameusecase "github.com/heru-oktafian/fiber-apotek-clean/internal/usecase/opname"
@@ -33,6 +34,7 @@ import (
 	productusecase "github.com/heru-oktafian/fiber-apotek-clean/internal/usecase/product"
 	productcategoryusecase "github.com/heru-oktafian/fiber-apotek-clean/internal/usecase/productcategory"
 	purchaseusecase "github.com/heru-oktafian/fiber-apotek-clean/internal/usecase/purchase"
+	salereturnusecase "github.com/heru-oktafian/fiber-apotek-clean/internal/usecase/salereturn"
 	saleusecase "github.com/heru-oktafian/fiber-apotek-clean/internal/usecase/sale"
 	supplierusecase "github.com/heru-oktafian/fiber-apotek-clean/internal/usecase/supplier"
 	suppliercategoryusecase "github.com/heru-oktafian/fiber-apotek-clean/internal/usecase/suppliercategory"
@@ -129,6 +131,8 @@ func New() (*App, error) {
 	anotherIncomeHandler := handlers.AnotherIncomeHandler{Service: anotherincomeusecase.Service{Repo: repos, IDs: ids, Clock: clk}}
 	expenseHandler := handlers.ExpenseHandler{Service: expenseusecase.Service{Repo: repos, IDs: ids, Clock: clk}}
 	firstStockHandler := handlers.FirstStockHandler{Service: firststockusecase.Service{Repo: repos, IDs: ids, Clock: clk}}
+	buyReturnHandler := handlers.BuyReturnHandler{Service: buyreturnusecase.Service{Repo: repos, IDs: ids, Clock: clk}}
+	saleReturnHandler := handlers.SaleReturnHandler{Service: salereturnusecase.Service{Repo: repos, IDs: ids, Clock: clk}}
 	purchaseHandler := handlers.PurchaseHandler{Service: purchaseusecase.Service{Repo: repos, IDs: ids, Clock: clk}}
 	saleHandler := handlers.SaleHandler{Service: saleusecase.Service{Repo: repos, IDs: ids, Clock: clk}}
 	opnameHandler := handlers.OpnameHandler{Service: opnameusecase.Service{Repo: repos, IDs: ids, Clock: clk}}
@@ -141,6 +145,6 @@ func New() (*App, error) {
 	app := fiber.New(fiber.Config{DisableStartupMessage: true, ReadTimeout: 30 * time.Second, WriteTimeout: 30 * time.Second})
 	app.Use(console.RequestLogger())
 	authMw := middleware.RequireAuth(jwtSvc, blacklist)
-	router.Register(app, router.Dependencies{Auth: authHandler, Branch: branchHandler, UserBranch: userBranchHandler, User: userHandler, Product: productHandler, Supplier: supplierHandler, Unit: unitHandler, ProductCategory: productCategoryHandler, SupplierCategory: supplierCategoryHandler, MemberCategory: memberCategoryHandler, AnotherIncome: anotherIncomeHandler, Expense: expenseHandler, FirstStock: firstStockHandler, Purchase: purchaseHandler, Sale: saleHandler, Opname: opnameHandler, Export: exportBundle{base: exportHandler, master: exportMasterHandler, transaction: exportTransactionHandler, finance: exportFinanceHandler, audit: exportAuditHandler}, AuthMiddleware: authMw})
+	router.Register(app, router.Dependencies{Auth: authHandler, Branch: branchHandler, UserBranch: userBranchHandler, User: userHandler, Product: productHandler, Supplier: supplierHandler, Unit: unitHandler, ProductCategory: productCategoryHandler, SupplierCategory: supplierCategoryHandler, MemberCategory: memberCategoryHandler, AnotherIncome: anotherIncomeHandler, Expense: expenseHandler, FirstStock: firstStockHandler, BuyReturn: buyReturnHandler, SaleReturn: saleReturnHandler, Purchase: purchaseHandler, Sale: saleHandler, Opname: opnameHandler, Export: exportBundle{base: exportHandler, master: exportMasterHandler, transaction: exportTransactionHandler, finance: exportFinanceHandler, audit: exportAuditHandler}, AuthMiddleware: authMw})
 	return &App{Fiber: app, Config: cfg}, nil
 }

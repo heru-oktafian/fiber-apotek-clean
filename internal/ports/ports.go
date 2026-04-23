@@ -7,6 +7,7 @@ import (
 	"github.com/heru-oktafian/fiber-apotek-clean/internal/domain/anotherincome"
 	"github.com/heru-oktafian/fiber-apotek-clean/internal/domain/auth"
 	"github.com/heru-oktafian/fiber-apotek-clean/internal/domain/branch"
+	"github.com/heru-oktafian/fiber-apotek-clean/internal/domain/buyreturn"
 	"github.com/heru-oktafian/fiber-apotek-clean/internal/domain/expense"
 	"github.com/heru-oktafian/fiber-apotek-clean/internal/domain/firststock"
 	"github.com/heru-oktafian/fiber-apotek-clean/internal/domain/member"
@@ -16,6 +17,7 @@ import (
 	"github.com/heru-oktafian/fiber-apotek-clean/internal/domain/productcategory"
 	"github.com/heru-oktafian/fiber-apotek-clean/internal/domain/purchase"
 	"github.com/heru-oktafian/fiber-apotek-clean/internal/domain/sale"
+	"github.com/heru-oktafian/fiber-apotek-clean/internal/domain/salereturn"
 	"github.com/heru-oktafian/fiber-apotek-clean/internal/domain/supplier"
 	"github.com/heru-oktafian/fiber-apotek-clean/internal/domain/suppliercategory"
 	"github.com/heru-oktafian/fiber-apotek-clean/internal/domain/unit"
@@ -193,6 +195,36 @@ type SaleTxRepository interface {
 	FindMember(ctx context.Context, memberID string) (member.Member, error)
 	FindMemberCategory(ctx context.Context, categoryID string) (member.MemberCategory, error)
 	UpdateMemberPoints(ctx context.Context, memberID string, points int) error
+}
+
+type BuyReturnRepository interface {
+	ListBuyReturns(ctx context.Context, branchID string, req buyreturn.ListRequest) (buyreturn.ListResult, error)
+	FindBuyReturnByID(ctx context.Context, branchID, id string) (buyreturn.BuyReturn, error)
+	FindBuyReturnItems(ctx context.Context, buyReturnID string) ([]buyreturn.Item, error)
+	CreateBuyReturn(ctx context.Context, item buyreturn.BuyReturn) error
+	CreateBuyReturnItems(ctx context.Context, items []buyreturn.Item) error
+	FindPurchaseByID(ctx context.Context, branchID, id string) (purchase.Purchase, error)
+	FindPurchaseItemByPurchaseAndProduct(ctx context.Context, purchaseID, productID string) (purchase.Item, error)
+	SumBuyReturnedQty(ctx context.Context, purchaseID, productID string) (int, error)
+	FindProductByID(ctx context.Context, id string) (product.Product, error)
+	FindUnit(ctx context.Context, id string) (unit.Unit, error)
+	FindConversion(ctx context.Context, productID, initID, finalID, branchID string) (unit.Conversion, error)
+	UpdateProduct(ctx context.Context, item product.Product) error
+	CreateTransactionReport(ctx context.Context, id string, txType string, userID string, branchID string, total int, payment string, createdAt time.Time) error
+}
+
+type SaleReturnRepository interface {
+	ListSaleReturns(ctx context.Context, branchID string, req salereturn.ListRequest) (salereturn.ListResult, error)
+	FindSaleReturnByID(ctx context.Context, branchID, id string) (salereturn.SaleReturn, error)
+	FindSaleReturnItems(ctx context.Context, saleReturnID string) ([]salereturn.Item, error)
+	CreateSaleReturn(ctx context.Context, item salereturn.SaleReturn) error
+	CreateSaleReturnItems(ctx context.Context, items []salereturn.Item) error
+	FindSaleByID(ctx context.Context, branchID, id string) (sale.Sale, error)
+	FindSaleItemBySaleAndProduct(ctx context.Context, saleID, productID string) (sale.Item, error)
+	SumSaleReturnedQty(ctx context.Context, saleID, productID string) (int, error)
+	FindProductByID(ctx context.Context, id string) (product.Product, error)
+	UpdateProduct(ctx context.Context, item product.Product) error
+	CreateTransactionReport(ctx context.Context, id string, txType string, userID string, branchID string, total int, payment string, createdAt time.Time) error
 }
 
 type AnotherIncomeRepository interface {

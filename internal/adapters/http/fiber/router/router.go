@@ -101,6 +101,16 @@ type Dependencies struct {
 		UpdateItem(*fiber.Ctx) error
 		DeleteItem(*fiber.Ctx) error
 	}
+	BuyReturn interface {
+		List(*fiber.Ctx) error
+		GetByID(*fiber.Ctx) error
+		Create(*fiber.Ctx) error
+	}
+	SaleReturn interface {
+		List(*fiber.Ctx) error
+		GetByID(*fiber.Ctx) error
+		Create(*fiber.Ctx) error
+	}
 	Purchase interface {
 		List(*fiber.Ctx) error
 		GetByID(*fiber.Ctx) error
@@ -237,6 +247,12 @@ func Register(app *fiber.App, deps Dependencies) {
 	app.Put("/api/expenses/:id", deps.AuthMiddleware, deps.Expense.Update)
 	app.Delete("/api/expenses/:id", deps.AuthMiddleware, deps.Expense.Delete)
 	app.Get("/api/first-stocks", deps.AuthMiddleware, deps.FirstStock.List)
+	app.Get("/api/buy-returns", deps.AuthMiddleware, deps.BuyReturn.List)
+	app.Post("/api/buy-returns", deps.AuthMiddleware, deps.BuyReturn.Create)
+	app.Get("/api/buy-returns/:id", deps.AuthMiddleware, deps.BuyReturn.GetByID)
+	app.Get("/api/sale-returns", deps.AuthMiddleware, deps.SaleReturn.List)
+	app.Post("/api/sale-returns", deps.AuthMiddleware, deps.SaleReturn.Create)
+	app.Get("/api/sale-returns/:id", deps.AuthMiddleware, deps.SaleReturn.GetByID)
 	app.Get("/api/first-stocks/excel", deps.AuthMiddleware, deps.Export.FirstStocksExcel)
 	app.Get("/api/first-stocks/pdf", deps.AuthMiddleware, deps.Export.FirstStocksPDF)
 	app.Post("/api/first-stocks", deps.AuthMiddleware, deps.FirstStock.Create)

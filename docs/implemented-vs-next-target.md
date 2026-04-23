@@ -261,12 +261,32 @@ Tujuannya sederhana:
 - refine visual export bila ingin makin mirip legacy
 - validasi runtime end-to-end
 
-### Duplicate Receipts / Buy Returns / Sale Returns
+### Buy Returns / Sale Returns
+**Implemented:**
+- `GET /api/buy-returns`
+- `POST /api/buy-returns`
+- `GET /api/buy-returns/:id`
+- `GET /api/sale-returns`
+- `POST /api/sale-returns`
+- `GET /api/sale-returns/:id`
+
+**Catatan parity penting:**
+- buy return mengurangi stok, sale return menambah stok
+- harga retur diambil dari item transaksi asal, bukan dari request client
+- guard qty retur terhadap histori retur sebelumnya sudah ditanam
+
+**Next target:**
+- combo sumber transaksi (`GET /api/cmb-purchases`, `GET /api/cmb-sales`)
+- combo item retur (`GET /api/cmb-prod-buy-returns`, `GET /api/cmb-prod-sale-returns`)
+- export returns bila memang tersedia di legacy
+
+### Duplicate Receipts
 **Implemented:**
 - belum ada
 
 **Next target:**
-- mulai bertahap setelah `another_incomes` dan `expenses` parity dasarnya selesai
+- audit kontrak legacy
+- tentukan parity batch awal
 
 ---
 
@@ -350,9 +370,10 @@ Tujuannya sederhana:
 
 Urutan yang paling sehat saat ini:
 
-1. **Returns / Duplicate Receipts**
-2. **Reports / Export lanjutan**
-3. **Refinement styling export parity**
+1. **Returns combo endpoints**
+2. **Duplicate Receipts**
+3. **Reports / Export lanjutan**
+4. **Refinement styling export parity**
 
 ---
 
